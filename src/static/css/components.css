@@ -345,8 +345,45 @@
     flex: 2;
 }
 
-.params-row .param-value {
+.params-row .param-value-container {
     flex: 3;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.params-row .param-value {
+    flex: 1;
+    padding-right: 24px;
+    /* Space for the arrow */
+}
+
+.combo-arrow {
+    position: absolute;
+    right: 6px;
+    color: #999;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 100%;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.combo-arrow:hover {
+    color: var(--accent-color);
+}
+
+/* Re-use and adapt dropdown styles for params grid */
+.params-row .dropdown-menu {
+    left: 0;
+    right: 0;
+    top: 100%;
+    min-width: unset;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .btn-add-param {

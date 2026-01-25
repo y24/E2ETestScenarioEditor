@@ -3,6 +3,11 @@ export class PropertiesPanel {
         this.panel = document.getElementById(panelId);
         this.currentStep = null;
         this.onUpdate = onUpdate; // callback when data changes
+        this.actionConfig = {};
+    }
+
+    setActionConfig(config) {
+        this.actionConfig = config;
     }
 
     render(step) {
@@ -25,8 +30,12 @@ export class PropertiesPanel {
                     <select id="prop-type" class="form-input">
                         <option value="system" ${step.type === 'system' ? 'selected' : ''}>System</option>
                         <option value="ui" ${step.type === 'ui' ? 'selected' : ''}>UI</option>
-                        <option value="verification" ${step.type === 'verification' ? 'selected' : ''}>Verification</option>
-                        <option value="other" ${step.type !== 'system' && step.type !== 'ui' && step.type !== 'verification' ? 'selected' : ''}>Other</option>
+                        <option value="web" ${step.type === 'web' ? 'selected' : ''}>Web</option>
+                        <option value="excel" ${step.type === 'excel' ? 'selected' : ''}>Excel</option>
+                        <option value="verify" ${step.type === 'verify' ? 'selected' : ''}>Verify</option>
+                        <option value="debug" ${step.type === 'debug' ? 'selected' : ''}>Debug</option>
+                        <option value="screenshot" ${step.type === 'screenshot' ? 'selected' : ''}>Screenshot</option>
+                        <option value="other" ${!this.actionConfig[step.type] && step.type !== 'screenshot' ? 'selected' : ''}>Other</option>
                     </select>
                 </div>
                 
@@ -78,10 +87,17 @@ export class PropertiesPanel {
         row.className = 'params-row';
 
         const valueStr = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : value;
+        const typeConfig = this.actionConfig[this.currentStep.type] || {};
 
         row.innerHTML = `
             <input type="text" class="form-input param-key" value="${key}" placeholder="Key">
-            <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value">
+            <div class="param-value-container">
+                <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value" autocomplete="off">
+                <div class="combo-arrow" title="選択肢を表示">
+                    <ion-icon name="chevron-down-outline"></ion-icon>
+                </div>
+                <div class="dropdown-menu"></div>
+            </div>
             <button class="btn-remove-param" title="削除">
                 <ion-icon name="trash-outline"></ion-icon>
             </button>
@@ -89,15 +105,73 @@ export class PropertiesPanel {
 
         const keyInput = row.querySelector('.param-key');
         const valInput = row.querySelector('.param-value');
+        const arrow = row.querySelector('.combo-arrow');
+        const menu = row.querySelector('.dropdown-menu');
         const delBtn = row.querySelector('.btn-remove-param');
 
-        keyInput.oninput = () => this.updateParamsFromGrid();
+        // Helper to update current suggestions/arrow based on current key
+        const updateArrowVisibility = () => {
+            const currentKey = keyInput.value.trim();
+            const suggestions = (this.actionConfig[this.currentStep.type] || {})[currentKey];
+            arrow.style.display = suggestions ? 'flex' : 'none';
+        };
+
+        const toggleDropdown = (show) => {
+            if (show) {
+                updateArrowVisibility(); // Ensure correct data in datalist context if it was dynamic, though here it's customized
+                const currentKey = keyInput.value.trim();
+                const suggestions = (this.actionConfig[this.currentStep.type] || {})[currentKey] || [];
+                if (suggestions.length === 0) return;
+
+                menu.innerHTML = suggestions.map(s => `
+                    <button class="dropdown-item" data-value="${s}">${s}</button>
+                `).join('');
+
+                menu.querySelectorAll('.dropdown-item').forEach(btn => {
+                    btn.onclick = () => {
+                        valInput.value = btn.dataset.value;
+                        this.updateParamsFromGrid();
+                        toggleDropdown(false);
+                    };
+                });
+                menu.classList.add('visible');
+            } else {
+                menu.classList.remove('visible');
+            }
+        };
+
+        // Events
+        keyInput.oninput = () => {
+            updateArrowVisibility();
+            this.updateParamsFromGrid();
+        };
+
+        arrow.onclick = (e) => {
+            e.stopPropagation();
+            const isVisible = menu.classList.contains('visible');
+            // Close all other menus first
+            document.querySelectorAll('.params-row .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+            toggleDropdown(!isVisible);
+        };
+
         valInput.oninput = () => this.updateParamsFromGrid();
+
+        // Close on click outside
+        const closeHandler = (e) => {
+            if (!row.contains(e.target)) {
+                toggleDropdown(false);
+            }
+        };
+        document.addEventListener('click', closeHandler);
+        // Store handler to clean up if needed (though PropertiesPanel renders often, it's safer)
+
         delBtn.onclick = () => {
+            document.removeEventListener('click', closeHandler);
             row.remove();
             this.updateParamsFromGrid();
         };
 
+        updateArrowVisibility();
         container.appendChild(row);
         return row;
     }
@@ -148,6 +222,7 @@ export class PropertiesPanel {
         // Type
         document.getElementById('prop-type').onchange = (e) => {
             this.currentStep.type = e.target.value;
+            this.renderParamsGrid(); // Refresh to update datalist associations
             this.emitUpdate();
         };
 
