@@ -12,7 +12,7 @@ export class TargetSelectorModal extends BaseModal {
         if (!document.getElementById(modalId)) {
             const modalHtml = `
             <div id="${modalId}" class="modal hidden">
-                <div class="modal-content" style="max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+                <div class="modal-content" style="max-height: 80vh; display: flex; flex-direction: column;">
                     <div class="modal-header">
                         <h2>Select Target</h2>
                         <span class="close-modal close-target-selector-modal">&times;</span>
