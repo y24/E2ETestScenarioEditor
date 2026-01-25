@@ -106,6 +106,7 @@ export class GroupManager {
                             id: itemId,
                             name: groupMeta.name || 'Group',
                             collapsed: !!groupMeta.collapsed,
+                            ignore: !!groupMeta.ignore,
                             items: groupSteps
                         });
                     }

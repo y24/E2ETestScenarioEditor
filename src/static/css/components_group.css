@@ -109,20 +109,27 @@
     background-color: rgba(255, 255, 255, 0.1);
     border-color: white;
 }
+
 /* Group Selection & States */
 .group-item.selected-primary {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 1px var(--accent-color);
 }
 
-.group-item.selected-primary > .group-header {
+.group-item.selected-primary>.group-header {
     background-color: #f0f8ff;
 }
 
 .group-item.ignored {
     opacity: 0.6;
+    background-color: #f5f5f5 !important;
+}
+
+.group-item.ignored>.group-header {
+    background-color: #e0e0e0 !important;
 }
 
 .group-item.ignored .group-name {
     text-decoration: line-through;
+    color: #7f8c8d;
 }

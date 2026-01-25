@@ -9,8 +9,90 @@
       "type": "system",
       "params": {
         "action": ""
-      }
+      },
+      "_stepId": "stp_thi5chg2s"
+    },
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_t3h4gxqfl",
+      "ignore": true
+    },
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_swesd1z5t",
+      "ignore": true
+    },
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_363vm0mp2"
     }
   ],
-  "teardown": []
+  "teardown": [],
+  "_editor": {
+    "version": 1,
+    "stepIdKey": "_stepId",
+    "sections": {
+      "setup": {
+        "layout": [],
+        "groups": {}
+      },
+      "steps": {
+        "layout": [
+          "stp_thi5chg2s",
+          "grp_qag8qbj5h",
+          "stp_363vm0mp2"
+        ],
+        "groups": {
+          "grp_qag8qbj5h": {
+            "name": "New Group",
+            "collapsed": false,
+            "items": [
+              "stp_t3h4gxqfl",
+              "stp_swesd1z5t"
+            ],
+            "_isGroup": true,
+            "_groupId": "grp_qag8qbj5h",
+            "_section": "steps",
+            "_children": [
+              {
+                "name": "新しいステップ",
+                "type": "system",
+                "params": {
+                  "action": ""
+                },
+                "_stepId": "stp_t3h4gxqfl",
+                "ignore": true
+              },
+              {
+                "name": "新しいステップ",
+                "type": "system",
+                "params": {
+                  "action": ""
+                },
+                "_stepId": "stp_swesd1z5t",
+                "ignore": true
+              }
+            ],
+            "ignore": true
+          }
+        }
+      },
+      "teardown": {
+        "layout": [],
+        "groups": {}
+      }
+    }
+  }
 }
