@@ -5,6 +5,7 @@ import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
 import { PropertiesPanel } from './ui/properties_panel.js';
 import { resizer } from './ui/resizer.js';
+import { showToast } from './ui/toast.js';
 
 class App {
     constructor() {
@@ -230,6 +231,7 @@ class App {
             this.tabManager.markDirty(tabId, false);
 
             // Toast or visual success
+            showToast("保存しました");
             btn.innerHTML = '<ion-icon name="checkmark-outline" style="color: #2ecc71;"></ion-icon>';
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
