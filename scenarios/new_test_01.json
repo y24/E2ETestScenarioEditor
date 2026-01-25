@@ -18,8 +18,7 @@
       "params": {
         "action": ""
       },
-      "_stepId": "stp_t3h4gxqfl",
-      "ignore": true
+      "_stepId": "stp_t3h4gxqfl"
     },
     {
       "name": "新しいステップ",
@@ -27,8 +26,7 @@
       "params": {
         "action": ""
       },
-      "_stepId": "stp_swesd1z5t",
-      "ignore": true
+      "_stepId": "stp_swesd1z5t"
     },
     {
       "name": "新しいステップ",
@@ -56,7 +54,7 @@
         ],
         "groups": {
           "grp_qag8qbj5h": {
-            "name": "New Group",
+            "name": "#1",
             "collapsed": false,
             "items": [
               "stp_t3h4gxqfl",
@@ -72,8 +70,7 @@
                 "params": {
                   "action": ""
                 },
-                "_stepId": "stp_t3h4gxqfl",
-                "ignore": true
+                "_stepId": "stp_t3h4gxqfl"
               },
               {
                 "name": "新しいステップ",
@@ -81,11 +78,9 @@
                 "params": {
                   "action": ""
                 },
-                "_stepId": "stp_swesd1z5t",
-                "ignore": true
+                "_stepId": "stp_swesd1z5t"
               }
-            ],
-            "ignore": true
+            ]
           }
         }
       },

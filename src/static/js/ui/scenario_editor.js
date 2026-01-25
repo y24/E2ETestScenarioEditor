@@ -14,6 +14,7 @@ export class ScenarioEditor {
         this.selectedSteps = new Set(); // Set<stepId>
         this.selectedEl = null;         // Single selection element (legacy support for Right Pane)
         this.selectedStep = null;       // Currently selected step data object
+        this.activeItemId = null;       // ID of the active item for properties
         this.lastCheckedStepId = null;  // For shift-click range selection
 
         // Bindings
@@ -47,6 +48,7 @@ export class ScenarioEditor {
             this.selectedSteps.clear();
             this.selectedEl = null;
             this.selectedStep = null;
+            this.activeItemId = null;
         }
 
         // Render Header
@@ -86,6 +88,11 @@ export class ScenarioEditor {
         this.bindMetaEvents();
         this.bindEvents(); // Unified event binding
         this.initSortables();
+
+        // Update selectedEl reference after rerender
+        if (this.activeItemId) {
+            this.selectedEl = this.container.querySelector(`[data-id="${this.activeItemId}"]`);
+        }
     }
 
     renderSection(title, key) {
@@ -128,9 +135,10 @@ export class ScenarioEditor {
         const collapsedClass = group.collapsed ? 'collapsed' : '';
         const ignoredClass = group.ignore ? 'ignored' : '';
         const itemsHtml = group.items.map(s => this.renderStep(s, sectionKey)).join('');
+        const activeClass = group.id === this.activeItemId ? 'selected-primary' : '';
 
         return `
-            <div class="group-item ${collapsedClass} ${ignoredClass}" data-id="${group.id}" data-type="group" data-section="${sectionKey}">
+            <div class="group-item ${collapsedClass} ${ignoredClass} ${activeClass}" data-id="${group.id}" data-type="group" data-section="${sectionKey}">
                 <div class="group-header">
                     <div class="step-grip"><ion-icon name="reorder-two-outline"></ion-icon></div>
                     <div class="group-toggle" data-action="toggle-collapse">
@@ -158,9 +166,10 @@ export class ScenarioEditor {
         const ignoredClass = step.ignore ? 'ignored' : '';
         const isSelected = this.selectedSteps.has(step._stepId) ? 'selected' : '';
         const checked = this.selectedSteps.has(step._stepId) ? 'checked' : '';
+        const activeClass = step._stepId === this.activeItemId ? 'selected-primary' : '';
 
         return `
-            <div class="step-item ${ignoredClass} ${isSelected}" data-id="${step._stepId}" data-type="step" data-section="${sectionKey}">
+            <div class="step-item ${ignoredClass} ${isSelected} ${activeClass}" data-id="${step._stepId}" data-type="step" data-section="${sectionKey}">
                 <div class="step-grip"><ion-icon name="reorder-two-outline"></ion-icon></div>
                 <input type="checkbox" class="step-checkbox" ${checked}>
                 <div class="step-icon_type" title="${step.type}">${typeIcon}</div>
@@ -387,31 +396,43 @@ export class ScenarioEditor {
     }
 
     selectItem(el) {
-        // UI Highlight for Single Selection
-        if (this.selectedEl) this.selectedEl.classList.remove('selected-primary');
-        el.classList.add('selected-primary');
-        this.selectedEl = el;
-
         const itemId = el.dataset.id;
         const section = el.dataset.section;
         const type = el.dataset.type;
 
+        this.activeItemId = itemId;
+
+        // Sync checkbox state for steps
+        if (type === 'step') {
+            // "ステップを選択したとき、Propertiesを開くのと同時にチェックボックスをONにしたいです。"
+            // "他のステップをクリックして選択するとチェックも解除されます。"
+            // "すでにチェックONのステップをクリックしたときは、チェック状態は変化しなくて良いです。"
+            const alreadySelectedOnlyThis = this.selectedSteps.size === 1 && this.selectedSteps.has(itemId);
+            if (!alreadySelectedOnlyThis) {
+                this.selectedSteps.clear();
+                this.selectedSteps.add(itemId);
+                this.lastCheckedStepId = itemId;
+            }
+        }
+
+        // We rerender to update checkboxes and 'selected-primary' highlight
+        this.rerender();
+
+        // After rerender, get the data and trigger onStepSelect
         let itemData = null;
         if (type === 'group') {
             itemData = this.currentData._editor.sections[section].groups[itemId];
             if (itemData) {
-                // Add metadata for PropertiesPanel to identify it's a group and its section/children
                 itemData._isGroup = true;
                 itemData._groupId = itemId;
                 itemData._section = section;
-                // Pre-populate children data for cascade operations
                 itemData._children = itemData.items.map(sid => this.currentData[section].find(s => s._stepId === sid)).filter(s => !!s);
             }
         } else {
             itemData = this.currentData[section].find(s => s._stepId === itemId);
         }
 
-        this.selectedStep = itemData; // Using 'selectedStep' variable for both types
+        this.selectedStep = itemData;
         if (this.onStepSelect) this.onStepSelect(itemData);
     }
 

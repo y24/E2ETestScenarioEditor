@@ -185,6 +185,11 @@
     background-color: #f0f8ff;
 }
 
+.step-item.selected-primary {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color);
+}
+
 .step-item.ignored {
     opacity: 0.6;
     background-color: #f5f5f5;
