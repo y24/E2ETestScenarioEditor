@@ -5,10 +5,15 @@ export class PropertiesPanel {
         this.onUpdate = onUpdate; // callback when data changes
         this.targetSelectorModal = targetSelectorModal;
         this.actionConfig = {};
+        this.actionParamsConfig = {};
     }
 
     setActionConfig(config) {
         this.actionConfig = config;
+    }
+
+    setActionParamsConfig(config) {
+        this.actionParamsConfig = config;
     }
 
     render(step) {
@@ -122,10 +127,19 @@ export class PropertiesPanel {
         row.className = 'params-row';
 
         const valueStr = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : value;
-        const typeConfig = this.actionConfig[this.currentStep.type] || {};
+        const typeConfig = this.actionParamsConfig[this.currentStep.type] || {};
+        const paramNames = typeConfig.paramNames || [];
 
         row.innerHTML = `
-            <input type="text" class="form-input param-key" value="${key}" placeholder="Key" autocomplete="off">
+            <div class="param-key-container">
+                <input type="text" class="form-input param-key" value="${key}" placeholder="Key" autocomplete="off">
+                ${paramNames.length > 0 ? `
+                    <div class="param-key-arrow" title="選択肢を表示">
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </div>
+                    <div class="param-key-dropdown"></div>
+                ` : ''}
+            </div>
             <div class="param-value-container">
                 <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value" autocomplete="off" ${key === 'target' ? 'readonly' : ''}>
                 <div class="combo-arrow" title="選択肢を表示">
@@ -139,6 +153,8 @@ export class PropertiesPanel {
         `;
 
         const keyInput = row.querySelector('.param-key');
+        const keyArrow = row.querySelector('.param-key-arrow');
+        const keyDropdown = row.querySelector('.param-key-dropdown');
         const valInput = row.querySelector('.param-value');
         const arrow = row.querySelector('.combo-arrow');
         const menu = row.querySelector('.dropdown-menu');
@@ -146,7 +162,8 @@ export class PropertiesPanel {
 
         // Helper to setup target selector behavior
         const checkTargetKey = () => {
-            const isTarget = keyInput.value.trim().toLowerCase() === 'target';
+            const currentKey = keyInput.value.trim();
+            const isTarget = currentKey.toLowerCase() === 'target';
             if (isTarget) {
                 valInput.readOnly = true;
                 valInput.style.cursor = 'pointer';
@@ -162,7 +179,8 @@ export class PropertiesPanel {
 
         // Use mousedown to trigger selector (often more reliable than click for readonly)
         valInput.addEventListener('mousedown', (e) => {
-            if (keyInput.value.trim().toLowerCase() === 'target') {
+            const currentKey = keyInput.value.trim();
+            if (currentKey.toLowerCase() === 'target') {
                 e.preventDefault();
                 if (this.targetSelectorModal) {
                     this.targetSelectorModal.open(valInput.value, (selectedValue) => {
@@ -175,7 +193,8 @@ export class PropertiesPanel {
 
         // Block normal click processing
         valInput.addEventListener('click', (e) => {
-            if (keyInput.value.trim().toLowerCase() === 'target') {
+            const currentKey = keyInput.value.trim();
+            if (currentKey.toLowerCase() === 'target') {
                 e.preventDefault();
             }
         });
@@ -183,18 +202,54 @@ export class PropertiesPanel {
         // Initial check
         checkTargetKey();
 
+        // Parameter name dropdown functionality
+        const toggleKeyDropdown = (show) => {
+            if (!keyArrow || !keyDropdown) return;
+
+            if (show) {
+                keyDropdown.innerHTML = paramNames.map(name => `
+                    <button class="dropdown-item" data-value="${name}">${name}</button>
+                `).join('');
+
+                keyDropdown.querySelectorAll('.dropdown-item').forEach(btn => {
+                    btn.onclick = () => {
+                        keyInput.value = btn.dataset.value;
+                        checkTargetKey();
+                        updateArrowVisibility();
+                        this.updateParamsFromGrid();
+                        toggleKeyDropdown(false);
+                    };
+                });
+                keyDropdown.classList.add('visible');
+            } else {
+                keyDropdown.classList.remove('visible');
+            }
+        };
+
+        if (keyArrow) {
+            keyArrow.onclick = (e) => {
+                e.stopPropagation();
+                const isVisible = keyDropdown.classList.contains('visible');
+                // Close all other menus first
+                document.querySelectorAll('.param-key-dropdown.visible').forEach(m => m.classList.remove('visible'));
+                toggleKeyDropdown(!isVisible);
+            };
+        }
+
         // Helper to update current suggestions/arrow based on current key
         const updateArrowVisibility = () => {
             const currentKey = keyInput.value.trim();
-            const suggestions = (this.actionConfig[this.currentStep.type] || {})[currentKey];
-            arrow.style.display = suggestions ? 'flex' : 'none';
+            const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
+            const suggestions = paramValues[currentKey] || [];
+            arrow.style.display = suggestions.length > 0 ? 'flex' : 'none';
         };
 
         const toggleDropdown = (show) => {
             if (show) {
                 updateArrowVisibility(); // Ensure correct data in datalist context if it was dynamic, though here it's customized
                 const currentKey = keyInput.value.trim();
-                const suggestions = (this.actionConfig[this.currentStep.type] || {})[currentKey] || [];
+                const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
+                const suggestions = paramValues[currentKey] || [];
                 if (suggestions.length === 0) return;
 
                 menu.innerHTML = suggestions.map(s => `
@@ -214,7 +269,7 @@ export class PropertiesPanel {
             }
         };
 
-        // Events
+        // Events - always use input event for text input
         keyInput.oninput = () => {
             checkTargetKey();
             updateArrowVisibility();
@@ -235,6 +290,7 @@ export class PropertiesPanel {
         const closeHandler = (e) => {
             if (!row.contains(e.target)) {
                 toggleDropdown(false);
+                if (keyDropdown) toggleKeyDropdown(false);
             }
         };
         document.addEventListener('click', closeHandler);

@@ -379,6 +379,57 @@
     flex: 2;
 }
 
+.params-row .param-key-container {
+    flex: 2;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.params-row .param-key-container .param-key {
+    flex: 1;
+    padding-right: 24px;
+}
+
+.param-key-arrow {
+    position: absolute;
+    right: 6px;
+    color: #999;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 100%;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.param-key-arrow:hover {
+    color: var(--accent-color);
+}
+
+.param-key-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.param-key-dropdown.visible {
+    display: flex;
+}
+
 .params-row .param-value-container {
     flex: 3;
     position: relative;

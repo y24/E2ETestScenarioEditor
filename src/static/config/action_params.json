@@ -1,0 +1,179 @@
+{
+    "system": {
+        "paramNames": [
+            "action",
+            "duration",
+            "command",
+            "message",
+            "path",
+            "backend",
+            "variables"
+        ],
+        "paramValues": {
+            "action": [
+                "sleep",
+                "command",
+                "print",
+                "start_app",
+                "set_variables"
+            ]
+        }
+    },
+    "ui": {
+        "paramNames": [
+            "operation",
+            "target",
+            "value",
+            "regex",
+            "save_as"
+        ],
+        "paramValues": {
+            "operation": [
+                "input",
+                "click",
+                "read"
+            ]
+        }
+    },
+    "screenshot": {
+        "paramNames": [
+            "filename",
+            "additional_name",
+            "target"
+        ],
+        "paramValues": {}
+    },
+    "web": {
+        "paramNames": [
+            "operation",
+            "target",
+            "url",
+            "value",
+            "clear",
+            "timeout",
+            "browser",
+            "headless",
+            "debugger_address",
+            "save_as",
+            "duration"
+        ],
+        "paramValues": {
+            "operation": [
+                "start_browser",
+                "connect_browser",
+                "navigate",
+                "click",
+                "input",
+                "read",
+                "accept_alert",
+                "dismiss_alert",
+                "wait",
+                "close_browser"
+            ],
+            "browser": [
+                "chrome",
+                "firefox",
+                "edge"
+            ],
+            "clear": [
+                "true",
+                "false"
+            ]
+        }
+    },
+    "excel": {
+        "paramNames": [
+            "action",
+            "file_path",
+            "cell_address",
+            "row",
+            "column",
+            "value",
+            "shortcut",
+            "save",
+            "title_patterns",
+            "key_action",
+            "timeout"
+        ],
+        "paramValues": {
+            "action": [
+                "start_excel",
+                "select_cell",
+                "input_text",
+                "ribbon_shortcut",
+                "save_file",
+                "close_workbook",
+                "exit_excel",
+                "handle_dialog"
+            ],
+            "save": [
+                "true",
+                "false"
+            ]
+        }
+    },
+    "verify": {
+        "paramNames": [
+            "type",
+            "target",
+            "actual",
+            "expected",
+            "contains",
+            "not_contains",
+            "regex",
+            "pattern",
+            "text",
+            "path",
+            "min_size",
+            "file_type",
+            "mode",
+            "encoding",
+            "cell",
+            "sheet"
+        ],
+        "paramValues": {
+            "type": [
+                "exists",
+                "not_exists",
+                "clickable",
+                "equals",
+                "contains",
+                "not_contains",
+                "matches",
+                "file_exists",
+                "file_content"
+            ],
+            "regex": [
+                "true",
+                "false"
+            ],
+            "file_type": [
+                "text",
+                "excel",
+                "auto"
+            ],
+            "mode": [
+                "exact"
+            ]
+        }
+    },
+    "debug": {
+        "paramNames": [
+            "action",
+            "target",
+            "filter",
+            "control_type",
+            "depth",
+            "class_name",
+            "title",
+            "timeout"
+        ],
+        "paramValues": {
+            "action": [
+                "list_desktop_windows",
+                "list_descendants",
+                "check_dialog"
+            ]
+        }
+    }
+}

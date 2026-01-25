@@ -80,6 +80,11 @@ class App {
             const actions = await actionsLabel.json();
             this.propertiesPanel.setActionConfig(actions);
 
+            // Load Action Parameters Config
+            const actionParamsResponse = await fetch('/static/config/action_params.json');
+            const actionParams = await actionParamsResponse.json();
+            this.propertiesPanel.setActionParamsConfig(actionParams);
+
             // Initialize resizer
             await resizer.init();
 
