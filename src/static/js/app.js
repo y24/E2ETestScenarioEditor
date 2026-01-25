@@ -1,6 +1,6 @@
 import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
-import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal } from './ui/modal.js';
+import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal, RenameModal, GenericConfirmModal } from './ui/modal.js';
 import { TargetSelectorModal } from './ui/target_selector_modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
@@ -17,6 +17,12 @@ class App {
         this.confirmModal = new ConfirmModal({});
         this.targetSelectorModal = new TargetSelectorModal();
         this.metaModal = new ScenarioMetaModal(this.onMetaSaved.bind(this));
+        this.renameModal = new RenameModal(this.onFileRenameConfirmed.bind(this));
+        this.genericConfirmModal = new GenericConfirmModal();
+
+        // Explorer Event Handlers
+        this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
+        this.fileBrowser.onDelete = (file) => this.onFileDeleteRequested(file);
 
         // Pass callbacks to Editor
         this.editor = new ScenarioEditor(
@@ -326,6 +332,55 @@ class App {
             alert("Error: " + e.message);
         }
     }
+
+    async onFileRenameConfirmed(oldPath, newName) {
+        try {
+            const result = await API.renameScenario(oldPath, newName);
+            showToast("リネームしました");
+
+            // Update any open tab with this path
+            this.tabManager.tabs.forEach(tab => {
+                if (tab.file && tab.file.path === oldPath) {
+                    tab.file.path = result.newPath;
+                    tab.file.name = newName;
+                }
+            });
+            this.tabManager.renderTabBar();
+
+            // Refresh file browser
+            this.fileBrowser.load();
+        } catch (e) {
+            alert("Rename failed: " + e.message);
+        }
+    }
+
+    onFileDeleteRequested(file) {
+        this.genericConfirmModal.open(
+            "ファイルの削除",
+            `"${file.name}" を削除してもよろしいですか？\nこの操作は取り消せません。`,
+            () => this.performDelete(file.path),
+            { isDanger: true, confirmText: "削除" }
+        );
+    }
+
+    async performDelete(path) {
+        try {
+            await API.deleteScenario(path);
+            showToast("削除しました");
+
+            // Close any tab with this path
+            const tabToClose = this.tabManager.tabs.find(t => t.file && t.file.path === path);
+            if (tabToClose) {
+                this.tabManager.forceCloseTab(tabToClose.id);
+            }
+
+            // Refresh file browser
+            this.fileBrowser.load();
+        } catch (e) {
+            alert("Delete failed: " + e.message);
+        }
+    }
+
 
     onTabChange(tab) {
         this.editor.render(tab);

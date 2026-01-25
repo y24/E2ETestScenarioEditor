@@ -216,7 +216,45 @@
         </div>
     </div>
 
+    <!-- Explorer Rename Modal -->
+    <div id="explorer-rename-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>リネーム</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>新しいファイル名 (.json)</label>
+                    <input type="text" id="rename-filename" class="form-input" placeholder="new_filename"
+                        spellcheck="false" autocomplete="off">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-confirm-rename" class="btn btn-primary">変更</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Confirm Modal -->
+    <div id="generic-confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="generic-confirm-title">確認</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="generic-confirm-message">実行してもよろしいですか？</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-generic-confirm-yes" class="btn btn-danger">はい</button>
+                <button id="btn-generic-confirm-no" class="btn btn-secondary">いいえ</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
 
     <script type="module" src="/static/js/app.js"></script>
 </body>

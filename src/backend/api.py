@@ -113,3 +113,25 @@ async def save_scenario(req: SaveScenarioRequest):
         return {"status": "success", "path": req.path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class RenameScenarioRequest(BaseModel):
+    oldPath: str
+    newName: str
+
+@router.post("/scenarios/rename")
+async def rename_scenario(req: RenameScenarioRequest):
+    try:
+        new_path = FileService.rename_file(req.oldPath, req.newName)
+        return {"status": "success", "newPath": new_path}
+    except FileExistsError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/scenarios/delete")
+async def delete_scenario(path: str):
+    try:
+        FileService.delete_file(path)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

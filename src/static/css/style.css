@@ -224,16 +224,64 @@ body {
     background-color: #f0f0f0;
 }
 
+.file-item:hover .file-actions {
+    display: flex;
+}
+
 .file-item.selected {
     background-color: #e3f2fd;
     color: var(--accent-color);
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-actions {
+    display: none;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+.btn-delete:hover {
+    color: var(--danger-color);
+    background-color: #fee;
 }
 
 .file-icon {
     font-size: 1.1rem;
     color: #f39c12;
     /* Folder/JSON color */
+    flex-shrink: 0;
 }
+
 
 /* Empty State */
 .empty-state {

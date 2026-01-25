@@ -334,3 +334,89 @@ export class ScenarioMetaModal extends BaseModal {
         this.close();
     }
 }
+
+export class RenameModal extends BaseModal {
+    constructor(onConfirm) {
+        super('explorer-rename-modal');
+        this.onConfirm = onConfirm;
+        this.inputFilename = document.getElementById('rename-filename');
+        this.oldPath = null;
+
+        const btnClose = this.modal.querySelector('.close-modal');
+        if (btnClose) btnClose.onclick = () => this.cancel();
+
+        const btnConfirm = document.getElementById('btn-confirm-rename');
+        if (btnConfirm) btnConfirm.onclick = () => this.confirm();
+
+        // Allow Enter key to confirm
+        this.inputFilename.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                this.confirm();
+            }
+        };
+    }
+
+    open(oldPath, currentName) {
+        this.oldPath = oldPath;
+        this.inputFilename.value = currentName;
+        super.open();
+        this.inputFilename.focus();
+        // Skip extension if possible for easier renaming
+        const dotIndex = currentName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            this.inputFilename.setSelectionRange(0, dotIndex);
+        } else {
+            this.inputFilename.select();
+        }
+    }
+
+    async confirm() {
+        let newName = this.inputFilename.value.trim();
+        if (!newName) return;
+        if (!newName.endsWith('.json')) newName += '.json';
+
+        if (this.onConfirm) {
+            await this.onConfirm(this.oldPath, newName);
+        }
+        this.close();
+    }
+}
+
+export class GenericConfirmModal extends BaseModal {
+    constructor() {
+        super('generic-confirm-modal');
+        this.titleEl = document.getElementById('generic-confirm-title');
+        this.messageEl = document.getElementById('generic-confirm-message');
+        this.btnYes = document.getElementById('btn-generic-confirm-yes');
+        this.btnNo = document.getElementById('btn-generic-confirm-no');
+        this.onYes = null;
+
+        const btnClose = this.modal.querySelector('.close-modal');
+        if (btnClose) btnClose.onclick = () => this.close();
+        if (this.btnNo) this.btnNo.onclick = () => this.close();
+        if (this.btnYes) {
+            this.btnYes.onclick = () => {
+                if (this.onYes) this.onYes();
+                this.close();
+            };
+        }
+    }
+
+    open(title, message, onYes, options = {}) {
+        this.titleEl.textContent = title || '確認';
+        this.messageEl.textContent = message || '実行してもよろしいですか？';
+        this.onYes = onYes;
+
+        if (options.confirmText) this.btnYes.textContent = options.confirmText;
+        if (options.cancelText) this.btnNo.textContent = options.cancelText;
+        if (options.isDanger) {
+            this.btnYes.classList.add('btn-danger');
+            this.btnYes.classList.remove('btn-primary');
+        } else {
+            this.btnYes.classList.add('btn-primary');
+            this.btnYes.classList.remove('btn-danger');
+        }
+
+        super.open();
+    }
+}

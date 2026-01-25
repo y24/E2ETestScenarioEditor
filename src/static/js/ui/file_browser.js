@@ -5,6 +5,8 @@ export class FileBrowser {
         this.container = document.getElementById(containerId);
         this.onFileSelect = onFileSelect;
         this.onSelectionChange = null; // Callback for when selection changes
+        this.onRename = null;
+        this.onDelete = null;
         this.selectedFile = null;
         this.data = null; // Store raw data
         this.searchQuery = '';
@@ -108,6 +110,10 @@ export class FileBrowser {
                     <div class="file-name">${file.name}</div>
                     <div class="file-path" style="font-size:0.75rem; color:#999;">${file.parent}</div>
                 </div>
+                <div class="file-actions">
+                    <button class="btn-action btn-rename" title="リネーム"><ion-icon name="create-outline"></ion-icon></button>
+                    <button class="btn-action btn-delete" title="削除"><ion-icon name="trash-outline"></ion-icon></button>
+                </div>
             `;
             el.onclick = (e) => {
                 e.stopPropagation();
@@ -122,7 +128,21 @@ export class FileBrowser {
                 e.stopPropagation();
                 this.onFileSelect(file, false); // false = not preview
             };
+
+            const btnRename = el.querySelector('.btn-rename');
+            btnRename.onclick = (e) => {
+                e.stopPropagation();
+                if (this.onRename) this.onRename(file);
+            };
+
+            const btnDelete = el.querySelector('.btn-delete');
+            btnDelete.onclick = (e) => {
+                e.stopPropagation();
+                if (this.onDelete) this.onDelete(file);
+            };
+
             content.appendChild(el);
         });
+
     }
 }

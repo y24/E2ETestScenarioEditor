@@ -47,6 +47,31 @@ export const API = {
         });
         if (!res.ok) throw new Error('Failed to save scenario');
         return res.json();
+    },
+
+    async renameScenario(oldPath, newName) {
+        const res = await fetch(`${API_BASE}/scenarios/rename`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldPath, newName })
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.detail || 'Failed to rename scenario');
+        }
+        return res.json();
+    },
+
+    async deleteScenario(path) {
+        const params = new URLSearchParams({ path });
+        const res = await fetch(`${API_BASE}/scenarios/delete?${params.toString()}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.detail || 'Failed to delete scenario');
+        }
+        return res.json();
     }
 };
 

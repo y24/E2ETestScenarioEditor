@@ -104,3 +104,31 @@ class FileService:
                         "parent": os.path.basename(root)
                     })
         return file_list
+
+    @staticmethod
+    def delete_file(path: str) -> None:
+        """
+        ファイルを削除する
+        """
+        if os.path.exists(path):
+            os.remove(path)
+        else:
+            raise FileNotFoundError(f"File not found: {path}")
+
+    @staticmethod
+    def rename_file(old_path: str, new_name: str) -> str:
+        """
+        ファイルをリネームする。new_nameは拡張子を含むファイル名のみ。
+        """
+        if not os.path.exists(old_path):
+            raise FileNotFoundError(f"File not found: {old_path}")
+        
+        directory = os.path.dirname(old_path)
+        new_path = os.path.join(directory, new_name)
+        
+        if os.path.exists(new_path):
+            raise FileExistsError(f"Target file already exists: {new_path}")
+            
+        os.rename(old_path, new_path)
+        return new_path
+
