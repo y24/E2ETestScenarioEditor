@@ -4,23 +4,59 @@ export class FileBrowser {
     constructor(containerId, onFileSelect) {
         this.container = document.getElementById(containerId);
         this.onFileSelect = onFileSelect;
+        this.data = null; // Store raw data
+        this.searchQuery = '';
+
+        this.initSearch();
+    }
+
+    initSearch() {
+        const searchInput = document.getElementById('explorer-search-input');
+        if (searchInput) {
+            searchInput.oninput = (e) => {
+                this.searchQuery = e.target.value.toLowerCase();
+                this.renderFiltered();
+            };
+        }
     }
 
     async load() {
         this.container.innerHTML = '<div class="loading">Loading...</div>';
         try {
-            const data = await API.listFiles();
-            this.render(data);
+            this.data = await API.listFiles();
+            this.renderFiltered();
         } catch (e) {
             this.container.innerHTML = `<div class="error">Error: ${e.message}</div>`;
         }
+    }
+
+    renderFiltered() {
+        if (!this.data) return;
+
+        // Filter data based on searchQuery
+        const filteredData = {
+            directories: this.data.directories.map(dir => {
+                return {
+                    name: dir.name,
+                    files: dir.files.filter(file =>
+                        file.name.toLowerCase().includes(this.searchQuery) ||
+                        (file.parent && file.parent.toLowerCase().includes(this.searchQuery))
+                    )
+                };
+            }).filter(dir => dir.files.length > 0)
+        };
+
+        this.render(filteredData);
     }
 
     render(data) {
         this.container.innerHTML = '';
 
         if (!data.directories || data.directories.length === 0) {
-            this.container.innerHTML = '<div class="empty-message">No directories configured. Check settings.</div>';
+            const msg = this.searchQuery
+                ? `No files matching "${this.searchQuery}"`
+                : 'No directories configured. Check settings.';
+            this.container.innerHTML = `<div class="empty-message" style="padding: 20px; text-align: center; color: #999; font-size: 0.9rem;">${msg}</div>`;
             return;
         }
 
