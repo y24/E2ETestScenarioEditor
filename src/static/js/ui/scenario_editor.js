@@ -85,13 +85,18 @@ export class ScenarioEditor {
             <div class="section-group" data-section="${key}">
                 <div class="section-header">
                     ${title} <span class="badge">${this.currentData[key].length}</span>
-                    <div class="section-header-actions">
-                        <button class="btn-add-step" data-action="paste" data-section="${key}" title="貼り付け">
-                            <ion-icon name="clipboard-outline"></ion-icon>
-                        </button>
-                        <button class="btn-add-step" data-action="add" data-section="${key}" title="ステップ追加">
+                    <div class="section-header-actions dropdown-container">
+                        <button class="btn-add-step section-menu-btn" title="メニュー">
                             <ion-icon name="add-circle-outline"></ion-icon>
                         </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" data-action="add" data-section="${key}">
+                                <ion-icon name="add-outline"></ion-icon> ステップを追加
+                            </button>
+                            <button class="dropdown-item" data-action="paste" data-section="${key}">
+                                <ion-icon name="clipboard-outline"></ion-icon> 貼り付け
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="step-list root-list" id="list-${key}" data-group="root">
@@ -175,9 +180,31 @@ export class ScenarioEditor {
     // --- Events ---
 
     bindEvents() {
-        // Section Adds
-        this.container.querySelectorAll('.btn-add-step').forEach(btn =>
-            btn.onclick = this.handleSectionAction);
+        // Section Menu Toggle
+        this.container.querySelectorAll('.section-menu-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                // Close others
+                this.container.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('visible'));
+                // Toggle current
+                const menu = btn.nextElementSibling;
+                menu.classList.toggle('visible');
+            };
+        });
+
+        // Dropdown Items (Add, Paste)
+        this.container.querySelectorAll('.dropdown-item').forEach(btn =>
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                // Close menu
+                btn.closest('.dropdown-menu').classList.remove('visible');
+                this.handleSectionAction(e);
+            });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', () => {
+            this.container.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('visible'));
+        });
 
         // Step Actions
         this.container.querySelectorAll('.step-action-btn').forEach(btn =>
@@ -277,10 +304,6 @@ export class ScenarioEditor {
         const action = btn.dataset.action;
         const stepItem = btn.closest('.step-item');
 
-        // Find step data from ID
-        // Simplified: we need to find which section and array it belongs to.
-        // But for duplicate/delete we can find by ID or pass logic.
-        // Current implementation stores data, but with GroupManager, IDs are key.
         const stepId = stepItem.dataset.id;
         const section = stepItem.dataset.section;
 
@@ -539,12 +562,9 @@ export class ScenarioEditor {
     handleDragEnd(evt) {
         // Complex logic needed for nesting support.
         // For now, assume simple reordering within same container.
-        // If moved between root/group, logic is harder.
-        // Let's rely on Sortable's DOM change? No, we need to update model.
 
         const { item, from, to, newIndex } = evt;
         const stepId = item.dataset.id;
-        const isGroup = item.dataset.type === 'group';
 
         // Identify source and target containers
         const fromGroup = from.dataset.group; // 'root' or groupId
@@ -570,8 +590,6 @@ export class ScenarioEditor {
         }
 
         this.onDataChange();
-        // No rerender needed if Sortable handled visual, but safer to rerender to sync state
-        // this.rerender(); 
     }
 
     refreshSelectedStep() {
