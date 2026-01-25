@@ -40,7 +40,15 @@ export class ScenarioEditor {
         }
 
         // Initialize/Normalize Data
+        const oldData = this.currentData;
         this.currentData = this.groupManager.normalizeData(tab.data);
+
+        // Reset selection if we loaded a different scenario
+        if (oldData !== this.currentData) {
+            this.selectedSteps.clear();
+            this.selectedEl = null;
+            this.selectedStep = null;
+        }
 
         // Render Header
         let html = `
@@ -252,13 +260,13 @@ export class ScenarioEditor {
         });
 
         // Toolbar Actions
-        const btnGroup = document.getElementById('btn-group-action');
+        const btnGroup = this.container.querySelector('#btn-group-action');
         if (btnGroup) btnGroup.onclick = this.groupSelected;
 
-        const btnCopy = document.getElementById('btn-copy-selection');
+        const btnCopy = this.container.querySelector('#btn-copy-selection');
         if (btnCopy) btnCopy.onclick = this.copySelection;
 
-        const btnClear = document.getElementById('btn-clear-selection');
+        const btnClear = this.container.querySelector('#btn-clear-selection');
         if (btnClear) btnClear.onclick = () => {
             this.selectedSteps.clear();
             this.rerender();
@@ -390,18 +398,34 @@ export class ScenarioEditor {
         if (this.selectedSteps.size === 0) return;
 
         // Determine section. Groups can only happen within one section.
-        // Take the section of the first selected item.
-        // Ideally should validate all are in same section.
-        const firstId = this.selectedSteps.values().next().value;
-        let sectionKey = null;
-        ['setup', 'steps', 'teardown'].forEach(k => {
-            if (this.currentData[k].find(s => s._stepId === firstId)) sectionKey = k;
+        // We find all sections involved in the selection.
+        const sectionMap = new Map(); // sectionName -> stepIds[]
+
+        this.selectedSteps.forEach(stepId => {
+            ['setup', 'steps', 'teardown'].forEach(k => {
+                if (this.currentData[k].find(s => s._stepId === stepId)) {
+                    if (!sectionMap.has(k)) sectionMap.set(k, []);
+                    sectionMap.get(k).push(stepId);
+                }
+            });
         });
 
-        if (!sectionKey) return;
+        if (sectionMap.size === 0) {
+            console.error("No valid steps found for grouping");
+            this.selectedSteps.clear();
+            this.rerender();
+            return;
+        }
+
+        if (sectionMap.size > 1) {
+            showToast("異なるセクションのステップを同時にグループ化することはできません", "error");
+            return;
+        }
+
+        const [sectionKey, stepIds] = sectionMap.entries().next().value;
 
         // Perform Grouping
-        this.groupManager.createGroup(sectionKey, this.currentData, Array.from(this.selectedSteps));
+        this.groupManager.createGroup(sectionKey, this.currentData, stepIds);
 
         this.selectedSteps.clear();
         this.rerender();

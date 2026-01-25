@@ -1,4 +1,6 @@
 export function showToast(message, duration = 3000) {
+    if (typeof duration !== 'number') duration = 3000;
+
     let toast = document.getElementById('toast-notification');
     if (!toast) {
         toast = document.createElement('div');
