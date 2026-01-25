@@ -1,0 +1,6 @@
+/* Basic Selection Highlight */
+.step-item.selected-primary {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color);
+    background-color: #f0f8ff;
+}

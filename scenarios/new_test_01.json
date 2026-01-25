@@ -1,0 +1,16 @@
+{
+  "id": "",
+  "name": "New Scenario",
+  "description": "",
+  "setup": [],
+  "steps": [
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      }
+    }
+  ],
+  "teardown": []
+}

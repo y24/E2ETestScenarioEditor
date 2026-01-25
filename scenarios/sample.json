@@ -1,0 +1,16 @@
+{
+  "id": "sample-001",
+  "name": "Sample Scenario",
+  "description": "This is a sample scenario for testing.",
+  "setup": [],
+  "steps": [
+    {
+      "name": "Open App",
+      "type": "system",
+      "params": {
+        "action": "start_app"
+      }
+    }
+  ],
+  "teardown": []
+}

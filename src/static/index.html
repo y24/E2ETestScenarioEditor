@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E2E Scenario Editor</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/components_group.css">
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Ionicons for icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="app-title">Scenario Editor</span>
+            </div>
+            <div class="header-center">
+                <!-- Tab bar will go here -->
+                <div id="tab-bar" class="tab-bar"></div>
+            </div>
+            <div class="header-right">
+                <button id="btn-save" class="icon-btn" title="保存 (Ctrl+S)">
+                    <ion-icon name="save-outline"></ion-icon>
+                </button>
+                <button id="btn-settings" class="icon-btn" title="設定">
+                    <ion-icon name="settings-outline"></ion-icon>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content (3-pane layout) -->
+        <main class="main-container">
+            <!-- Left Pane: File Browser & Structure -->
+            <aside class="pane pane-left">
+                <div class="pane-header">
+                    <span>Explorer</span>
+                    <div class="pane-actions">
+                        <button id="btn-new-file" class="icon-btn-small" title="新規作成">
+                            <ion-icon name="add-outline"></ion-icon>
+                        </button>
+                        <button id="btn-refresh-files" class="icon-btn-small" title="更新">
+                            <ion-icon name="refresh-outline"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+                <div id="file-browser" class="file-browser">
+                    <!-- File tree will be rendered here -->
+                    <div class="loading">Loading files...</div>
+                </div>
+            </aside>
+
+            <!-- Center Pane: Scenario Editor -->
+            <section class="pane pane-center">
+                <div id="editor-container" class="editor-container">
+                    <div class="empty-state">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        <p>左側のリストからシナリオを選択するか、新規作成してください</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Pane: Properties -->
+            <aside class="pane pane-right">
+                <div class="pane-header">
+                    <span>Properties</span>
+                </div>
+                <div id="properties-panel" class="properties-panel">
+                    <div class="empty-message">変更するステップを選択してください</div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>設定</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="scenarios-dir">Scenarios Directory Path</label>
+                    <input type="text" id="scenarios-dir" placeholder="Absolute path to scenarios folder">
+                </div>
+                <div class="form-group">
+                    <label for="scenarios-shared-dir">Shared Scenarios Directory Path</label>
+                    <input type="text" id="scenarios-shared-dir" placeholder="Absolute path to scenarios_shared folder">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-settings" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save As Modal -->
+    <div id="save-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>シナリオを保存</h2>
+                <button class="close-modal close-save-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>保存先フォルダ</label>
+                    <select id="save-dir-type" class="form-input">
+                        <option value="scenarios">Scenarios</option>
+                        <option value="shared">Shared Scenarios</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>サブフォルダ (任意)</label>
+                    <input type="text" id="save-subdir" class="form-input" placeholder="例: auth/login">
+                </div>
+                <div class="form-group">
+                    <label>ファイル名 (.json)</label>
+                    <input type="text" id="save-filename" class="form-input" placeholder="scenario_name"
+                        spellcheck="false">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-confirm-save" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
+    <script type="module" src="/static/js/app.js"></script>
+</body>
+
+</html>
