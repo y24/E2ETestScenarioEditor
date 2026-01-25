@@ -79,6 +79,12 @@ export class ScenarioEditor {
                     <button class="btn-toolbar" id="btn-group-action">
                         <ion-icon name="folder-outline"></ion-icon> Group
                     </button>
+                    <button class="btn-toolbar" id="btn-disable-selection">
+                        <ion-icon name="eye-off-outline"></ion-icon> Disable
+                    </button>
+                    <button class="btn-toolbar" id="btn-enable-selection">
+                        <ion-icon name="eye-outline"></ion-icon> Enable
+                    </button>
                     <button class="btn-toolbar" id="btn-copy-selection">
                         <ion-icon name="copy-outline"></ion-icon> Copy
                     </button>
@@ -299,6 +305,12 @@ export class ScenarioEditor {
 
         const btnCopy = this.container.querySelector('#btn-copy-selection');
         if (btnCopy) btnCopy.onclick = this.copySelection;
+
+        const btnDisable = this.container.querySelector('#btn-disable-selection');
+        if (btnDisable) btnDisable.onclick = () => this.toggleIgnoreSelection(true);
+
+        const btnEnable = this.container.querySelector('#btn-enable-selection');
+        if (btnEnable) btnEnable.onclick = () => this.toggleIgnoreSelection(false);
 
         const btnClear = this.container.querySelector('#btn-clear-selection');
         if (btnClear) btnClear.onclick = () => {
@@ -646,6 +658,26 @@ export class ScenarioEditor {
                 alert('Copy failed: ' + err.message);
             }
         }
+    }
+
+    toggleIgnoreSelection(ignore) {
+        if (this.selectedSteps.size === 0) return;
+
+        ['setup', 'steps', 'teardown'].forEach(section => {
+            if (!this.currentData[section]) return;
+            this.currentData[section].forEach(step => {
+                if (this.selectedSteps.has(step._stepId)) {
+                    if (ignore) {
+                        step.ignore = true;
+                    } else {
+                        delete step.ignore;
+                    }
+                }
+            });
+        });
+
+        this.rerender();
+        this.onDataChange();
     }
 
     async pasteSteps(sectionKey) {
