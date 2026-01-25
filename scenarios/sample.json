@@ -9,8 +9,38 @@
       "type": "system",
       "params": {
         "action": "start_app"
-      }
+      },
+      "_stepId": "stp_ndp5cnuos"
+    },
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_ty76tohti"
     }
   ],
-  "teardown": []
+  "teardown": [],
+  "_editor": {
+    "version": 1,
+    "stepIdKey": "_stepId",
+    "sections": {
+      "setup": {
+        "layout": [],
+        "groups": {}
+      },
+      "steps": {
+        "layout": [
+          "stp_ndp5cnuos",
+          "stp_ty76tohti"
+        ],
+        "groups": {}
+      },
+      "teardown": {
+        "layout": [],
+        "groups": {}
+      }
+    }
+  }
 }

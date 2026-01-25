@@ -18,7 +18,8 @@
       "params": {
         "action": ""
       },
-      "_stepId": "stp_t3h4gxqfl"
+      "_stepId": "stp_t3h4gxqfl",
+      "ignore": true
     },
     {
       "name": "新しいステップ",

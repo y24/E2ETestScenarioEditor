@@ -161,13 +161,43 @@ body {
     align-items: center;
     justify-content: center;
     height: 100%;
+    flex: 1;
+    width: 100%;
     color: var(--text-secondary);
+    padding: 20px;
+    text-align: center;
+    animation: fadeIn 0.4s ease-out;
 }
 
 .empty-state ion-icon {
-    font-size: 3rem;
-    margin-bottom: 16px;
-    color: #ccc;
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+    transition: transform 0.3s ease;
+}
+
+.empty-state:hover ion-icon {
+    transform: scale(1.1);
+    color: var(--accent-color);
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.95rem;
+    max-width: 250px;
+    line-height: 1.5;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Modal */

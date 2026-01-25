@@ -13,7 +13,10 @@ export class PropertiesPanel {
     render(step) {
         this.currentStep = step;
         if (!step) {
-            this.panel.innerHTML = '<div class="empty-message">変更するステップを選択してください</div>';
+            this.panel.innerHTML = `<div class="empty-state">
+                <ion-icon name="options-outline"></ion-icon>
+                <p>編集するステップを選択してください</p>
+            </div>`;
             return;
         }
 
