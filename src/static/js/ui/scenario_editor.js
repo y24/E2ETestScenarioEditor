@@ -71,7 +71,13 @@ export class ScenarioEditor {
             </div>
         `;
 
-        // Render Selection Toolbar (Hidden by default unless selected)
+        html += `<div class="steps-container">`;
+        html += this.renderSection('Setup', 'setup');
+        html += this.renderSection('Steps', 'steps');
+        html += this.renderSection('Teardown', 'teardown');
+        html += `</div>`;
+
+        // Render Selection Toolbar (Fixed at the bottom via CSS)
         if (this.selectedSteps.size > 0) {
             html += `
                 <div class="selection-toolbar">
@@ -92,12 +98,6 @@ export class ScenarioEditor {
                 </div>
             `;
         }
-
-        html += `<div class="steps-container">`;
-        html += this.renderSection('Setup', 'setup');
-        html += this.renderSection('Steps', 'steps');
-        html += this.renderSection('Teardown', 'teardown');
-        html += `</div>`;
 
         this.container.innerHTML = html;
 
