@@ -113,6 +113,10 @@ export class TabManager {
         return this.tabs.find(t => t.id === this.activeTabId);
     }
 
+    hasDirtyTabs() {
+        return this.tabs.some(t => t.isDirty);
+    }
+
     markDirty(tabId, isDirty = true) {
         const tab = this.tabs.find(t => t.id === tabId);
         if (tab) {

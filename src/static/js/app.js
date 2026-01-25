@@ -44,6 +44,15 @@ class App {
                 this.saveCurrentTab();
             }
         });
+
+        // Browser Close/Reload Confirmation
+        window.onbeforeunload = (e) => {
+            if (this.tabManager && this.tabManager.hasDirtyTabs()) {
+                e.preventDefault();
+                e.returnValue = ''; // Standard way to trigger browser confirmation
+                return '';
+            }
+        };
     }
 
     async init() {
