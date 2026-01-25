@@ -63,7 +63,8 @@
     "sections": {
       "setup": {
         "layout": [],
-        "groups": {}
+        "groups": {},
+        "collapsed": true
       },
       "steps": {
         "layout": [
@@ -85,11 +86,13 @@
             "_groupId": "grp_4ed5e4vkz",
             "_section": "steps"
           }
-        }
+        },
+        "collapsed": false
       },
       "teardown": {
         "layout": [],
-        "groups": {}
+        "groups": {},
+        "collapsed": false
       }
     }
   }

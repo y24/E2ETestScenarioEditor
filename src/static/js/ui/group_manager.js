@@ -32,9 +32,13 @@ export class GroupManager {
             if (!data._editor.sections[section]) {
                 data._editor.sections[section] = {
                     layout: data[section].map(s => s._stepId),
-                    groups: {}
+                    groups: {},
+                    collapsed: false
                 };
             } else {
+                if (data._editor.sections[section].collapsed === undefined) {
+                    data._editor.sections[section].collapsed = false;
+                }
                 // 既存のlayoutと実際のステップの整合性を取る（簡易修復）
                 this.reconcileLayout(data[section], data._editor.sections[section]);
             }

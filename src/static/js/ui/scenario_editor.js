@@ -113,10 +113,14 @@ export class ScenarioEditor {
 
     renderSection(title, key) {
         const displayItems = this.groupManager.getDisplayItems(key, this.currentData);
+        const sectionMeta = this.currentData._editor.sections[key];
+        const isCollapsed = sectionMeta ? sectionMeta.collapsed : false;
+        const collapsedClass = isCollapsed ? 'collapsed' : '';
 
         return `
-            <div class="section-group" data-section="${key}">
-                <div class="section-header">
+            <div class="section-group ${collapsedClass}" data-section="${key}">
+                <div class="section-header" data-action="toggle-section">
+                    <ion-icon name="${isCollapsed ? 'chevron-forward-outline' : 'chevron-down-outline'}"></ion-icon>
                     ${title} <span class="badge">${(this.currentData[key] || []).length}</span>
                     <div class="section-header-actions dropdown-container">
                         <button class="btn-add-step section-menu-btn" title="メニュー">
@@ -132,7 +136,7 @@ export class ScenarioEditor {
                         </div>
                     </div>
                 </div>
-                <div class="step-list root-list" id="list-${key}" data-group="root">
+                <div class="step-list root-list" id="list-${key}" data-group="root" style="${isCollapsed ? 'display: none;' : ''}">
                     ${displayItems.map((item, index) => this.renderItem(item, key)).join('')}
                 </div>
             </div>
@@ -322,6 +326,14 @@ export class ScenarioEditor {
             el.onchange = (e) => this.renameGroup(e);
             el.onblur = (e) => e.target.readOnly = true;
             el.onkeydown = (e) => { if (e.key === 'Enter') e.target.blur(); };
+        });
+
+        // Section Collapse
+        this.container.querySelectorAll('.section-header').forEach(header => {
+            header.onclick = (e) => {
+                if (e.target.closest('.section-header-actions')) return;
+                this.toggleSectionCollapse(header.closest('.section-group').dataset.section);
+            };
         });
 
         // Toolbar Actions
@@ -596,6 +608,15 @@ export class ScenarioEditor {
             grp.collapsed = !grp.collapsed;
             this.rerender();
             this.onDataChange(); // Save state
+        }
+    }
+
+    toggleSectionCollapse(sectionKey) {
+        const meta = this.currentData._editor.sections[sectionKey];
+        if (meta) {
+            meta.collapsed = !meta.collapsed;
+            this.rerender();
+            this.onDataChange();
         }
     }
 

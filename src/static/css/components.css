@@ -130,6 +130,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.section-header:hover {
+    color: var(--accent-color);
 }
 
 .badge {
