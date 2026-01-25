@@ -1,6 +1,6 @@
 import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
-import { SettingsModal, SaveAsModal } from './ui/modal.js';
+import { SettingsModal, SaveAsModal, ConfirmModal } from './ui/modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
 import { PropertiesPanel } from './ui/properties_panel.js';
@@ -12,6 +12,7 @@ class App {
         this.fileBrowser = new FileBrowser('file-browser', this.onFileSelected.bind(this));
         this.settingsModal = new SettingsModal(this.onConfigSaved.bind(this), () => this.config);
         this.saveAsModal = new SaveAsModal(this.onSaveAsConfirmed.bind(this), () => this.config);
+        this.confirmModal = new ConfirmModal({});
 
         // Pass callbacks to Editor
         this.editor = new ScenarioEditor(
@@ -28,7 +29,8 @@ class App {
         this.tabManager = new TabManager(
             'tab-bar',
             'editor-container',
-            this.onTabChange.bind(this)
+            this.onTabChange.bind(this),
+            this.onTabCloseRequest.bind(this)
         );
 
         document.getElementById('btn-refresh-files').onclick = () => this.fileBrowser.load();
@@ -108,7 +110,7 @@ class App {
         await this.performSave(tab.file.path, tab.data, tab.id);
     }
 
-    async onSaveAsConfirmed({ dirIndex, subdir, filename }) {
+    async onSaveAsConfirmed({ dirIndex, subdir, filename, closeAfterSave }) {
         // Get directory from config
         if (!this.config.scenario_directories || this.config.scenario_directories.length === 0) {
             alert("No directories configured.");
@@ -145,6 +147,10 @@ class App {
 
             // Refresh file list
             this.fileBrowser.load();
+
+            if (closeAfterSave) {
+                this.tabManager.forceCloseTab(tab.id);
+            }
         }
     }
 
@@ -170,6 +176,7 @@ class App {
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
             }, 2000);
+            throw e;
         }
     }
 
@@ -191,6 +198,33 @@ class App {
         this.editor.render(tab);
         // Clear properties panel when switching tabs
         this.propertiesPanel.render(null);
+    }
+
+    onTabCloseRequest(tab) {
+        // If it's a dirty tab, ask for confirmation
+        this.confirmModal.open(
+            '変更の保存',
+            `"${tab.file.name}" への変更を保存しますか？`,
+            {
+                onYes: async () => {
+                    // Save and then close
+                    if (!tab.file.path) {
+                        // For untitled files, we need to activate first so Save As knows which one to save
+                        this.tabManager.activateTab(tab.id);
+                        this.saveAsModal.open(true);
+                    } else {
+                        await this.performSave(tab.file.path, tab.data, tab.id);
+                        this.tabManager.forceCloseTab(tab.id);
+                    }
+                },
+                onNo: () => {
+                    this.tabManager.forceCloseTab(tab.id);
+                },
+                onCancel: () => {
+                    // Do nothing
+                }
+            }
+        );
     }
 
     onStepSelected(step) {

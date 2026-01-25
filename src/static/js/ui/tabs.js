@@ -1,10 +1,11 @@
 export class TabManager {
-    constructor(tabBarId, editorContainerId, onTabChange) {
+    constructor(tabBarId, editorContainerId, onTabChange, onTabCloseRequest) {
         this.tabBar = document.getElementById(tabBarId);
         this.editorContainer = document.getElementById(editorContainerId);
         this.tabs = []; // { id: str, file: Obj, data: Obj, isDirty: bool }
         this.activeTabId = null;
         this.onTabChange = onTabChange;
+        this.onTabCloseRequest = onTabCloseRequest;
     }
 
     openTab(file, data, isPreview = false) {
@@ -59,10 +60,20 @@ export class TabManager {
     closeTab(tabId, e) {
         if (e) e.stopPropagation();
 
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+
+        if (tab.isDirty && this.onTabCloseRequest) {
+            this.onTabCloseRequest(tab);
+            return;
+        }
+
+        this.forceCloseTab(tabId);
+    }
+
+    forceCloseTab(tabId) {
         const index = this.tabs.findIndex(t => t.id === tabId);
         if (index === -1) return;
-
-        // TODO: Check dirty state and confirm
 
         this.tabs.splice(index, 1);
 

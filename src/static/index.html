@@ -140,6 +140,24 @@
         </div>
     </div>
 
+    <!-- Confirm Close Modal -->
+    <div id="confirm-close-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>変更の保存</h2>
+                <button class="close-modal close-confirm-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>このファイルには保存されていない変更があります。保存しますか？</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-confirm-yes" class="btn btn-primary">はい</button>
+                <button id="btn-confirm-no" class="btn btn-secondary">いいえ</button>
+                <button id="btn-confirm-cancel" class="btn btn-text">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-backdrop" class="modal-backdrop hidden"></div>
 
     <script type="module" src="/static/js/app.js"></script>

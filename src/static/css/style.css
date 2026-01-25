@@ -324,6 +324,16 @@ body {
     background-color: #c0392b;
 }
 
+.btn-text {
+    background: none;
+    color: var(--text-secondary);
+}
+
+.btn-text:hover {
+    background-color: #f0f0f0;
+    color: var(--text-primary);
+}
+
 .close-modal {
     background: none;
     border: none;

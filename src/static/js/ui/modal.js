@@ -175,6 +175,7 @@ export class SaveAsModal extends BaseModal {
         this.inputDirType = document.getElementById('save-dir-type');
         this.inputSubdir = document.getElementById('save-subdir');
         this.inputFilename = document.getElementById('save-filename');
+        this.closeAfterSave = false;
 
         // Events
         const btnClose = this.modal.querySelector('.close-save-modal');
@@ -184,7 +185,8 @@ export class SaveAsModal extends BaseModal {
         if (btnSave) btnSave.onclick = () => this.confirm();
     }
 
-    open() {
+    open(closeAfterSave = false) {
+        this.closeAfterSave = closeAfterSave;
         this.inputSubdir.value = '';
         this.inputFilename.value = '';
 
@@ -227,8 +229,34 @@ export class SaveAsModal extends BaseModal {
         await this.saveCallback({
             dirIndex,
             subdir,
-            filename
+            filename,
+            closeAfterSave: this.closeAfterSave
         });
         this.close();
+        this.closeAfterSave = false;
+    }
+}
+
+export class ConfirmModal extends BaseModal {
+    constructor(callbacks) {
+        super('confirm-close-modal');
+        this.callbacks = callbacks; // { onYes, onNo, onCancel }
+
+        const btnYes = document.getElementById('btn-confirm-yes');
+        const btnNo = document.getElementById('btn-confirm-no');
+        const btnCancel = document.getElementById('btn-confirm-cancel');
+        const btnClose = this.modal.querySelector('.close-confirm-modal');
+
+        if (btnYes) btnYes.onclick = () => { this.close(); if (this.callbacks.onYes) this.callbacks.onYes(); };
+        if (btnNo) btnNo.onclick = () => { this.close(); if (this.callbacks.onNo) this.callbacks.onNo(); };
+        if (btnCancel) btnCancel.onclick = () => { this.close(); if (this.callbacks.onCancel) this.callbacks.onCancel(); };
+        if (btnClose) btnClose.onclick = () => { this.close(); if (this.callbacks.onCancel) this.callbacks.onCancel(); };
+    }
+
+    open(title, message, callbacks) {
+        if (title) this.modal.querySelector('h2').textContent = title;
+        if (message) this.modal.querySelector('.modal-body p').textContent = message;
+        if (callbacks) this.callbacks = callbacks;
+        super.open();
     }
 }
