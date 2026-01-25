@@ -106,6 +106,21 @@
                     </div>
                     <button id="btn-add-directory" class="btn btn-secondary">+ Add Directory</button>
                 </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+                <div class="form-group">
+                    <label>Page Object Folder</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="page-object-folder" class="form-input"
+                            placeholder="Path to page objects root">
+                        <button id="btn-pick-page-object-folder" class="btn btn-secondary" title="フォルダを選択">
+                            <ion-icon name="folder-open-outline"></ion-icon>
+                        </button>
+                    </div>
+                    <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
+                        指定したフォルダ内のPythonファイルをスキャンしてTarget候補として表示します。</p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button id="btn-save-settings" class="btn btn-primary">保存</button>

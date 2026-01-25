@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 import os
 from .config import load_config, save_config, AppConfig
 from .file_service import FileService
+from .page_object_scanner import scan_page_objects
 
 router = APIRouter(prefix="/api")
 
@@ -40,6 +41,17 @@ async def pick_directory():
         return {"path": None}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/page-objects")
+async def get_page_objects():
+    config = load_config()
+    if not config.page_object_folder:
+        return []
+        
+    try:
+        return scan_page_objects(config.page_object_folder)
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
 
 # --- File Browser API ---
 

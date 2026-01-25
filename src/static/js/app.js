@@ -1,6 +1,7 @@
 import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
 import { SettingsModal, SaveAsModal, ConfirmModal } from './ui/modal.js';
+import { TargetSelectorModal } from './ui/target_selector_modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
 import { PropertiesPanel } from './ui/properties_panel.js';
@@ -14,6 +15,7 @@ class App {
         this.settingsModal = new SettingsModal(this.onConfigSaved.bind(this), () => this.config);
         this.saveAsModal = new SaveAsModal(this.onSaveAsConfirmed.bind(this), () => this.config);
         this.confirmModal = new ConfirmModal({});
+        this.targetSelectorModal = new TargetSelectorModal();
 
         // Pass callbacks to Editor
         this.editor = new ScenarioEditor(
@@ -24,7 +26,8 @@ class App {
 
         this.propertiesPanel = new PropertiesPanel(
             'properties-panel',
-            this.onPropertyUpdated.bind(this) // Prop edit
+            this.onPropertyUpdated.bind(this), // Prop edit
+            this.targetSelectorModal
         );
 
         this.tabManager = new TabManager(

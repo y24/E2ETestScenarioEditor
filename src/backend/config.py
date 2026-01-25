@@ -13,6 +13,7 @@ class ScenarioDirectory(BaseModel):
 
 class AppConfig(BaseModel):
     scenario_directories: list[ScenarioDirectory] = []
+    page_object_folder: Optional[str] = None
     ui_settings: Optional[dict] = {}
 
 def load_config() -> AppConfig:

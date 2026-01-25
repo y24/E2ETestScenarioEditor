@@ -23,7 +23,14 @@ export class SettingsModal extends BaseModal {
         this.saveCallback = saveCallback;
         this.getConfigCallback = getConfigCallback;
         this.directories = [];
+        this.pageObjectFolder = '';
         this.directoriesContainer = document.getElementById('directories-list');
+        this.pageObjectFolderInput = document.getElementById('page-object-folder');
+        this.btnPickPageObjectFolder = document.getElementById('btn-pick-page-object-folder');
+
+        if (this.btnPickPageObjectFolder) {
+            this.btnPickPageObjectFolder.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
+        }
 
         // Settings Events
         const btnOpen = document.getElementById('btn-settings');
@@ -41,20 +48,26 @@ export class SettingsModal extends BaseModal {
 
     open(currentConfig = {}) {
         this.directories = currentConfig.scenario_directories || [];
+        this.pageObjectFolder = currentConfig.page_object_folder || '';
+        if (this.pageObjectFolderInput) {
+            this.pageObjectFolderInput.value = this.pageObjectFolder;
+        }
         this.renderDirectories();
         super.open();
     }
 
-    async openDirectoryPicker(pathInput, nameInput) {
+    async openDirectoryPicker(pathInput, nameInput, isPageObjectFolder = false) {
         try {
             const result = await API.pickDirectory();
             if (result && result.path) {
                 pathInput.value = result.path;
 
-                // パスからフォルダ名を抽出してNameに設定
-                const folderName = result.path.split(/[/\\]/).filter(Boolean).pop();
-                if (folderName) {
-                    nameInput.value = folderName;
+                if (!isPageObjectFolder && nameInput) {
+                    // パスからフォルダ名を抽出してNameに設定
+                    const folderName = result.path.split(/[/\\]/).filter(Boolean).pop();
+                    if (folderName) {
+                        nameInput.value = folderName;
+                    }
                 }
             }
         } catch (e) {
@@ -159,7 +172,8 @@ export class SettingsModal extends BaseModal {
         });
 
         const newConfig = {
-            scenario_directories: newDirectories
+            scenario_directories: newDirectories,
+            page_object_folder: this.pageObjectFolderInput ? this.pageObjectFolderInput.value.trim() : null
         };
         await this.saveCallback(newConfig);
         this.close();

@@ -21,6 +21,12 @@ export const API = {
         return res.json();
     },
 
+    async getPageObjects() {
+        const res = await fetch(`${API_BASE}/page-objects`);
+        if (!res.ok) throw new Error('Failed to fetch page objects');
+        return res.json();
+    },
+
     async listFiles() {
         const res = await fetch(`${API_BASE}/files`);
         return res.json();

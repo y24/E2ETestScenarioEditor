@@ -1,8 +1,9 @@
 export class PropertiesPanel {
-    constructor(panelId, onUpdate) {
+    constructor(panelId, onUpdate, targetSelectorModal) {
         this.panel = document.getElementById(panelId);
         this.currentStep = null;
         this.onUpdate = onUpdate; // callback when data changes
+        this.targetSelectorModal = targetSelectorModal;
         this.actionConfig = {};
     }
 
@@ -121,7 +122,7 @@ export class PropertiesPanel {
         row.innerHTML = `
             <input type="text" class="form-input param-key" value="${key}" placeholder="Key">
             <div class="param-value-container">
-                <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value" autocomplete="off">
+                <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value" autocomplete="off" ${key === 'target' ? 'readonly' : ''}>
                 <div class="combo-arrow" title="選択肢を表示">
                     <ion-icon name="chevron-down-outline"></ion-icon>
                 </div>
@@ -137,6 +138,21 @@ export class PropertiesPanel {
         const arrow = row.querySelector('.combo-arrow');
         const menu = row.querySelector('.dropdown-menu');
         const delBtn = row.querySelector('.btn-remove-param');
+
+        // Target Selector Trigger
+        if (key === 'target') {
+            valInput.onclick = () => {
+                if (this.targetSelectorModal) {
+                    this.targetSelectorModal.open(valInput.value, (selectedValue) => {
+                        valInput.value = selectedValue;
+                        this.updateParamsFromGrid();
+                    });
+                } else {
+                    alert("Target selector not available");
+                }
+            };
+            valInput.style.cursor = 'pointer';
+        }
 
         // Helper to update current suggestions/arrow based on current key
         const updateArrowVisibility = () => {
