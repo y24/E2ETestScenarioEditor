@@ -139,20 +139,44 @@ export class PropertiesPanel {
         const menu = row.querySelector('.dropdown-menu');
         const delBtn = row.querySelector('.btn-remove-param');
 
-        // Target Selector Trigger
-        if (key === 'target') {
-            valInput.onclick = () => {
+        // Helper to setup target selector behavior
+        const checkTargetKey = () => {
+            const isTarget = keyInput.value.trim().toLowerCase() === 'target';
+            if (isTarget) {
+                valInput.readOnly = true;
+                valInput.style.cursor = 'pointer';
+                valInput.style.backgroundColor = '#ecf5ff';
+                valInput.style.borderStyle = 'dashed';
+            } else {
+                valInput.readOnly = false;
+                valInput.style.cursor = 'text';
+                valInput.style.backgroundColor = '';
+                valInput.style.borderStyle = 'solid';
+            }
+        };
+
+        // Use mousedown to trigger selector (often more reliable than click for readonly)
+        valInput.addEventListener('mousedown', (e) => {
+            if (keyInput.value.trim().toLowerCase() === 'target') {
+                e.preventDefault();
                 if (this.targetSelectorModal) {
                     this.targetSelectorModal.open(valInput.value, (selectedValue) => {
                         valInput.value = selectedValue;
                         this.updateParamsFromGrid();
                     });
-                } else {
-                    alert("Target selector not available");
                 }
-            };
-            valInput.style.cursor = 'pointer';
-        }
+            }
+        });
+
+        // Block normal click processing
+        valInput.addEventListener('click', (e) => {
+            if (keyInput.value.trim().toLowerCase() === 'target') {
+                e.preventDefault();
+            }
+        });
+
+        // Initial check
+        checkTargetKey();
 
         // Helper to update current suggestions/arrow based on current key
         const updateArrowVisibility = () => {
@@ -187,6 +211,7 @@ export class PropertiesPanel {
 
         // Events
         keyInput.oninput = () => {
+            checkTargetKey();
             updateArrowVisibility();
             this.updateParamsFromGrid();
         };
