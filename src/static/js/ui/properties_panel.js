@@ -40,6 +40,16 @@ export class PropertiesPanel {
 
                 <hr class="props-divider">
 
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="margin-bottom: 0;">Params</label>
+                    </div>
+                    <div id="params-grid" class="params-grid"></div>
+                    <button id="btn-add-param" class="btn-add-param">
+                        <ion-icon name="add-outline"></ion-icon> パラメータを追加
+                    </button>
+                </div>
+
                 <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
                     <label>Params (JSON)</label>
                     <textarea id="prop-params" class="code-editor">${paramsJson}</textarea>
@@ -47,7 +57,85 @@ export class PropertiesPanel {
             </div>
         `;
 
+        this.renderParamsGrid();
         this.bindEvents();
+    }
+
+    renderParamsGrid() {
+        const grid = document.getElementById('params-grid');
+        if (!grid) return;
+
+        const params = this.currentStep.params || {};
+        grid.innerHTML = '';
+
+        Object.entries(params).forEach(([key, value]) => {
+            this.addParamRow(grid, key, value);
+        });
+    }
+
+    addParamRow(container, key = '', value = '') {
+        const row = document.createElement('div');
+        row.className = 'params-row';
+
+        const valueStr = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : value;
+
+        row.innerHTML = `
+            <input type="text" class="form-input param-key" value="${key}" placeholder="Key">
+            <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value">
+            <button class="btn-remove-param" title="削除">
+                <ion-icon name="trash-outline"></ion-icon>
+            </button>
+        `;
+
+        const keyInput = row.querySelector('.param-key');
+        const valInput = row.querySelector('.param-value');
+        const delBtn = row.querySelector('.btn-remove-param');
+
+        keyInput.oninput = () => this.updateParamsFromGrid();
+        valInput.oninput = () => this.updateParamsFromGrid();
+        delBtn.onclick = () => {
+            row.remove();
+            this.updateParamsFromGrid();
+        };
+
+        container.appendChild(row);
+        return row;
+    }
+
+    updateParamsFromGrid() {
+        const grid = document.getElementById('params-grid');
+        const rows = grid.querySelectorAll('.params-row');
+        const newParams = {};
+
+        rows.forEach(row => {
+            const key = row.querySelector('.param-key').value.trim();
+            let value = row.querySelector('.param-value').value;
+
+            if (key) {
+                // Try to infer types
+                if (value === 'true') value = true;
+                else if (value === 'false') value = false;
+                else if (value !== '' && !isNaN(value)) value = Number(value);
+                else if (value.startsWith('{') || value.startsWith('[')) {
+                    try {
+                        value = JSON.parse(value);
+                    } catch (e) { /* keep as string if not valid JSON */ }
+                }
+
+                newParams[key] = value;
+            }
+        });
+
+        this.currentStep.params = newParams;
+
+        // Update JSON textarea
+        const textarea = document.getElementById('prop-params');
+        if (textarea) {
+            textarea.value = JSON.stringify(newParams, null, 2);
+            textarea.style.borderColor = '#ddd';
+        }
+
+        this.emitUpdate();
     }
 
     bindEvents() {
@@ -74,19 +162,33 @@ export class PropertiesPanel {
             this.emitUpdate();
         };
 
+        // Add Param Button
+        document.getElementById('btn-add-param').onclick = () => {
+            const grid = document.getElementById('params-grid');
+            const row = this.addParamRow(grid);
+            row.querySelector('.param-key').focus();
+        };
+
         // JSON Params
-        document.getElementById('prop-params').onchange = (e) => {
+        const paramsTextarea = document.getElementById('prop-params');
+        paramsTextarea.oninput = (e) => {
             try {
                 const newParams = JSON.parse(e.target.value);
                 this.currentStep.params = newParams;
-
-
-                // Styling for valid JSON
                 e.target.style.borderColor = '#ddd';
                 this.emitUpdate();
             } catch (err) {
                 e.target.style.borderColor = 'red';
             }
+        };
+
+        paramsTextarea.onchange = (e) => {
+            try {
+                const newParams = JSON.parse(e.target.value);
+                this.currentStep.params = newParams;
+                this.renderParamsGrid(); // Sync grid on blur
+                this.emitUpdate();
+            } catch (err) { }
         };
     }
 
