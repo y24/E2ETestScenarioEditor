@@ -4,13 +4,13 @@
 .group-item {
     border: 1px solid #bdc3c7;
     border-radius: 6px;
-    background-color: #f8f9fa;
+    background-color: white;
     margin-bottom: 8px;
     overflow: hidden;
 }
 
 .group-header {
-    background-color: #ecf0f1;
+    background-color: white;
     padding: 8px 12px;
     display: flex;
     align-items: center;
