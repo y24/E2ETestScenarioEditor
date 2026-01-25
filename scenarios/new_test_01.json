@@ -6,7 +6,6 @@
   "steps": [
     {
       "name": "新しいステップ2",
-      "type": "system",
       "params": {
         "action": ""
       },
@@ -36,6 +35,19 @@
         "action": ""
       },
       "_stepId": "stp_363vm0mp2"
+    },
+    {
+      "name": "新しいステップ",
+      "type": "none",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_cj0i3cv8l"
+    },
+    {
+      "name": "新しいステップ",
+      "type": "none",
+      "_stepId": "stp_qr795tb5h"
     }
   ],
   "teardown": [],
@@ -51,7 +63,9 @@
         "layout": [
           "stp_t3h4gxqfl",
           "grp_v3u6rp8q4",
-          "stp_363vm0mp2"
+          "stp_363vm0mp2",
+          "stp_cj0i3cv8l",
+          "stp_qr795tb5h"
         ],
         "groups": {
           "grp_v3u6rp8q4": {

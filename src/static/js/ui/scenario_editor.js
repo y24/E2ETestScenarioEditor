@@ -521,8 +521,7 @@ export class ScenarioEditor {
         if (!this.currentData[sectionKey]) this.currentData[sectionKey] = [];
         const newStep = {
             name: "新しいステップ",
-            type: "system",
-            params: { action: "" },
+            type: "none",
             _stepId: this.groupManager.generateStepId()
         };
         this.currentData[sectionKey].push(newStep);
