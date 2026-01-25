@@ -13,6 +13,7 @@ export class ScenarioEditor {
 
         this.selectedSteps = new Set(); // Set<stepId>
         this.selectedEl = null;         // Single selection element (legacy support for Right Pane)
+        this.lastCheckedStepId = null;  // For shift-click range selection
 
         // Bindings
         this.handleSectionAction = this.handleSectionAction.bind(this);
@@ -218,7 +219,7 @@ export class ScenarioEditor {
                 this.selectSingleStep(el);
             };
             const cb = el.querySelector('.step-checkbox');
-            if (cb) cb.onclick = (e) => this.toggleSelection(el.dataset.id, e.target.checked);
+            if (cb) cb.onclick = (e) => this.toggleSelection(el.dataset.id, e.target.checked, e.shiftKey);
         });
 
         // Group Actions
@@ -323,9 +324,34 @@ export class ScenarioEditor {
         }
     }
 
-    toggleSelection(stepId, checked) {
-        if (checked) this.selectedSteps.add(stepId);
-        else this.selectedSteps.delete(stepId);
+    toggleSelection(stepId, checked, shiftKey = false) {
+        if (shiftKey && this.lastCheckedStepId) {
+            const allSteps = Array.from(this.container.querySelectorAll('.step-item'));
+            const lastIdx = allSteps.findIndex(el => el.dataset.id === this.lastCheckedStepId);
+            const currIdx = allSteps.findIndex(el => el.dataset.id === stepId);
+
+            if (lastIdx !== -1 && currIdx !== -1) {
+                const start = Math.min(lastIdx, currIdx);
+                const end = Math.max(lastIdx, currIdx);
+
+                // Range selection: apply 'checked' state to all items in range
+                for (let i = start; i <= end; i++) {
+                    const id = allSteps[i].dataset.id;
+                    if (checked) this.selectedSteps.add(id);
+                    else this.selectedSteps.delete(id);
+                }
+            } else {
+                // Fallback if ID not found (e.g. filtered out)
+                if (checked) this.selectedSteps.add(stepId);
+                else this.selectedSteps.delete(stepId);
+                this.lastCheckedStepId = stepId;
+            }
+        } else {
+            // Normal click
+            if (checked) this.selectedSteps.add(stepId);
+            else this.selectedSteps.delete(stepId);
+            this.lastCheckedStepId = stepId;
+        }
         this.rerender();
     }
 
