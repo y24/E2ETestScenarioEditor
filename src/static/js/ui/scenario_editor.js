@@ -13,6 +13,7 @@ export class ScenarioEditor {
 
         this.selectedSteps = new Set(); // Set<stepId>
         this.selectedEl = null;         // Single selection element (legacy support for Right Pane)
+        this.selectedStep = null;       // Currently selected step data object
         this.lastCheckedStepId = null;  // For shift-click range selection
 
         // Bindings
@@ -86,7 +87,7 @@ export class ScenarioEditor {
         return `
             <div class="section-group" data-section="${key}">
                 <div class="section-header">
-                    ${title} <span class="badge">${this.currentData[key].length}</span>
+                    ${title} <span class="badge">${(this.currentData[key] || []).length}</span>
                     <div class="section-header-actions dropdown-container">
                         <button class="btn-add-step section-menu-btn" title="メニュー">
                             <ion-icon name="add-circle-outline"></ion-icon>
@@ -173,7 +174,7 @@ export class ScenarioEditor {
     getIconForType(type) {
         switch (type) {
             case 'system': return '<ion-icon name="desktop-outline"></ion-icon>';
-            case 'ui': return '<ion-icon name="hand-left-outline"></ion-icon>';
+            case 'ui': return '<ion-icon name="browsers-outline"></ion-icon>';
             case 'verification': return '<ion-icon name="checkmark-circle-outline"></ion-icon>';
             default: return '<ion-icon name="cube-outline"></ion-icon>';
         }
@@ -365,6 +366,7 @@ export class ScenarioEditor {
         const section = el.dataset.section;
         const stepData = this.currentData[section].find(s => s._stepId === stepId);
 
+        this.selectedStep = stepData;
         if (this.onStepSelect) this.onStepSelect(stepData);
     }
 
@@ -623,6 +625,14 @@ export class ScenarioEditor {
         if (!this.selectedEl || !this.selectedStep) return;
         this.selectedEl.querySelector('.step-name').textContent = this.selectedStep.name || 'Untitled';
         this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.action || '';
+
+        // Update Icon
+        const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');
+        if (iconTypeEl) {
+            iconTypeEl.innerHTML = this.getIconForType(this.selectedStep.type);
+            iconTypeEl.title = this.selectedStep.type;
+        }
+
         if (this.selectedStep.ignore) this.selectedEl.classList.add('ignored');
         else this.selectedEl.classList.remove('ignored');
     }

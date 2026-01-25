@@ -18,22 +18,25 @@ export class GroupManager {
             };
         }
         ['setup', 'steps', 'teardown'].forEach(section => {
-            // ステップIDの付与
-            if (data[section]) {
-                data[section].forEach(step => {
-                    if (!step._stepId) step._stepId = this.generateStepId();
-                });
+            // セクションがなければ初期化
+            if (!data[section]) {
+                data[section] = [];
+            }
 
-                // _editor情報の初期化
-                if (!data._editor.sections[section]) {
-                    data._editor.sections[section] = {
-                        layout: data[section].map(s => s._stepId),
-                        groups: {}
-                    };
-                } else {
-                    // 既存のlayoutと実際のステップの整合性を取る（簡易修復）
-                    this.reconcileLayout(data[section], data._editor.sections[section]);
-                }
+            // ステップIDの付与
+            data[section].forEach(step => {
+                if (!step._stepId) step._stepId = this.generateStepId();
+            });
+
+            // _editor情報の初期化
+            if (!data._editor.sections[section]) {
+                data._editor.sections[section] = {
+                    layout: data[section].map(s => s._stepId),
+                    groups: {}
+                };
+            } else {
+                // 既存のlayoutと実際のステップの整合性を取る（簡易修復）
+                this.reconcileLayout(data[section], data._editor.sections[section]);
             }
         });
         return data;

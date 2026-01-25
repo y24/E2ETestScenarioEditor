@@ -309,6 +309,22 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
+    user-select: none;
+    font-weight: 500;
+    padding: 4px 0;
+    white-space: nowrap;
+}
+
+.form-group .checkbox-wrapper input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.props-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 8px 0 24px 0;
 }
 
 /* Dropdown Menu */

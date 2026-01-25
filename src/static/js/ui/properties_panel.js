@@ -36,12 +36,13 @@ export class PropertiesPanel {
                 </div>
 
                 <div class="form-group">
-                    <label>Ignore</label>
-                    <div class="checkbox-wrapper">
+                    <label class="checkbox-wrapper">
                         <input type="checkbox" id="prop-ignore" ${step.ignore ? 'checked' : ''}>
-                        <span>無効化する</span>
-                    </div>
+                        <span>無効化</span>
+                    </label>
                 </div>
+
+                <hr class="props-divider">
 
                 <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
                     <label>Params (JSON)</label>
