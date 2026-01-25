@@ -37,7 +37,7 @@ export class TargetSelectorModal extends BaseModal {
 
         // Events
         const closeBtns = this.modal.querySelectorAll('.close-target-selector-modal');
-        closeBtns.forEach(btn => btn.onclick = () => this.close());
+        closeBtns.forEach(btn => btn.onclick = () => this.cancel());
 
         this.searchInput = document.getElementById('target-search');
         this.searchInput.oninput = () => this.renderList();

@@ -4,16 +4,27 @@ export class BaseModal {
     constructor(modalId) {
         this.modal = document.getElementById(modalId);
         this.backdrop = document.getElementById('modal-backdrop');
+        this._escListener = (e) => {
+            if (e.key === 'Escape' && !this.modal.classList.contains('hidden')) {
+                this.cancel();
+            }
+        };
     }
 
     open() {
         this.modal.classList.remove('hidden');
         this.backdrop.classList.remove('hidden');
+        window.addEventListener('keydown', this._escListener);
     }
 
     close() {
         this.modal.classList.add('hidden');
         this.backdrop.classList.add('hidden');
+        window.removeEventListener('keydown', this._escListener);
+    }
+
+    cancel() {
+        this.close();
     }
 }
 
@@ -37,7 +48,7 @@ export class SettingsModal extends BaseModal {
         if (btnOpen) btnOpen.onclick = () => this.open(this.getConfigCallback ? this.getConfigCallback() : {});
 
         const btnClose = this.modal.querySelector('.close-modal');
-        if (btnClose) btnClose.onclick = () => this.close();
+        if (btnClose) btnClose.onclick = () => this.cancel();
 
         const btnSave = document.getElementById('btn-save-settings');
         if (btnSave) btnSave.onclick = () => this.save();
@@ -193,7 +204,7 @@ export class SaveAsModal extends BaseModal {
 
         // Events
         const btnClose = this.modal.querySelector('.close-save-modal');
-        if (btnClose) btnClose.onclick = () => this.close();
+        if (btnClose) btnClose.onclick = () => this.cancel();
 
         const btnSave = document.getElementById('btn-confirm-save');
         if (btnSave) btnSave.onclick = () => this.confirm();
@@ -263,8 +274,15 @@ export class ConfirmModal extends BaseModal {
 
         if (btnYes) btnYes.onclick = () => { this.close(); if (this.callbacks.onYes) this.callbacks.onYes(); };
         if (btnNo) btnNo.onclick = () => { this.close(); if (this.callbacks.onNo) this.callbacks.onNo(); };
-        if (btnCancel) btnCancel.onclick = () => { this.close(); if (this.callbacks.onCancel) this.callbacks.onCancel(); };
-        if (btnClose) btnClose.onclick = () => { this.close(); if (this.callbacks.onCancel) this.callbacks.onCancel(); };
+        if (btnCancel) btnCancel.onclick = () => this.cancel();
+        if (btnClose) btnClose.onclick = () => this.cancel();
+    }
+
+    cancel() {
+        this.close();
+        if (this.callbacks && this.callbacks.onCancel) {
+            this.callbacks.onCancel();
+        }
     }
 
     open(title, message, callbacks) {
@@ -286,7 +304,7 @@ export class ScenarioMetaModal extends BaseModal {
         this.inputDesc = document.getElementById('modal-meta-description');
 
         const btnClose = this.modal.querySelector('.close-meta-modal');
-        if (btnClose) btnClose.onclick = () => this.close();
+        if (btnClose) btnClose.onclick = () => this.cancel();
 
         const btnSave = document.getElementById('btn-save-meta');
         if (btnSave) btnSave.onclick = () => this.save();
