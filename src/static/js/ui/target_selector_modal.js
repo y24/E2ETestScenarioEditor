@@ -18,7 +18,7 @@ export class TargetSelectorModal extends BaseModal {
                         <span class="close-modal close-target-selector-modal">&times;</span>
                     </div>
                     <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-                        <input type="text" id="target-search" class="form-input" placeholder="Search targets..." style="margin-bottom: 10px;">
+                        <input type="text" id="target-search" class="form-input" placeholder="Search targets..." style="margin-bottom: 10px;" autocomplete="off">
                         <div id="target-list" style="flex: 1; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
                             <!-- Items will be injected here -->
                         </div>

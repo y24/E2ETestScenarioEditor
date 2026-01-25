@@ -38,7 +38,7 @@ export class PropertiesPanel {
                 <div class="props-container">
                     <div class="form-group">
                         <label>Group Name</label>
-                        <input type="text" id="prop-name" value="${step.name || ''}" class="form-input">
+                        <input type="text" id="prop-name" value="${step.name || ''}" class="form-input" autocomplete="off">
                     </div>
                     <div class="group-info" style="color: #666; font-size: 0.85rem; border-top: 1px solid #eee; padding-top: 8px;">
                         <p>${step.items.length} steps in this group</p>
@@ -65,7 +65,7 @@ export class PropertiesPanel {
             <div class="props-container">
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" id="prop-name" value="${step.name || ''}" class="form-input">
+                    <input type="text" id="prop-name" value="${step.name || ''}" class="form-input" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>Type</label>
@@ -125,7 +125,7 @@ export class PropertiesPanel {
         const typeConfig = this.actionConfig[this.currentStep.type] || {};
 
         row.innerHTML = `
-            <input type="text" class="form-input param-key" value="${key}" placeholder="Key">
+            <input type="text" class="form-input param-key" value="${key}" placeholder="Key" autocomplete="off">
             <div class="param-value-container">
                 <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value" autocomplete="off" ${key === 'target' ? 'readonly' : ''}>
                 <div class="combo-arrow" title="選択肢を表示">

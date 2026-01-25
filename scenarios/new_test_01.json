@@ -1,7 +1,11 @@
 {
-  "id": "",
-  "name": "New Scenario",
-  "description": "",
+  "id": "aaa",
+  "name": "New Scenarioaaaa",
+  "tags": [
+    "aaa",
+    "bbbb"
+  ],
+  "description": "desc",
   "setup": [],
   "steps": [
     {
@@ -30,6 +34,15 @@
     },
     {
       "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_thi5chg2s",
+      "ignore": true
+    },
+    {
+      "name": "新しいステップ",
       "type": "none",
       "_stepId": "stp_qr795tb5h"
     },
@@ -40,15 +53,6 @@
         "action": ""
       },
       "_stepId": "stp_swesd1z5t",
-      "ignore": true
-    },
-    {
-      "name": "新しいステップ",
-      "type": "system",
-      "params": {
-        "action": ""
-      },
-      "_stepId": "stp_thi5chg2s",
       "ignore": true
     }
   ],
@@ -66,21 +70,20 @@
           "stp_t3h4gxqfl",
           "stp_363vm0mp2",
           "stp_cj0i3cv8l",
-          "stp_qr795tb5h",
-          "grp_v3u6rp8q4"
+          "grp_4ed5e4vkz"
         ],
         "groups": {
-          "grp_v3u6rp8q4": {
+          "grp_4ed5e4vkz": {
             "name": "New Group",
             "collapsed": false,
             "items": [
-              "stp_swesd1z5t",
-              "stp_thi5chg2s"
+              "stp_thi5chg2s",
+              "stp_qr795tb5h",
+              "stp_swesd1z5t"
             ],
             "_isGroup": true,
-            "_groupId": "grp_v3u6rp8q4",
-            "_section": "steps",
-            "ignore": true
+            "_groupId": "grp_4ed5e4vkz",
+            "_section": "steps"
           }
         }
       },

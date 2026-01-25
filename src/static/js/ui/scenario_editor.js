@@ -163,7 +163,7 @@ export class ScenarioEditor {
                         <ion-icon name="${group.collapsed ? 'chevron-forward-outline' : 'chevron-down-outline'}"></ion-icon>
                     </div>
                     <ion-icon name="folder-open-outline" class="group-icon"></ion-icon>
-                    <input type="text" class="group-name" value="${group.name}" readonly ondblclick="this.readOnly=false">
+                    <input type="text" class="group-name" value="${group.name}" readonly ondblclick="this.readOnly=false" autocomplete="off">
                     <div class="group-actions">
                          <button class="step-action-btn" data-action="ungroup" title="グループ解除">
                             <ion-icon name="folder-open-outline"></ion-icon>
