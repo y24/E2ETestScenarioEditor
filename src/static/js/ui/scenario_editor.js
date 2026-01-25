@@ -145,7 +145,7 @@ export class ScenarioEditor {
     renderStep(step, sectionKey) {
         const typeIcon = this.getIconForStep(step);
         const name = step.name || 'Untitled Step';
-        const action = step.params && step.params.action ? step.params.action : '';
+        const operation = step.params && step.params.operation ? step.params.operation : '';
         const ignoredClass = step.ignore ? 'ignored' : '';
         const isSelected = this.selectedSteps.has(step._stepId) ? 'selected' : '';
         const checked = this.selectedSteps.has(step._stepId) ? 'checked' : '';
@@ -157,7 +157,7 @@ export class ScenarioEditor {
                 <div class="step-icon_type" title="${step.type}">${typeIcon}</div>
                 <div class="step-content">
                     <div class="step-name">${name}</div>
-                    <div class="step-desc">${action}</div>
+                    <div class="step-desc">${operation}</div>
                 </div>
                 <div class="step-actions">
                     <button class="step-action-btn" data-action="duplicate" title="複製">
@@ -171,27 +171,27 @@ export class ScenarioEditor {
         `;
     }
 
+    static ICON_MAPPING = null;
+
+    setIcons(icons) {
+        ScenarioEditor.ICON_MAPPING = icons;
+    }
+
     getIconForStep(step) {
         const type = step.type;
-        const action = step.params?.action || '';
+        const operation = (step.params?.operation || '').trim().toLowerCase();
 
-        switch (type) {
-            case 'system':
-                return '<ion-icon name="desktop-outline"></ion-icon>';
-            case 'ui':
-                const act = action.trim().toLowerCase();
-                if (act === 'click' || act === 'click_input') {
-                    return '<ion-icon name="navigate-outline"></ion-icon>';
-                }
-                if (act === 'input' || act === 'input_keys') {
-                    return '<ion-icon name="create-outline"></ion-icon>';
-                }
-                return '<ion-icon name="browsers-outline"></ion-icon>';
-            case 'verification':
-                return '<ion-icon name="checkmark-circle-outline"></ion-icon>';
-            default:
-                return '<ion-icon name="cube-outline"></ion-icon>';
+        if (!ScenarioEditor.ICON_MAPPING) {
+            return '<ion-icon name="cube-outline"></ion-icon>';
         }
+
+        let iconName = ScenarioEditor.ICON_MAPPING.types[type] || ScenarioEditor.ICON_MAPPING.default;
+
+        if (type === 'ui' && ScenarioEditor.ICON_MAPPING.operations[operation]) {
+            iconName = ScenarioEditor.ICON_MAPPING.operations[operation];
+        }
+
+        return `<ion-icon name="${iconName}"></ion-icon>`;
     }
 
     // --- Events ---
@@ -638,7 +638,7 @@ export class ScenarioEditor {
     refreshSelectedStep() {
         if (!this.selectedEl || !this.selectedStep) return;
         this.selectedEl.querySelector('.step-name').textContent = this.selectedStep.name || 'Untitled';
-        this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.action || '';
+        this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.operation || '';
 
         // Update Icon
         const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');

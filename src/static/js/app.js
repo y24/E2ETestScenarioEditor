@@ -48,6 +48,11 @@ class App {
         try {
             this.config = await API.getConfig();
 
+            // Load Icon Mapping
+            const iconsLabel = await fetch('/static/js/ui/icons.json');
+            const icons = await iconsLabel.json();
+            this.editor.setIcons(icons);
+
             // Initialize resizer
             await resizer.init();
 

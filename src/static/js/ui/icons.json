@@ -1,0 +1,14 @@
+{
+    "types": {
+        "system": "desktop-outline",
+        "ui": "browsers-outline",
+        "verification": "checkmark-circle-outline"
+    },
+    "operations": {
+        "click": "navigate-outline",
+        "click_input": "navigate-outline",
+        "input": "create-outline",
+        "input_keys": "create-outline"
+    },
+    "default": "cube-outline"
+}

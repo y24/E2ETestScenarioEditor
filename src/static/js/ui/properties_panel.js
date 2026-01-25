@@ -31,8 +31,8 @@ export class PropertiesPanel {
                 </div>
                 
                 <div class="form-group">
-                    <label>Action (params.action)</label>
-                    <input type="text" id="prop-action" value="${step.params?.action || ''}" class="form-input">
+                    <label>Operation (params.operation)</label>
+                    <input type="text" id="prop-operation" value="${step.params?.operation || ''}" class="form-input">
                 </div>
 
                 <div class="form-group">
@@ -67,10 +67,10 @@ export class PropertiesPanel {
             this.emitUpdate();
         };
 
-        // Action shortcut
-        document.getElementById('prop-action').oninput = (e) => {
+        // Operation shortcut
+        document.getElementById('prop-operation').oninput = (e) => {
             if (!this.currentStep.params) this.currentStep.params = {};
-            this.currentStep.params.action = e.target.value;
+            this.currentStep.params.operation = e.target.value;
 
             // Sync with JSON editor
             const jsonEl = document.getElementById('prop-params');
@@ -95,10 +95,10 @@ export class PropertiesPanel {
                 const newParams = JSON.parse(e.target.value);
                 this.currentStep.params = newParams;
 
-                // Sync Action input
-                const actionInput = document.getElementById('prop-action');
-                if (actionInput) {
-                    actionInput.value = newParams.action || '';
+                // Sync Operation input
+                const operationInput = document.getElementById('prop-operation');
+                if (operationInput) {
+                    operationInput.value = newParams.operation || '';
                 }
 
                 // Styling for valid JSON
