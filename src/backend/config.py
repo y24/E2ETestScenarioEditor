@@ -10,6 +10,7 @@ CONFIG_PATH = os.path.join(os.getcwd(), CONFIG_FILE_NAME)
 class AppConfig(BaseModel):
     scenarios_dir: Optional[str] = None
     scenarios_shared_dir: Optional[str] = None
+    ui_settings: Optional[dict] = {}
 
 def load_config() -> AppConfig:
     if os.path.exists(CONFIG_PATH):

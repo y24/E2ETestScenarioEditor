@@ -13,8 +13,8 @@
 
     /* Sizes */
     --header-height: 48px;
-    --pane-left-width: 250px;
-    --pane-right-width: 300px;
+    --pane-left-width: 300px;
+    --pane-right-width: 350px;
 }
 
 * {
@@ -62,7 +62,7 @@ body {
 
 .pane {
     background-color: var(--bg-panel);
-    border-right: 1px solid var(--border-color);
+    /* border-right: 1px solid var(--border-color); Removed in favor of resizer */
     display: flex;
     flex-direction: column;
 }
@@ -80,7 +80,7 @@ body {
 .pane-right {
     width: var(--pane-right-width);
     flex-shrink: 0;
-    border-left: 1px solid var(--border-color);
+    /* border-left: 1px solid var(--border-color); Removed in favor of resizer */
     border-right: none;
 }
 
@@ -285,4 +285,27 @@ body {
     visibility: visible;
     opacity: 1;
     bottom: 50px;
+}
+
+/* Resizers */
+.resizer {
+    background-color: var(--border-color);
+    z-index: 10;
+    transition: background-color 0.2s;
+    background-clip: content-box;
+    /* 実際の背景色（線）はcontentのみ */
+}
+
+.resizer:hover,
+.resizer.resizing {
+    background-color: var(--accent-color);
+}
+
+.resizer-vertical {
+    width: 6px;
+    cursor: col-resize;
+    margin: 0;
+    flex-shrink: 0;
+    /* 中央の1pxだけ色をつけて、左右は掴むための余白 */
+    padding: 0 2px;
 }

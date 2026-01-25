@@ -37,3 +37,10 @@ export const API = {
         return res.json();
     }
 };
+
+// Export as apiClient for compatibility
+export const apiClient = {
+    getConfig: API.getConfig,
+    updateConfig: API.saveConfig
+};
+

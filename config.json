@@ -1,4 +1,7 @@
 {
   "scenarios_dir": "d:/Script/E2ETestScenarioEditor/scenarios",
-  "scenarios_shared_dir": null
+  "scenarios_shared_dir": null,
+  "ui_settings": {
+    "paneRightWidth": 352
+  }
 }

@@ -4,6 +4,7 @@ import { SettingsModal, SaveAsModal } from './ui/modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
 import { PropertiesPanel } from './ui/properties_panel.js';
+import { resizer } from './ui/resizer.js';
 
 class App {
     constructor() {
@@ -46,6 +47,10 @@ class App {
     async init() {
         try {
             this.config = await API.getConfig();
+
+            // Initialize resizer
+            await resizer.init();
+
             if (!this.config.scenarios_dir) {
                 this.settingsModal.open(this.config);
             } else {
