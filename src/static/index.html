@@ -176,6 +176,38 @@
         </div>
     </div>
 
+    <!-- Scenario Meta Modal -->
+    <div id="meta-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>シナリオ基本情報</h2>
+                <button class="close-modal close-meta-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ID</label>
+                    <input type="text" id="modal-meta-id" class="form-input" placeholder="scenario_id">
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="modal-meta-name" class="form-input" placeholder="Scenario Name">
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" id="modal-meta-tags" class="form-input" placeholder="tag1, tag2">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="modal-meta-description" class="form-input" rows="4"
+                        placeholder="Description here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-meta" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-backdrop" class="modal-backdrop hidden"></div>
 
     <script type="module" src="/static/js/app.js"></script>

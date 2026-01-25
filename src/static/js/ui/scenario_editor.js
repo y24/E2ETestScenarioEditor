@@ -2,7 +2,7 @@ import { GroupManager } from './group_manager.js';
 import { showToast } from './toast.js';
 
 export class ScenarioEditor {
-    constructor(containerId, onStepSelect, onDataChange) {
+    constructor(containerId, onStepSelect, onDataChange, metaModal) {
         this.container = document.getElementById(containerId);
         this.currentData = null;
         this.sortables = [];
@@ -10,6 +10,7 @@ export class ScenarioEditor {
 
         this.onStepSelect = onStepSelect;
         this.onDataChange = onDataChange;
+        this.metaModal = metaModal;
 
         this.selectedSteps = new Set(); // Set<stepId>
         this.selectedEl = null;         // Single selection element (legacy support for Right Pane)
@@ -55,8 +56,17 @@ export class ScenarioEditor {
         let html = `
             <div class="scenario-meta">
                 <div class="meta-row">
-                    <label>ID:</label> <input type="text" class="meta-input" value="${tab.data.id || ''}" id="meta-id">
-                    <label>Name:</label> <input type="text" class="meta-input" value="${tab.data.name || ''}" id="meta-name">
+                    <div class="meta-field">
+                        <label>ID:</label>
+                        <span class="meta-value">${tab.data.id || '<span class="placeholder">(未設定)</span>'}</span>
+                    </div>
+                    <div class="meta-field">
+                        <label>Name:</label>
+                        <span class="meta-value">${tab.data.name || '<span class="placeholder">(未設定)</span>'}</span>
+                    </div>
+                    <button id="btn-edit-meta" class="icon-btn-small meta-edit-btn" title="基本情報を編集">
+                        <ion-icon name="create-outline"></ion-icon> 編集
+                    </button>
                 </div>
             </div>
         `;
@@ -759,15 +769,12 @@ export class ScenarioEditor {
     }
 
     bindMetaEvents() {
-        ['id', 'name'].forEach(key => {
-            const el = document.getElementById(`meta-${key}`);
-            if (el) {
-                el.oninput = (e) => {
-                    this.currentData[key] = e.target.value;
-                    if (this.onDataChange) this.onDataChange();
-                };
-            }
-        });
+        const btnEdit = document.getElementById('btn-edit-meta');
+        if (btnEdit && this.metaModal) {
+            btnEdit.onclick = () => {
+                this.metaModal.open(this.currentData);
+            };
+        }
     }
 
     destroySortables() {

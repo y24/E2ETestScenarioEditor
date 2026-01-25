@@ -416,3 +416,61 @@ body {
     /* 中央の1pxだけ色をつけて、左右は掴むための余白 */
     padding: 0 2px;
 }
+
+/* Scenario Meta */
+.scenario-meta {
+    padding: 12px 20px;
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.meta-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.meta-field label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.meta-value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.meta-value .placeholder {
+    color: #ccc;
+    font-style: italic;
+}
+
+.meta-edit-btn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.meta-edit-btn:hover {
+    background-color: #e0e0e0;
+    color: var(--text-primary);
+    border-color: #ccc;
+}

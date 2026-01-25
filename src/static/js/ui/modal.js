@@ -274,3 +274,42 @@ export class ConfirmModal extends BaseModal {
         super.open();
     }
 }
+
+export class ScenarioMetaModal extends BaseModal {
+    constructor(saveCallback) {
+        super('meta-modal');
+        this.saveCallback = saveCallback;
+
+        this.inputId = document.getElementById('modal-meta-id');
+        this.inputName = document.getElementById('modal-meta-name');
+        this.inputTags = document.getElementById('modal-meta-tags');
+        this.inputDesc = document.getElementById('modal-meta-description');
+
+        const btnClose = this.modal.querySelector('.close-meta-modal');
+        if (btnClose) btnClose.onclick = () => this.close();
+
+        const btnSave = document.getElementById('btn-save-meta');
+        if (btnSave) btnSave.onclick = () => this.save();
+    }
+
+    open(data = {}) {
+        this.inputId.value = data.id || '';
+        this.inputName.value = data.name || '';
+        this.inputTags.value = Array.isArray(data.tags) ? data.tags.join(', ') : (data.tags || '');
+        this.inputDesc.value = data.description || '';
+        super.open();
+        this.inputId.focus();
+    }
+
+    save() {
+        const tags = this.inputTags.value.split(',').map(t => t.trim()).filter(t => t !== '');
+        const data = {
+            id: this.inputId.value.trim(),
+            name: this.inputName.value.trim(),
+            tags: tags,
+            description: this.inputDesc.value.trim()
+        };
+        if (this.saveCallback) this.saveCallback(data);
+        this.close();
+    }
+}

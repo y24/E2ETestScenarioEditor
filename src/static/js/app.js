@@ -1,6 +1,6 @@
 import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
-import { SettingsModal, SaveAsModal, ConfirmModal } from './ui/modal.js';
+import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal } from './ui/modal.js';
 import { TargetSelectorModal } from './ui/target_selector_modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
@@ -16,12 +16,14 @@ class App {
         this.saveAsModal = new SaveAsModal(this.onSaveAsConfirmed.bind(this), () => this.config);
         this.confirmModal = new ConfirmModal({});
         this.targetSelectorModal = new TargetSelectorModal();
+        this.metaModal = new ScenarioMetaModal(this.onMetaSaved.bind(this));
 
         // Pass callbacks to Editor
         this.editor = new ScenarioEditor(
             'editor-container',
             this.onStepSelected.bind(this), // Step click
-            this.onDataChanged.bind(this)   // Step reorder/edit
+            this.onDataChanged.bind(this),  // Step reorder/edit
+            this.metaModal                   // Pass modal to editor
         );
 
         this.propertiesPanel = new PropertiesPanel(
@@ -112,6 +114,9 @@ class App {
         };
 
         this.tabManager.openTab(file, emptyData);
+
+        // Auto-show meta modal for new scenario
+        this.metaModal.open(emptyData);
     }
 
     async saveCurrentTab() {
@@ -299,6 +304,19 @@ class App {
 
     onStepSelected(step) {
         this.propertiesPanel.render(step);
+    }
+
+    onMetaSaved(updatedData) {
+        const tab = this.tabManager.getActiveTab();
+        if (tab) {
+            tab.data.id = updatedData.id;
+            tab.data.name = updatedData.name;
+            tab.data.tags = updatedData.tags;
+            tab.data.description = updatedData.description;
+
+            this.editor.render(tab);
+            this.onDataChanged();
+        }
     }
 
     onDataChanged() {
