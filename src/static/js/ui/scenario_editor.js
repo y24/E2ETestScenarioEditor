@@ -268,7 +268,7 @@ export class ScenarioEditor {
             el.onclick = (e) => {
                 if (e.target.closest('.step-grip') || e.target.closest('.step-action-btn') || e.target.tagName === 'INPUT') return;
                 e.stopPropagation();
-                this.selectItem(el);
+                this.selectItem(el, e.shiftKey);
             };
             const cb = el.querySelector('.step-checkbox');
             if (cb) cb.onclick = (e) => this.toggleSelection(el.dataset.id, e.target.checked, e.shiftKey);
@@ -283,7 +283,7 @@ export class ScenarioEditor {
                 // Allow selection when clicking the name input if it's readonly (not currently editing)
                 if (e.target.classList.contains('group-name') && !e.target.readOnly) return;
 
-                this.selectItem(header.closest('.group-item'));
+                this.selectItem(header.closest('.group-item'), e.shiftKey);
             };
         });
 
@@ -417,7 +417,7 @@ export class ScenarioEditor {
         this.rerender();
     }
 
-    selectItem(el) {
+    selectItem(el, shiftKey = false) {
         const itemId = el.dataset.id;
         const section = el.dataset.section;
         const type = el.dataset.type;
@@ -426,14 +426,32 @@ export class ScenarioEditor {
 
         // Sync checkbox state for steps
         if (type === 'step') {
-            // "ステップを選択したとき、Propertiesを開くのと同時にチェックボックスをONにしたいです。"
-            // "他のステップをクリックして選択するとチェックも解除されます。"
-            // "すでにチェックONのステップをクリックしたときは、チェック状態は変化しなくて良いです。"
-            const alreadySelectedOnlyThis = this.selectedSteps.size === 1 && this.selectedSteps.has(itemId);
-            if (!alreadySelectedOnlyThis) {
-                this.selectedSteps.clear();
-                this.selectedSteps.add(itemId);
+            if (shiftKey && this.lastCheckedStepId) {
+                const allSteps = Array.from(this.container.querySelectorAll('.step-item'));
+                const lastIdx = allSteps.findIndex(item => item.dataset.id === this.lastCheckedStepId);
+                const currIdx = allSteps.findIndex(item => item.dataset.id === itemId);
+
+                if (lastIdx !== -1 && currIdx !== -1) {
+                    const start = Math.min(lastIdx, currIdx);
+                    const end = Math.max(lastIdx, currIdx);
+
+                    for (let i = start; i <= end; i++) {
+                        this.selectedSteps.add(allSteps[i].dataset.id);
+                    }
+                } else {
+                    this.selectedSteps.add(itemId);
+                }
                 this.lastCheckedStepId = itemId;
+            } else {
+                // "ステップを選択したとき、Propertiesを開くのと同時にチェックボックスをONにしたいです。"
+                // "他のステップをクリックして選択するとチェックも解除されます。"
+                // "すでにチェックONのステップをクリックしたときは、チェック状態は変化しなくて良いです。"
+                const alreadySelectedOnlyThis = this.selectedSteps.size === 1 && this.selectedSteps.has(itemId);
+                if (!alreadySelectedOnlyThis) {
+                    this.selectedSteps.clear();
+                    this.selectedSteps.add(itemId);
+                    this.lastCheckedStepId = itemId;
+                }
             }
         }
 
