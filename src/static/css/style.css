@@ -245,6 +245,14 @@ body {
     text-overflow: ellipsis;
 }
 
+.file-scenario-name {
+    font-size: 0.75rem;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .file-actions {
     display: none;
     gap: 4px;

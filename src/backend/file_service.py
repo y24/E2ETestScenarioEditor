@@ -96,12 +96,25 @@ class FileService:
                 if any(file.endswith(ext) for ext in extensions):
                     full_path = os.path.join(root, file)
                     rel_path = os.path.relpath(full_path, directory)
+                    
+                    # Extract scenario name from file content
+                    scenario_name = ""
+                    try:
+                        with open(full_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            # dataが辞書で、かつ'name'キーを持っているか確認
+                            if isinstance(data, dict):
+                                scenario_name = data.get('name', '')
+                    except Exception:
+                        pass # Ignore errors if file is not valid JSON or can't be read
+
                     # Windowsのパス区切りを統一的に扱うために / に置換することも検討
                     file_list.append({
                         "name": file,
                         "path": full_path,
                         "relativePath": rel_path.replace(os.path.sep, '/'),
-                        "parent": os.path.basename(root)
+                        "parent": os.path.basename(root),
+                        "scenarioName": scenario_name
                     })
         return file_list
 

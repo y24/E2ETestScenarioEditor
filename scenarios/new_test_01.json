@@ -9,20 +9,17 @@
   "setup": [],
   "steps": [
     {
+      "name": "新しいステップ",
+      "type": "none",
+      "_stepId": "stp_j65r551m3"
+    },
+    {
       "name": "新しいステップ2",
       "params": {
         "action": ""
       },
       "_stepId": "stp_t3h4gxqfl",
       "ignore": true
-    },
-    {
-      "name": "新しいステップ",
-      "type": "system",
-      "params": {
-        "action": ""
-      },
-      "_stepId": "stp_363vm0mp2"
     },
     {
       "name": "新しいステップ",
@@ -68,8 +65,8 @@
       },
       "steps": {
         "layout": [
+          "stp_j65r551m3",
           "stp_t3h4gxqfl",
-          "stp_363vm0mp2",
           "stp_cj0i3cv8l",
           "grp_4ed5e4vkz"
         ],

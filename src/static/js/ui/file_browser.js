@@ -46,7 +46,8 @@ export class FileBrowser {
                     dirIndex: dirIndex,
                     files: dir.files.map(file => ({ ...file, dirIndex })).filter(file =>
                         file.name.toLowerCase().includes(this.searchQuery) ||
-                        (file.parent && file.parent.toLowerCase().includes(this.searchQuery))
+                        (file.parent && file.parent.toLowerCase().includes(this.searchQuery)) ||
+                        (file.scenarioName && file.scenarioName.toLowerCase().includes(this.searchQuery))
                     )
                 };
             }).filter(dir => dir.files.length > 0)
@@ -108,7 +109,7 @@ export class FileBrowser {
                 <ion-icon name="document-text-outline" class="file-icon"></ion-icon>
                 <div class="file-info">
                     <div class="file-name">${file.name}</div>
-                    <div class="file-path" style="font-size:0.75rem; color:#999;">${file.parent}</div>
+                    <div class="file-scenario-name">${file.scenarioName || ''}</div>
                 </div>
                 <div class="file-actions">
                     <button class="btn-action btn-rename" title="リネーム"><ion-icon name="create-outline"></ion-icon></button>

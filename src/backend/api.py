@@ -60,6 +60,7 @@ class FileInfo(BaseModel):
     path: str
     relativePath: str
     parent: str
+    scenarioName: Optional[str] = ""
 
 class DirectoryFiles(BaseModel):
     name: str

@@ -302,6 +302,9 @@ class App {
             await API.saveScenario(path, data);
             this.tabManager.markDirty(tabId, false);
 
+            // Refresh file list to reflect any name changes
+            this.fileBrowser.load();
+
             // Toast or visual success
             showToast("保存しました");
             btn.innerHTML = '<ion-icon name="checkmark-outline" style="color: #2ecc71;"></ion-icon>';
