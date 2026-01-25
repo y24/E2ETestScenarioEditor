@@ -68,6 +68,7 @@ export class TabManager {
 
         if (this.tabs.length === 0) {
             this.activeTabId = null;
+            this.renderTabBar();
             if (this.onTabChange) this.onTabChange(null);
         } else if (this.activeTabId === tabId) {
             // Activate previous tab
