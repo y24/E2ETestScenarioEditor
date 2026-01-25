@@ -19,7 +19,6 @@ export class ScenarioEditor {
         // Bindings
         this.handleSectionAction = this.handleSectionAction.bind(this);
         this.handleStepAction = this.handleStepAction.bind(this);
-        this.handleGroupAction = this.handleGroupAction.bind(this);
         this.toggleSelection = this.toggleSelection.bind(this);
         this.groupSelected = this.groupSelected.bind(this);
         this.copySelection = this.copySelection.bind(this);
@@ -329,39 +328,30 @@ export class ScenarioEditor {
         }
     }
 
-    handleGroupAction(e) {
-        e.stopPropagation();
-        const btn = e.currentTarget;
-        const action = btn.dataset.action;
-        const groupItem = btn.closest('.group-item');
-        const section = groupItem.closest('.section-group').dataset.section;
-
-        if (action === 'ungroup') {
-            this.ungroup(section, groupItem.dataset.id);
-        }
-    }
 
     handleStepAction(e) {
         e.stopPropagation();
         const btn = e.currentTarget;
         const action = btn.dataset.action;
         const stepItem = btn.closest('.step-item');
-
-        const stepId = stepItem.dataset.id;
-        const section = stepItem.dataset.section;
-
-        if (action === 'delete') {
-            this.deleteStep(section, stepId);
-        } else if (action === 'duplicate') {
-            this.duplicateStep(section, stepId);
-        } else if (action === 'ungroup') {
-            // Up for group button?
-        }
-
-        // Handle Group Header Buttons
         const groupItem = btn.closest('.group-item');
-        if (groupItem && action === 'ungroup') {
-            this.ungroup(section, groupItem.dataset.id);
+
+        if (stepItem) {
+            const stepId = stepItem.dataset.id;
+            const section = stepItem.dataset.section;
+
+            if (action === 'delete') {
+                this.deleteStep(section, stepId);
+            } else if (action === 'duplicate') {
+                this.duplicateStep(section, stepId);
+            }
+        } else if (groupItem) {
+            const groupId = groupItem.dataset.id;
+            const section = groupItem.dataset.section;
+
+            if (action === 'ungroup') {
+                this.ungroup(section, groupId);
+            }
         }
     }
 
