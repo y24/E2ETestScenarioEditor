@@ -145,7 +145,7 @@ export class ScenarioEditor {
     renderStep(step, sectionKey) {
         const typeIcon = this.getIconForStep(step);
         const name = step.name || 'Untitled Step';
-        const operation = step.params && step.params.operation ? step.params.operation : '';
+        const op = step.params?.operation || step.params?.action || '';
         const ignoredClass = step.ignore ? 'ignored' : '';
         const isSelected = this.selectedSteps.has(step._stepId) ? 'selected' : '';
         const checked = this.selectedSteps.has(step._stepId) ? 'checked' : '';
@@ -157,7 +157,7 @@ export class ScenarioEditor {
                 <div class="step-icon_type" title="${step.type}">${typeIcon}</div>
                 <div class="step-content">
                     <div class="step-name">${name}</div>
-                    <div class="step-desc">${operation}</div>
+                    <div class="step-desc">${op}</div>
                 </div>
                 <div class="step-actions">
                     <button class="step-action-btn" data-action="duplicate" title="複製">
@@ -640,7 +640,7 @@ export class ScenarioEditor {
     refreshSelectedStep() {
         if (!this.selectedEl || !this.selectedStep) return;
         this.selectedEl.querySelector('.step-name').textContent = this.selectedStep.name || 'Untitled';
-        this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.operation || '';
+        this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.operation || this.selectedStep.params?.action || '';
 
         // Update Icon
         const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');

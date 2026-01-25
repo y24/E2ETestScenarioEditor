@@ -30,10 +30,6 @@ export class PropertiesPanel {
                     </select>
                 </div>
                 
-                <div class="form-group">
-                    <label>Operation (params.operation)</label>
-                    <input type="text" id="prop-operation" value="${step.params?.operation || ''}" class="form-input">
-                </div>
 
                 <div class="form-group">
                     <label class="checkbox-wrapper">
@@ -67,17 +63,6 @@ export class PropertiesPanel {
             this.emitUpdate();
         };
 
-        // Operation shortcut
-        document.getElementById('prop-operation').oninput = (e) => {
-            if (!this.currentStep.params) this.currentStep.params = {};
-            this.currentStep.params.operation = e.target.value;
-
-            // Sync with JSON editor
-            const jsonEl = document.getElementById('prop-params');
-            jsonEl.value = JSON.stringify(this.currentStep.params, null, 2);
-
-            this.emitUpdate();
-        };
 
         // Ignore
         document.getElementById('prop-ignore').onchange = (e) => {
@@ -95,11 +80,6 @@ export class PropertiesPanel {
                 const newParams = JSON.parse(e.target.value);
                 this.currentStep.params = newParams;
 
-                // Sync Operation input
-                const operationInput = document.getElementById('prop-operation');
-                if (operationInput) {
-                    operationInput.value = newParams.operation || '';
-                }
 
                 // Styling for valid JSON
                 e.target.style.borderColor = '#ddd';
