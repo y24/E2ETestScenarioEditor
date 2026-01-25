@@ -30,7 +30,9 @@
         "paramValues": {
             "operation": [
                 "input",
+                "input_keys",
                 "click",
+                "click_input",
                 "read"
             ]
         }
@@ -69,11 +71,6 @@
                 "dismiss_alert",
                 "wait",
                 "close_browser"
-            ],
-            "browser": [
-                "chrome",
-                "firefox",
-                "edge"
             ],
             "clear": [
                 "true",
