@@ -158,28 +158,31 @@ export class SettingsModal extends BaseModal {
         });
     }
 
+    _updateDirectoriesFromUI() {
+        const items = this.directoriesContainer.querySelectorAll('.directory-item');
+        this.directories = Array.from(items).map(item => ({
+            path: item.querySelector('.dir-path').value,
+            name: item.querySelector('.dir-name').value
+        }));
+    }
+
     addDirectory() {
+        this._updateDirectoriesFromUI();
         this.directories.push({ name: '', path: '' });
         this.renderDirectories();
     }
 
     removeDirectory(index) {
+        this._updateDirectoriesFromUI();
         this.directories.splice(index, 1);
         this.renderDirectories();
     }
 
     async save() {
-        // Collect directory data from inputs
-        const dirItems = this.directoriesContainer.querySelectorAll('.directory-item');
-        const newDirectories = [];
-
-        dirItems.forEach(item => {
-            const name = item.querySelector('.dir-name').value.trim();
-            const path = item.querySelector('.dir-path').value.trim();
-            if (name && path) {
-                newDirectories.push({ name, path });
-            }
-        });
+        this._updateDirectoriesFromUI();
+        const newDirectories = this.directories
+            .map(d => ({ name: d.name.trim(), path: d.path.trim() }))
+            .filter(d => d.name && d.path);
 
         const newConfig = {
             scenario_directories: newDirectories,
