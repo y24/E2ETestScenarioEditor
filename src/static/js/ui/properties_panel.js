@@ -276,6 +276,16 @@ export class PropertiesPanel {
             this.updateParamsFromGrid();
         };
 
+        // Open dropdown on focus
+        keyInput.onfocus = () => {
+            if (paramNames.length > 0) {
+                // Close all other dropdowns first
+                document.querySelectorAll('.param-key-dropdown.visible').forEach(m => m.classList.remove('visible'));
+                document.querySelectorAll('.params-row .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+                toggleKeyDropdown(true);
+            }
+        };
+
         arrow.onclick = (e) => {
             e.stopPropagation();
             const isVisible = menu.classList.contains('visible');
@@ -285,6 +295,21 @@ export class PropertiesPanel {
         };
 
         valInput.oninput = () => this.updateParamsFromGrid();
+
+        // Open value dropdown on focus (except for target)
+        valInput.onfocus = () => {
+            const currentKey = keyInput.value.trim();
+            if (currentKey.toLowerCase() !== 'target') {
+                const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
+                const suggestions = paramValues[currentKey] || [];
+                if (suggestions.length > 0) {
+                    // Close all other dropdowns first
+                    document.querySelectorAll('.param-key-dropdown.visible').forEach(m => m.classList.remove('visible'));
+                    document.querySelectorAll('.params-row .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+                    toggleDropdown(true);
+                }
+            }
+        };
 
         // Close on click outside
         const closeHandler = (e) => {
