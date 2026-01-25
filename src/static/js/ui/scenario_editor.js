@@ -143,7 +143,7 @@ export class ScenarioEditor {
     }
 
     renderStep(step, sectionKey) {
-        const typeIcon = this.getIconForType(step.type);
+        const typeIcon = this.getIconForStep(step);
         const name = step.name || 'Untitled Step';
         const action = step.params && step.params.action ? step.params.action : '';
         const ignoredClass = step.ignore ? 'ignored' : '';
@@ -171,12 +171,26 @@ export class ScenarioEditor {
         `;
     }
 
-    getIconForType(type) {
+    getIconForStep(step) {
+        const type = step.type;
+        const action = step.params?.action || '';
+
         switch (type) {
-            case 'system': return '<ion-icon name="desktop-outline"></ion-icon>';
-            case 'ui': return '<ion-icon name="browsers-outline"></ion-icon>';
-            case 'verification': return '<ion-icon name="checkmark-circle-outline"></ion-icon>';
-            default: return '<ion-icon name="cube-outline"></ion-icon>';
+            case 'system':
+                return '<ion-icon name="desktop-outline"></ion-icon>';
+            case 'ui':
+                const act = action.trim().toLowerCase();
+                if (act === 'click' || act === 'click_input') {
+                    return '<ion-icon name="navigate-outline"></ion-icon>';
+                }
+                if (act === 'input' || act === 'input_keys') {
+                    return '<ion-icon name="create-outline"></ion-icon>';
+                }
+                return '<ion-icon name="browsers-outline"></ion-icon>';
+            case 'verification':
+                return '<ion-icon name="checkmark-circle-outline"></ion-icon>';
+            default:
+                return '<ion-icon name="cube-outline"></ion-icon>';
         }
     }
 
@@ -629,7 +643,7 @@ export class ScenarioEditor {
         // Update Icon
         const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');
         if (iconTypeEl) {
-            iconTypeEl.innerHTML = this.getIconForType(this.selectedStep.type);
+            iconTypeEl.innerHTML = this.getIconForStep(this.selectedStep);
             iconTypeEl.title = this.selectedStep.type;
         }
 
