@@ -109,3 +109,20 @@
     background-color: rgba(255, 255, 255, 0.1);
     border-color: white;
 }
+/* Group Selection & States */
+.group-item.selected-primary {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.group-item.selected-primary > .group-header {
+    background-color: #f0f8ff;
+}
+
+.group-item.ignored {
+    opacity: 0.6;
+}
+
+.group-item.ignored .group-name {
+    text-decoration: line-through;
+}

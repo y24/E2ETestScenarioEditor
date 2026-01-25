@@ -127,11 +127,13 @@ export class ScenarioEditor {
 
     renderGroup(group, sectionKey) {
         const collapsedClass = group.collapsed ? 'collapsed' : '';
+        const ignoredClass = group.ignore ? 'ignored' : '';
         const itemsHtml = group.items.map(s => this.renderStep(s, sectionKey)).join('');
 
         return `
-            <div class="group-item ${collapsedClass}" data-id="${group.id}" data-type="group">
+            <div class="group-item ${collapsedClass} ${ignoredClass}" data-id="${group.id}" data-type="group" data-section="${sectionKey}">
                 <div class="group-header">
+                    <div class="step-grip"><ion-icon name="reorder-two-outline"></ion-icon></div>
                     <div class="group-toggle" data-action="toggle-collapse">
                         <ion-icon name="${group.collapsed ? 'chevron-forward-outline' : 'chevron-down-outline'}"></ion-icon>
                     </div>
@@ -237,14 +239,28 @@ export class ScenarioEditor {
         this.container.querySelectorAll('.step-action-btn').forEach(btn =>
             btn.onclick = this.handleStepAction);
 
-        // Checkboxes & Click Selection
+        // Step Selection
         this.container.querySelectorAll('.step-item').forEach(el => {
             el.onclick = (e) => {
                 if (e.target.closest('.step-grip') || e.target.closest('.step-action-btn') || e.target.tagName === 'INPUT') return;
-                this.selectSingleStep(el);
+                e.stopPropagation();
+                this.selectItem(el);
             };
             const cb = el.querySelector('.step-checkbox');
             if (cb) cb.onclick = (e) => this.toggleSelection(el.dataset.id, e.target.checked, e.shiftKey);
+        });
+
+        // Group Selection (Header click)
+        this.container.querySelectorAll('.group-header').forEach(header => {
+            header.onclick = (e) => {
+                if (e.target.closest('.step-grip') || e.target.closest('.group-toggle') ||
+                    e.target.closest('.group-actions')) return;
+
+                // Allow selection when clicking the name input if it's readonly (not currently editing)
+                if (e.target.classList.contains('group-name') && !e.target.readOnly) return;
+
+                this.selectItem(header.closest('.group-item'));
+            };
         });
 
         // Group Actions
@@ -380,18 +396,33 @@ export class ScenarioEditor {
         this.rerender();
     }
 
-    selectSingleStep(el) {
-        // UI Highlight for Single Selection (Legacy/Properties)
+    selectItem(el) {
+        // UI Highlight for Single Selection
         if (this.selectedEl) this.selectedEl.classList.remove('selected-primary');
-        el.classList.add('selected-primary'); // CSS to distinct from checkbox selection?
+        el.classList.add('selected-primary');
         this.selectedEl = el;
 
-        const stepId = el.dataset.id;
+        const itemId = el.dataset.id;
         const section = el.dataset.section;
-        const stepData = this.currentData[section].find(s => s._stepId === stepId);
+        const type = el.dataset.type;
 
-        this.selectedStep = stepData;
-        if (this.onStepSelect) this.onStepSelect(stepData);
+        let itemData = null;
+        if (type === 'group') {
+            itemData = this.currentData._editor.sections[section].groups[itemId];
+            if (itemData) {
+                // Add metadata for PropertiesPanel to identify it's a group and its section/children
+                itemData._isGroup = true;
+                itemData._groupId = itemId;
+                itemData._section = section;
+                // Pre-populate children data for cascade operations
+                itemData._children = itemData.items.map(sid => this.currentData[section].find(s => s._stepId === sid)).filter(s => !!s);
+            }
+        } else {
+            itemData = this.currentData[section].find(s => s._stepId === itemId);
+        }
+
+        this.selectedStep = itemData; // Using 'selectedStep' variable for both types
+        if (this.onStepSelect) this.onStepSelect(itemData);
     }
 
     groupSelected() {
@@ -663,18 +694,43 @@ export class ScenarioEditor {
 
     refreshSelectedStep() {
         if (!this.selectedEl || !this.selectedStep) return;
-        this.selectedEl.querySelector('.step-name').textContent = this.selectedStep.name || 'Untitled';
-        this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.operation || this.selectedStep.params?.action || '';
 
-        // Update Icon
-        const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');
-        if (iconTypeEl) {
-            iconTypeEl.innerHTML = this.getIconForStep(this.selectedStep);
-            iconTypeEl.title = this.selectedStep.type;
+        if (this.selectedStep._isGroup) {
+            // Refresh group
+            const nameEl = this.selectedEl.querySelector('.group-name');
+            if (nameEl) nameEl.value = this.selectedStep.name || 'Group';
+
+            if (this.selectedStep.ignore) this.selectedEl.classList.add('ignored');
+            else this.selectedEl.classList.remove('ignored');
+
+            // Find all children in DOM and update their 'ignored' state too
+            const body = this.selectedEl.querySelector('.group-body');
+            if (body) {
+                body.querySelectorAll('.step-item').forEach(childEl => {
+                    const sid = childEl.dataset.id;
+                    const section = childEl.dataset.section;
+                    const sData = this.currentData[section].find(s => s._stepId === sid);
+                    if (sData) {
+                        if (sData.ignore) childEl.classList.add('ignored');
+                        else childEl.classList.remove('ignored');
+                    }
+                });
+            }
+        } else {
+            // Refresh step
+            this.selectedEl.querySelector('.step-name').textContent = this.selectedStep.name || 'Untitled';
+            this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.operation || this.selectedStep.params?.action || '';
+
+            // Update Icon
+            const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');
+            if (iconTypeEl) {
+                iconTypeEl.innerHTML = this.getIconForStep(this.selectedStep);
+                iconTypeEl.title = this.selectedStep.type;
+            }
+
+            if (this.selectedStep.ignore) this.selectedEl.classList.add('ignored');
+            else this.selectedEl.classList.remove('ignored');
         }
-
-        if (this.selectedStep.ignore) this.selectedEl.classList.add('ignored');
-        else this.selectedEl.classList.remove('ignored');
     }
 
     rerender() {

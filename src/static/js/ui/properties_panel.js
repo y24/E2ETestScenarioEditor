@@ -17,6 +17,32 @@ export class PropertiesPanel {
             return;
         }
 
+        if (step._isGroup) {
+            this.panel.innerHTML = `
+                <div class="props-container">
+                    <div class="props-header group-props">
+                        <ion-icon name="folder-open-outline"></ion-icon>
+                        <span style="font-weight: bold; margin-left:8px;">Group Properties</span>
+                    </div>
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label>Group Name</label>
+                        <input type="text" id="prop-name" value="${step.name || ''}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="prop-group-ignore" ${step.ignore ? 'checked' : ''}>
+                            <span>グループ全体を無効化</span>
+                        </label>
+                    </div>
+                    <div class="group-info" style="color: #666; font-size: 0.85rem; border-top: 1px solid #eee; padding-top: 8px;">
+                        <p>${step.items.length} steps in this group</p>
+                    </div>
+                </div>
+            `;
+            this.bindGroupEvents();
+            return;
+        }
+
         const paramsJson = JSON.stringify(step.params || {}, null, 2);
 
         this.panel.innerHTML = `
@@ -210,6 +236,34 @@ export class PropertiesPanel {
         }
 
         this.emitUpdate();
+    }
+
+    bindGroupEvents() {
+        // Name
+        document.getElementById('prop-name').oninput = (e) => {
+            this.currentStep.name = e.target.value;
+            this.emitUpdate();
+        };
+
+        // Ignore
+        document.getElementById('prop-group-ignore').onchange = (e) => {
+            const ignored = e.target.checked;
+            if (ignored) {
+                this.currentStep.ignore = true;
+            } else {
+                delete this.currentStep.ignore;
+            }
+
+            // Propagate to children
+            if (this.currentStep._children) {
+                this.currentStep._children.forEach(child => {
+                    if (ignored) child.ignore = true;
+                    else delete child.ignore;
+                });
+            }
+
+            this.emitUpdate();
+        };
     }
 
     bindEvents() {
