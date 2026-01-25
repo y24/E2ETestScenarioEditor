@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+.venv/
+venv/
+
+# Environment variables / Config
+.env
+.env.local
+config.json
+
+# IDES
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
