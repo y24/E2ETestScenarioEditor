@@ -15,6 +15,12 @@ export const API = {
         return res.json();
     },
 
+    async pickDirectory() {
+        const res = await fetch(`${API_BASE}/utils/pick-directory`);
+        if (!res.ok) throw new Error('Failed to open directory picker');
+        return res.json();
+    },
+
     async listFiles() {
         const res = await fetch(`${API_BASE}/files`);
         return res.json();

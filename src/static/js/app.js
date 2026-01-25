@@ -10,8 +10,8 @@ class App {
     constructor() {
         // Components
         this.fileBrowser = new FileBrowser('file-browser', this.onFileSelected.bind(this));
-        this.settingsModal = new SettingsModal(this.onConfigSaved.bind(this));
-        this.saveAsModal = new SaveAsModal(this.onSaveAsConfirmed.bind(this));
+        this.settingsModal = new SettingsModal(this.onConfigSaved.bind(this), () => this.config);
+        this.saveAsModal = new SaveAsModal(this.onSaveAsConfirmed.bind(this), () => this.config);
 
         // Pass callbacks to Editor
         this.editor = new ScenarioEditor(
@@ -51,7 +51,7 @@ class App {
             // Initialize resizer
             await resizer.init();
 
-            if (!this.config.scenarios_dir) {
+            if (!this.config.scenario_directories || this.config.scenario_directories.length === 0) {
                 this.settingsModal.open(this.config);
             } else {
                 this.fileBrowser.load();
@@ -98,16 +98,20 @@ class App {
         await this.performSave(tab.file.path, tab.data, tab.id);
     }
 
-    async onSaveAsConfirmed({ dirType, subdir, filename }) {
-        // Construct path
-        let basePath = "";
-        if (dirType === 'scenarios') basePath = this.config.scenarios_dir;
-        else if (dirType === 'shared') basePath = this.config.scenarios_shared_dir;
-
-        if (!basePath) {
-            alert("Directory path for " + dirType + " is not configured.");
+    async onSaveAsConfirmed({ dirIndex, subdir, filename }) {
+        // Get directory from config
+        if (!this.config.scenario_directories || this.config.scenario_directories.length === 0) {
+            alert("No directories configured.");
             return;
         }
+
+        const selectedDir = this.config.scenario_directories[dirIndex];
+        if (!selectedDir) {
+            alert("Invalid directory selection.");
+            return;
+        }
+
+        let basePath = selectedDir.path;
 
         // Simple path join (NOTE: assumes forward slashes or handles via backend normalization, 
         // but for Windows client side path construction, we should be careful. 
@@ -121,7 +125,7 @@ class App {
         if (tab) {
             tab.file.path = fullPath;
             tab.file.name = filename;
-            tab.file.parent = subdir || (dirType === 'scenarios' ? 'Scenarios' : 'Shared');
+            tab.file.parent = subdir || selectedDir.name;
 
             // Re-render tab to show new name
             this.tabManager.renderTabBar();
@@ -164,10 +168,10 @@ class App {
         this.fileBrowser.load();
     }
 
-    async onFileSelected(file) {
+    async onFileSelected(file, isPreview = false) {
         try {
             const data = await API.loadScenario(file.path);
-            this.tabManager.openTab(file, data);
+            this.tabManager.openTab(file, data, isPreview);
         } catch (e) {
             alert("Error: " + e.message);
         }

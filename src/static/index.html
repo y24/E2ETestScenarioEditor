@@ -90,12 +90,11 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="scenarios-dir">Scenarios Directory Path</label>
-                    <input type="text" id="scenarios-dir" placeholder="Absolute path to scenarios folder">
-                </div>
-                <div class="form-group">
-                    <label for="scenarios-shared-dir">Shared Scenarios Directory Path</label>
-                    <input type="text" id="scenarios-shared-dir" placeholder="Absolute path to scenarios_shared folder">
+                    <label>Scenario Directories</label>
+                    <div id="directories-list" style="margin-bottom: 12px;">
+                        <!-- Directory items will be rendered here -->
+                    </div>
+                    <button id="btn-add-directory" class="btn btn-secondary">+ Add Directory</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -115,8 +114,7 @@
                 <div class="form-group">
                     <label>保存先フォルダ</label>
                     <select id="save-dir-type" class="form-input">
-                        <option value="scenarios">Scenarios</option>
-                        <option value="shared">Shared Scenarios</option>
+                        <!-- Options will be populated dynamically -->
                     </select>
                 </div>
                 <div class="form-group">

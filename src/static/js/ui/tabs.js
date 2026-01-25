@@ -7,19 +7,37 @@ export class TabManager {
         this.onTabChange = onTabChange;
     }
 
-    openTab(file, data) {
+    openTab(file, data, isPreview = false) {
         // Check if already open
         const existing = this.tabs.find(t => t.file.path === file.path);
         if (existing) {
+            // If it's a preview and we now want it permanent
+            if (existing.isPreview && !isPreview) {
+                existing.isPreview = false;
+            }
             this.activateTab(existing.id);
             return existing;
+        }
+
+        // If it's a preview request, check if there's already a preview tab
+        if (isPreview) {
+            const previewTab = this.tabs.find(t => t.isPreview);
+            if (previewTab) {
+                // Reuse the preview tab slot
+                previewTab.file = file;
+                previewTab.data = data;
+                previewTab.isDirty = false;
+                this.activateTab(previewTab.id);
+                return previewTab;
+            }
         }
 
         const tab = {
             id: 'tab-' + Date.now(),
             file: file,
             data: data,
-            isDirty: false
+            isDirty: false,
+            isPreview: isPreview
         };
 
         this.tabs.push(tab);
@@ -63,7 +81,7 @@ export class TabManager {
         this.tabBar.innerHTML = '';
         this.tabs.forEach(tab => {
             const el = document.createElement('div');
-            el.className = `tab-item ${tab.id === this.activeTabId ? 'active' : ''}`;
+            el.className = `tab-item ${tab.id === this.activeTabId ? 'active' : ''} ${tab.isPreview ? 'preview' : ''}`;
             el.innerHTML = `
                 <span class="tab-label">${tab.file.name}</span>
                 <span class="tab-close">&times;</span>
@@ -87,6 +105,9 @@ export class TabManager {
         const tab = this.tabs.find(t => t.id === tabId);
         if (tab) {
             tab.isDirty = isDirty;
+            if (isDirty) {
+                tab.isPreview = false;
+            }
             this.renderTabBar();
         }
     }

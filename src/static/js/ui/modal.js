@@ -1,3 +1,5 @@
+import { API } from '../api.js';
+
 export class BaseModal {
     constructor(modalId) {
         this.modal = document.getElementById(modalId);
@@ -16,33 +18,148 @@ export class BaseModal {
 }
 
 export class SettingsModal extends BaseModal {
-    constructor(saveCallback) {
+    constructor(saveCallback, getConfigCallback) {
         super('settings-modal');
-        this.inputScenarios = document.getElementById('scenarios-dir');
-        this.inputShared = document.getElementById('scenarios-shared-dir');
         this.saveCallback = saveCallback;
+        this.getConfigCallback = getConfigCallback;
+        this.directories = [];
+        this.directoriesContainer = document.getElementById('directories-list');
 
         // Settings Events
         const btnOpen = document.getElementById('btn-settings');
-        if (btnOpen) btnOpen.onclick = () => this.open();
+        if (btnOpen) btnOpen.onclick = () => this.open(this.getConfigCallback ? this.getConfigCallback() : {});
 
         const btnClose = this.modal.querySelector('.close-modal');
         if (btnClose) btnClose.onclick = () => this.close();
 
         const btnSave = document.getElementById('btn-save-settings');
         if (btnSave) btnSave.onclick = () => this.save();
+
+        const btnAddDir = document.getElementById('btn-add-directory');
+        if (btnAddDir) btnAddDir.onclick = () => this.addDirectory();
     }
 
     open(currentConfig = {}) {
-        if (currentConfig.scenarios_dir) this.inputScenarios.value = currentConfig.scenarios_dir;
-        if (currentConfig.scenarios_shared_dir) this.inputShared.value = currentConfig.scenarios_shared_dir;
+        this.directories = currentConfig.scenario_directories || [];
+        this.renderDirectories();
         super.open();
     }
 
+    async openDirectoryPicker(pathInput, nameInput) {
+        try {
+            const result = await API.pickDirectory();
+            if (result && result.path) {
+                pathInput.value = result.path;
+
+                // パスからフォルダ名を抽出してNameに設定
+                const folderName = result.path.split(/[/\\]/).filter(Boolean).pop();
+                if (folderName) {
+                    nameInput.value = folderName;
+                }
+            }
+        } catch (e) {
+            console.error('Failed to pick directory:', e);
+            alert('フォルダ選択に失敗しました。');
+        }
+    }
+
+    renderDirectories() {
+        this.directoriesContainer.innerHTML = '';
+
+        this.directories.forEach((dir, index) => {
+            const dirItem = document.createElement('div');
+            dirItem.className = 'directory-item';
+
+            // --- Path Group (First) ---
+            const pathGroup = document.createElement('div');
+            pathGroup.className = 'form-group';
+            pathGroup.style.marginBottom = '8px';
+
+            const pathLabel = document.createElement('label');
+            pathLabel.textContent = 'Path';
+
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+
+            const pathInput = document.createElement('input');
+            pathInput.type = 'text';
+            pathInput.className = 'form-input dir-path';
+            pathInput.value = dir.path || '';
+            pathInput.placeholder = 'Absolute path';
+
+            // --- Name Input (Define early for picker) ---
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'form-input dir-name';
+            nameInput.value = dir.name || '';
+            nameInput.placeholder = 'e.g., Scenarios';
+
+            const pickBtn = document.createElement('button');
+            pickBtn.className = 'btn btn-secondary';
+            pickBtn.innerHTML = '<ion-icon name="folder-open-outline"></ion-icon>';
+            pickBtn.title = 'フォルダを選択';
+            pickBtn.style.padding = '4px 8px';
+            pickBtn.style.display = 'flex';
+            pickBtn.style.alignItems = 'center';
+            pickBtn.onclick = () => this.openDirectoryPicker(pathInput, nameInput);
+
+            inputGroup.appendChild(pathInput);
+            inputGroup.appendChild(pickBtn);
+
+            pathGroup.appendChild(pathLabel);
+            pathGroup.appendChild(inputGroup);
+
+            // --- Name Group (Second) ---
+            const nameGroup = document.createElement('div');
+            nameGroup.className = 'form-group';
+            nameGroup.style.marginBottom = '8px';
+
+            const nameLabel = document.createElement('label');
+            nameLabel.textContent = 'Name';
+
+            nameGroup.appendChild(nameLabel);
+            nameGroup.appendChild(nameInput);
+
+            // --- Actions ---
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn btn-danger btn-remove-dir';
+            removeBtn.dataset.index = index;
+            removeBtn.textContent = 'Remove';
+            removeBtn.onclick = () => this.removeDirectory(parseInt(removeBtn.dataset.index));
+
+            dirItem.appendChild(pathGroup);
+            dirItem.appendChild(nameGroup);
+            dirItem.appendChild(removeBtn);
+
+            this.directoriesContainer.appendChild(dirItem);
+        });
+    }
+
+    addDirectory() {
+        this.directories.push({ name: '', path: '' });
+        this.renderDirectories();
+    }
+
+    removeDirectory(index) {
+        this.directories.splice(index, 1);
+        this.renderDirectories();
+    }
+
     async save() {
+        // Collect directory data from inputs
+        const dirItems = this.directoriesContainer.querySelectorAll('.directory-item');
+        const newDirectories = [];
+
+        dirItems.forEach(item => {
+            const name = item.querySelector('.dir-name').value.trim();
+            const path = item.querySelector('.dir-path').value.trim();
+            if (name && path) {
+                newDirectories.push({ name, path });
+            }
+        });
+
         const newConfig = {
-            scenarios_dir: this.inputScenarios.value.trim() || null,
-            scenarios_shared_dir: this.inputShared.value.trim() || null
+            scenario_directories: newDirectories
         };
         await this.saveCallback(newConfig);
         this.close();
@@ -50,9 +167,10 @@ export class SettingsModal extends BaseModal {
 }
 
 export class SaveAsModal extends BaseModal {
-    constructor(saveCallback) {
+    constructor(saveCallback, getConfigCallback) {
         super('save-modal');
         this.saveCallback = saveCallback;
+        this.getConfigCallback = getConfigCallback;
 
         this.inputDirType = document.getElementById('save-dir-type');
         this.inputSubdir = document.getElementById('save-subdir');
@@ -69,12 +187,31 @@ export class SaveAsModal extends BaseModal {
     open() {
         this.inputSubdir.value = '';
         this.inputFilename.value = '';
+
+        // Populate directory dropdown
+        const config = this.getConfigCallback();
+        this.inputDirType.innerHTML = '';
+
+        if (config.scenario_directories && config.scenario_directories.length > 0) {
+            config.scenario_directories.forEach((dir, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = dir.name;
+                this.inputDirType.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No directories configured';
+            this.inputDirType.appendChild(option);
+        }
+
         super.open();
         this.inputFilename.focus();
     }
 
     async confirm() {
-        const dirType = this.inputDirType.value;
+        const dirIndex = parseInt(this.inputDirType.value);
         const subdir = this.inputSubdir.value.trim();
         let filename = this.inputFilename.value.trim();
 
@@ -88,7 +225,7 @@ export class SaveAsModal extends BaseModal {
         }
 
         await this.saveCallback({
-            dirType,
+            dirIndex,
             subdir,
             filename
         });

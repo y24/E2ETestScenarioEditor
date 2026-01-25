@@ -7,9 +7,12 @@ CONFIG_FILE_NAME = "config.json"
 # プロジェクトルートに保存
 CONFIG_PATH = os.path.join(os.getcwd(), CONFIG_FILE_NAME)
 
+class ScenarioDirectory(BaseModel):
+    name: str
+    path: str
+
 class AppConfig(BaseModel):
-    scenarios_dir: Optional[str] = None
-    scenarios_shared_dir: Optional[str] = None
+    scenario_directories: list[ScenarioDirectory] = []
     ui_settings: Optional[dict] = {}
 
 def load_config() -> AppConfig:

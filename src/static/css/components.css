@@ -64,6 +64,11 @@
     color: var(--accent-color);
 }
 
+.tab-item.preview .tab-label {
+    font-style: italic;
+    opacity: 0.8;
+}
+
 /* Editor Main */
 .editor-container {
     height: 100%;

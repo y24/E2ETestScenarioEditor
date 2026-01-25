@@ -19,20 +19,19 @@ export class FileBrowser {
     render(data) {
         this.container.innerHTML = '';
 
-        // Render Scenarios
-        if (data.scenarios && data.scenarios.length > 0) {
-            this.renderSection('Scenarios', data.scenarios);
-        } else {
-            this.container.innerHTML += '<div class="empty-message">No scenarios found. Check settings.</div>';
+        if (!data.directories || data.directories.length === 0) {
+            this.container.innerHTML = '<div class="empty-message">No directories configured. Check settings.</div>';
+            return;
         }
 
-        // Render Shared Scenarios
-        if (data.shared && data.shared.length > 0) {
-            const sep = document.createElement('div');
-            sep.style.height = '16px';
-            this.container.appendChild(sep);
-            this.renderSection('Shared Scenarios', data.shared);
-        }
+        data.directories.forEach((directory, index) => {
+            if (index > 0) {
+                const sep = document.createElement('div');
+                sep.style.height = '16px';
+                this.container.appendChild(sep);
+            }
+            this.renderSection(directory.name, directory.files);
+        });
     }
 
     renderSection(title, files) {
@@ -59,7 +58,10 @@ export class FileBrowser {
                 // Highlight selection
                 this.container.querySelectorAll('.file-item').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
-                this.onFileSelect(file);
+                this.onFileSelect(file, true); // true = isPreview
+            };
+            el.ondblclick = () => {
+                this.onFileSelect(file, false); // false = not preview
             };
             this.container.appendChild(el);
         });

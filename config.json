@@ -1,7 +1,13 @@
 {
-  "scenarios_dir": "d:/Script/E2ETestScenarioEditor/scenarios",
-  "scenarios_shared_dir": null,
-  "ui_settings": {
-    "paneRightWidth": 352
-  }
+  "scenario_directories": [
+    {
+      "name": "scenarios",
+      "path": "D:/Script/E2ETestScenarioEditor/scenarios"
+    },
+    {
+      "name": "scenarios",
+      "path": "D:/Script/E2EFramework/scenarios"
+    }
+  ],
+  "ui_settings": {}
 }

@@ -18,6 +18,29 @@ async def update_config(config: AppConfig):
     save_config(config)
     return config
 
+# --- Utility API ---
+
+@router.get("/utils/pick-directory")
+async def pick_directory():
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        root = tk.Tk()
+        root.withdraw()  # メインウィンドウを非表示
+        root.attributes('-topmost', True)  # 最前面に表示
+        
+        directory = filedialog.askdirectory(parent=root, title="シナリオフォルダを選択")
+        root.destroy()
+        
+        if directory:
+            # Windowsのパス区切り文字を正規化
+            directory = directory.replace('\\', '/')
+            return {"path": directory}
+        return {"path": None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- File Browser API ---
 
 class FileInfo(BaseModel):
@@ -26,23 +49,26 @@ class FileInfo(BaseModel):
     relativePath: str
     parent: str
 
+class DirectoryFiles(BaseModel):
+    name: str
+    files: List[FileInfo]
+
 class FileListResponse(BaseModel):
-    scenarios: List[FileInfo]
-    shared: List[FileInfo]
+    directories: List[DirectoryFiles]
 
 @router.get("/files", response_model=FileListResponse)
 async def list_files():
     config = load_config()
-    scenarios = []
-    shared = []
-
-    if config.scenarios_dir:
-        scenarios = FileService.list_files(config.scenarios_dir)
+    directories = []
     
-    if config.scenarios_shared_dir:
-        shared = FileService.list_files(config.scenarios_shared_dir)
+    for dir_config in config.scenario_directories:
+        files = FileService.list_files(dir_config.path)
+        directories.append(DirectoryFiles(
+            name=dir_config.name,
+            files=files
+        ))
         
-    return FileListResponse(scenarios=scenarios, shared=shared)
+    return FileListResponse(directories=directories)
 
 # --- Scenario API ---
 
