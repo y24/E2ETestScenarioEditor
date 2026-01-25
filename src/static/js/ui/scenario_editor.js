@@ -233,6 +233,23 @@ export class ScenarioEditor {
     // --- Events ---
 
     bindEvents() {
+        // Background Click (Deselect)
+        this.container.onclick = (e) => {
+            // Check if clicked exactly on background elements
+            const isBackground = e.target === this.container ||
+                e.target.classList.contains('steps-container') ||
+                e.target.classList.contains('step-list') ||
+                e.target.classList.contains('section-group');
+
+            if (isBackground) {
+                this.selectedSteps.clear();
+                this.activeItemId = null;
+                this.selectedStep = null;
+                this.rerender();
+                if (this.onStepSelect) this.onStepSelect(null);
+            }
+        };
+
         // Section Menu Toggle
         this.container.querySelectorAll('.section-menu-btn').forEach(btn => {
             btn.onclick = (e) => {
@@ -315,7 +332,10 @@ export class ScenarioEditor {
         const btnClear = this.container.querySelector('#btn-clear-selection');
         if (btnClear) btnClear.onclick = () => {
             this.selectedSteps.clear();
+            this.activeItemId = null;
+            this.selectedStep = null;
             this.rerender();
+            if (this.onStepSelect) this.onStepSelect(null);
         };
     }
 
