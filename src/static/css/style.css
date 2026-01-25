@@ -238,8 +238,8 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     background: white;
-    width: 500px;
-    max-width: 90%;
+    width: 800px;
+    max-width: 95%;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 101;
@@ -262,6 +262,8 @@ body {
 
 .modal-body {
     padding: 24px 16px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
 }
 
 .modal-footer {
@@ -349,6 +351,25 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background-color: #fafafa;
+    display: grid;
+    grid-template-columns: 1fr 200px 40px;
+    gap: 12px;
+    align-items: end;
+}
+
+.directory-item .form-group {
+    margin-bottom: 0;
+}
+
+.directory-item .btn-remove-dir {
+    grid-column: auto;
+    justify-self: center;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    width: 34px;
 }
 
 .form-input {

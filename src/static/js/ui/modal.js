@@ -97,7 +97,6 @@ export class SettingsModal extends BaseModal {
             // --- Path Group (First) ---
             const pathGroup = document.createElement('div');
             pathGroup.className = 'form-group';
-            pathGroup.style.marginBottom = '8px';
 
             const pathLabel = document.createElement('label');
             pathLabel.textContent = 'Path';
@@ -136,7 +135,6 @@ export class SettingsModal extends BaseModal {
             // --- Name Group (Second) ---
             const nameGroup = document.createElement('div');
             nameGroup.className = 'form-group';
-            nameGroup.style.marginBottom = '8px';
 
             const nameLabel = document.createElement('label');
             nameLabel.textContent = 'Name';
@@ -148,7 +146,8 @@ export class SettingsModal extends BaseModal {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'btn btn-danger btn-remove-dir';
             removeBtn.dataset.index = index;
-            removeBtn.textContent = 'Remove';
+            removeBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+            removeBtn.title = 'Remove';
             removeBtn.onclick = () => this.removeDirectory(parseInt(removeBtn.dataset.index));
 
             dirItem.appendChild(pathGroup);
