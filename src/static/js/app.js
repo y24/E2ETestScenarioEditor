@@ -36,12 +36,17 @@ class App {
         document.getElementById('btn-refresh-files').onclick = () => this.fileBrowser.load();
         document.getElementById('btn-new-file').onclick = () => this.createNewScenario();
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
+        document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 this.saveCurrentTab();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                this.reloadCurrentTab();
             }
         });
 
@@ -117,6 +122,57 @@ class App {
 
         // Existing file save
         await this.performSave(tab.file.path, tab.data, tab.id);
+    }
+
+    async reloadCurrentTab() {
+        const tab = this.tabManager.getActiveTab();
+        if (!tab || !tab.file.path) return;
+
+        const doReload = async () => {
+            // Visual feedback
+            const btn = document.getElementById('btn-reload');
+            const originalIcon = '<ion-icon name="refresh-outline"></ion-icon>';
+            btn.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon>';
+
+            try {
+                const data = await API.loadScenario(tab.file.path);
+                tab.data = data;
+                this.tabManager.markDirty(tab.id, false);
+                this.onTabChange(tab);
+
+                btn.innerHTML = '<ion-icon name="checkmark-outline" style="color: #2ecc71;"></ion-icon>';
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                }, 1000);
+            } catch (e) {
+                alert("Error reloading file: " + e.message);
+                btn.innerHTML = '<ion-icon name="alert-circle-outline" style="color: #e74c3c;"></ion-icon>';
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                }, 2000);
+            }
+        };
+
+        if (tab.isDirty) {
+            this.confirmModal.open(
+                '変更の保存',
+                `"${tab.file.name}" への変更を保存しますか？`,
+                {
+                    onYes: async () => {
+                        await this.performSave(tab.file.path, tab.data, tab.id);
+                        await doReload();
+                    },
+                    onNo: () => {
+                        doReload();
+                    },
+                    onCancel: () => {
+                        // Do nothing
+                    }
+                }
+            );
+        } else {
+            await doReload();
+        }
     }
 
     async onSaveAsConfirmed({ dirIndex, subdir, filename, closeAfterSave }) {

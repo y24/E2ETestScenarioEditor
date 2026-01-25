@@ -426,7 +426,13 @@ export class ScenarioEditor {
                 itemData._isGroup = true;
                 itemData._groupId = itemId;
                 itemData._section = section;
-                itemData._children = itemData.items.map(sid => this.currentData[section].find(s => s._stepId === sid)).filter(s => !!s);
+                const children = itemData.items.map(sid => this.currentData[section].find(s => s._stepId === sid)).filter(s => !!s);
+                Object.defineProperty(itemData, '_children', {
+                    value: children,
+                    writable: true,
+                    enumerable: false,
+                    configurable: true
+                });
             }
         } else {
             itemData = this.currentData[section].find(s => s._stepId === itemId);

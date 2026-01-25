@@ -76,6 +76,11 @@ export class GroupManager {
         // レイアウトにあって実体がないステップを除去する処理は
         // 複雑になるので、ここでは簡易的に「表示時」に無視する方針とする。
         // 保存時に再構築する。
+
+        // クリーニング: _children は実行時用プロパティであり保存すべきではないため削除
+        Object.values(sectionMeta.groups).forEach(grp => {
+            if (grp._children) delete grp._children;
+        });
     }
 
     // 表示用の構造（Item[]）を生成
