@@ -474,6 +474,7 @@ export class ScenarioEditor {
 
         // Perform Grouping
         this.groupManager.createGroup(sectionKey, this.currentData, stepIds);
+        this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
 
         this.selectedSteps.clear();
         this.rerender();
@@ -482,6 +483,7 @@ export class ScenarioEditor {
 
     ungroup(sectionKey, groupId) {
         this.groupManager.ungroup(sectionKey, this.currentData, groupId);
+        this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
         this.rerender();
         this.onDataChange();
     }
@@ -592,6 +594,7 @@ export class ScenarioEditor {
             if (!inserted) meta.layout.push(newStep._stepId);
         }
 
+        this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
         this.rerender();
         this.onDataChange();
     }
@@ -665,6 +668,7 @@ export class ScenarioEditor {
                 if (meta) meta.layout.push(s._stepId);
             });
 
+            this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
             this.rerender();
             this.onDataChange();
 
@@ -706,6 +710,7 @@ export class ScenarioEditor {
             if (grp) grp.items.splice(newIndex, 0, stepId);
         }
 
+        this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
         this.onDataChange();
     }
 

@@ -195,4 +195,37 @@ export class GroupManager {
 
         delete meta.groups[groupId];
     }
+
+    sortSectionDataByLayout(sectionKey, data) {
+        const meta = data._editor.sections[sectionKey];
+        if (!meta) return;
+
+        const orderedIds = [];
+        meta.layout.forEach(itemId => {
+            if (itemId.startsWith('grp_')) {
+                const grp = meta.groups[itemId];
+                if (grp && grp.items) {
+                    orderedIds.push(...grp.items);
+                }
+            } else {
+                orderedIds.push(itemId);
+            }
+        });
+
+        // ID順にステップを並び替える
+        const stepMap = new Map(data[sectionKey].map(s => [s._stepId, s]));
+        const sortedSteps = [];
+
+        orderedIds.forEach(id => {
+            if (stepMap.has(id)) {
+                sortedSteps.push(stepMap.get(id));
+                stepMap.delete(id);
+            }
+        });
+
+        // レイアウトに含まれていないステップ（迷子など）があれば末尾に追加
+        stepMap.forEach(s => sortedSteps.push(s));
+
+        data[sectionKey] = sortedSteps;
+    }
 }

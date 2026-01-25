@@ -5,14 +5,6 @@
   "setup": [],
   "steps": [
     {
-      "name": "新しいステップ",
-      "type": "system",
-      "params": {
-        "action": ""
-      },
-      "_stepId": "stp_thi5chg2s"
-    },
-    {
       "name": "新しいステップ2",
       "type": "system",
       "params": {
@@ -20,6 +12,14 @@
       },
       "_stepId": "stp_t3h4gxqfl",
       "ignore": true
+    },
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_thi5chg2s"
     },
     {
       "name": "新しいステップ1",
@@ -49,7 +49,7 @@
       },
       "steps": {
         "layout": [
-          "stp_thi5chg2s",
+          "stp_t3h4gxqfl",
           "grp_v3u6rp8q4",
           "stp_363vm0mp2"
         ],
@@ -58,8 +58,8 @@
             "name": "New Group",
             "collapsed": false,
             "items": [
-              "stp_swesd1z5t",
-              "stp_t3h4gxqfl"
+              "stp_thi5chg2s",
+              "stp_swesd1z5t"
             ]
           }
         }
