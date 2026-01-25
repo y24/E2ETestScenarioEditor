@@ -209,9 +209,9 @@ export class SaveAsModal extends BaseModal {
         if (btnSave) btnSave.onclick = () => this.confirm();
     }
 
-    open(defaultFilename = '', closeAfterSave = false) {
+    open(defaultFilename = '', closeAfterSave = false, defaultSubdir = '', defaultDirIndex = -1) {
         this.closeAfterSave = closeAfterSave;
-        this.inputSubdir.value = '';
+        this.inputSubdir.value = defaultSubdir;
         this.inputFilename.value = defaultFilename;
 
         // Populate directory dropdown
@@ -223,6 +223,9 @@ export class SaveAsModal extends BaseModal {
                 const option = document.createElement('option');
                 option.value = index;
                 option.textContent = dir.name;
+                if (index === defaultDirIndex) {
+                    option.selected = true;
+                }
                 this.inputDirType.appendChild(option);
             });
         } else {

@@ -4,6 +4,8 @@ export class FileBrowser {
     constructor(containerId, onFileSelect) {
         this.container = document.getElementById(containerId);
         this.onFileSelect = onFileSelect;
+        this.onSelectionChange = null; // Callback for when selection changes
+        this.selectedFile = null;
         this.data = null; // Store raw data
         this.searchQuery = '';
         this.collapsedDirs = new Set(); // Keep track of collapsed directories
@@ -36,10 +38,11 @@ export class FileBrowser {
 
         // Filter data based on searchQuery
         const filteredData = {
-            directories: this.data.directories.map(dir => {
+            directories: this.data.directories.map((dir, dirIndex) => {
                 return {
                     name: dir.name,
-                    files: dir.files.filter(file =>
+                    dirIndex: dirIndex,
+                    files: dir.files.map(file => ({ ...file, dirIndex })).filter(file =>
                         file.name.toLowerCase().includes(this.searchQuery) ||
                         (file.parent && file.parent.toLowerCase().includes(this.searchQuery))
                     )
@@ -111,6 +114,8 @@ export class FileBrowser {
                 // Highlight selection
                 this.container.querySelectorAll('.file-item').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
+                this.selectedFile = file;
+                if (this.onSelectionChange) this.onSelectionChange(file);
                 this.onFileSelect(file, true); // true = isPreview
             };
             el.ondblclick = (e) => {

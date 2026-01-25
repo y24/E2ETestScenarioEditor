@@ -129,6 +129,11 @@ body {
     color: var(--text-primary);
 }
 
+.icon-btn-small:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 /* File Browser */
 .explorer-search {
     padding: 8px 12px;

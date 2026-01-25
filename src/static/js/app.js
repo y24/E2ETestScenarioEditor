@@ -41,8 +41,13 @@ class App {
 
         document.getElementById('btn-refresh-files').onclick = () => this.fileBrowser.load();
         document.getElementById('btn-new-file').onclick = () => this.createNewScenario();
+        document.getElementById('btn-duplicate-file').onclick = () => this.duplicateSelectedFile();
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
         document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
+
+        this.fileBrowser.onSelectionChange = (file) => {
+            document.getElementById('btn-duplicate-file').disabled = !file;
+        };
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
@@ -139,6 +144,49 @@ class App {
 
         // Existing file save
         await this.performSave(tab.file.path, tab.data, tab.id);
+    }
+
+    async duplicateSelectedFile() {
+        const selectedFile = this.fileBrowser.selectedFile;
+        if (!selectedFile) return;
+
+        try {
+            const data = await API.loadScenario(selectedFile.path);
+
+            // Clone data
+            const duplicatedData = JSON.parse(JSON.stringify(data));
+
+            // Name should reflect it's a copy
+            if (duplicatedData.name) {
+                duplicatedData.name += " (Copy)";
+            }
+
+            // Pseudo file object for the new (duplicated) tab
+            let baseName = selectedFile.name;
+            if (baseName.endsWith('.json')) {
+                baseName = baseName.slice(0, -5);
+            }
+            const defaultName = baseName + '_copy';
+
+            const file = {
+                name: defaultName,
+                path: null, // null indicates new file
+                parent: selectedFile.parent
+            };
+
+            this.tabManager.openTab(file, duplicatedData);
+
+            // Calculate subdir and dirIndex for SaveAsModal
+            const parts = selectedFile.relativePath.split('/');
+            parts.pop(); // Remove filename
+            const subdir = parts.join('/');
+            const dirIndex = selectedFile.dirIndex;
+
+            // Trigger Save As immediately
+            this.saveAsModal.open(defaultName + '.json', false, subdir, dirIndex);
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
     }
 
     async reloadCurrentTab() {
