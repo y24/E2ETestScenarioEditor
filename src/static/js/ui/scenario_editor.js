@@ -178,19 +178,21 @@ export class ScenarioEditor {
     }
 
     getIconForStep(step) {
-        const type = step.type;
-        const operation = (step.params?.operation || '').trim().toLowerCase();
-
         if (!ScenarioEditor.ICON_MAPPING) {
             return '<ion-icon name="cube-outline"></ion-icon>';
         }
 
-        let iconName = ScenarioEditor.ICON_MAPPING.types[type] || ScenarioEditor.ICON_MAPPING.default;
+        const type = step.type;
+        // Some types use 'operation', others use 'action' or even its own 'type' (for verify)
+        const op = (step.params?.operation || step.params?.action || step.params?.type || '').trim().toLowerCase();
 
-        if (type === 'ui' && ScenarioEditor.ICON_MAPPING.operations[operation]) {
-            iconName = ScenarioEditor.ICON_MAPPING.operations[operation];
+        // 1. Check if specific operation icon exists
+        if (ScenarioEditor.ICON_MAPPING.operations[op]) {
+            return `<ion-icon name="${ScenarioEditor.ICON_MAPPING.operations[op]}"></ion-icon>`;
         }
 
+        // 2. Fallback to type icon
+        const iconName = ScenarioEditor.ICON_MAPPING.types[type] || ScenarioEditor.ICON_MAPPING.default;
         return `<ion-icon name="${iconName}"></ion-icon>`;
     }
 

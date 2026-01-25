@@ -1,14 +1,40 @@
 {
     "types": {
-        "system": "desktop-outline",
+        "system": "cog-outline",
         "ui": "browsers-outline",
-        "verification": "checkmark-circle-outline"
+        "screenshot": "camera-outline",
+        "web": "globe-outline",
+        "excel": "stats-chart-outline",
+        "verify": "checkmark-circle-outline",
+        "debug": "bug-outline"
     },
     "operations": {
         "click": "navigate-outline",
         "click_input": "navigate-outline",
         "input": "create-outline",
-        "input_keys": "create-outline"
+        "input_keys": "create-outline",
+        "read": "eye-outline",
+        "start_app": "play-outline",
+        "sleep": "hourglass-outline",
+        "command": "terminal-outline",
+        "print": "print-outline",
+        "set_variables": "list-outline",
+        "start_browser": "rocket-outline",
+        "connect_browser": "link-outline",
+        "navigate": "arrow-forward-outline",
+        "accept_alert": "alert-circle-outline",
+        "dismiss_alert": "close-circle-outline",
+        "close_browser": "power-outline",
+        "start_excel": "document-text-outline",
+        "select_cell": "grid-outline",
+        "save_file": "save-outline",
+        "handle_dialog": "chatbubble-ellipses-outline",
+        "exists": "search-outline",
+        "equals": "git-compare-outline",
+        "contains": "search-outline",
+        "file_exists": "file-tray-full-outline",
+        "list_desktop_windows": "copy-outline",
+        "list_descendants": "list-circle-outline"
     },
     "default": "cube-outline"
 }
