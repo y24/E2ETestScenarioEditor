@@ -335,6 +335,19 @@
     white-space: nowrap;
 }
 
+.header-checkbox {
+    font-size: 0.85rem;
+    font-weight: normal;
+    color: var(--text-secondary);
+    padding: 0;
+}
+
+.header-checkbox input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    cursor: pointer;
+}
+
 .form-group .checkbox-wrapper input[type="checkbox"] {
     width: auto;
     margin: 0;

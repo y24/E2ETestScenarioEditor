@@ -13,7 +13,10 @@ export class PropertiesPanel {
 
     render(step) {
         this.currentStep = step;
+        const header = document.getElementById('properties-header');
+
         if (!step) {
+            if (header) header.innerHTML = `<span>Properties</span>`;
             this.panel.innerHTML = `<div class="empty-state">
                 <ion-icon name="options-outline"></ion-icon>
                 <p>編集するステップを選択してください</p>
@@ -22,21 +25,20 @@ export class PropertiesPanel {
         }
 
         if (step._isGroup) {
+            if (header) {
+                header.innerHTML = `
+                    <span>Group Properties</span>
+                    <label class="checkbox-wrapper header-checkbox">
+                        <span>無効化</span>
+                        <input type="checkbox" id="prop-group-ignore" ${step.ignore ? 'checked' : ''}>
+                    </label>
+                `;
+            }
             this.panel.innerHTML = `
                 <div class="props-container">
-                    <div class="props-header group-props">
-                        <ion-icon name="folder-open-outline"></ion-icon>
-                        <span style="font-weight: bold; margin-left:8px;">Group Properties</span>
-                    </div>
-                    <div class="form-group" style="margin-top: 16px;">
+                    <div class="form-group">
                         <label>Group Name</label>
                         <input type="text" id="prop-name" value="${step.name || ''}" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-wrapper">
-                            <input type="checkbox" id="prop-group-ignore" ${step.ignore ? 'checked' : ''}>
-                            <span>グループ全体を無効化</span>
-                        </label>
                     </div>
                     <div class="group-info" style="color: #666; font-size: 0.85rem; border-top: 1px solid #eee; padding-top: 8px;">
                         <p>${step.items.length} steps in this group</p>
@@ -48,6 +50,16 @@ export class PropertiesPanel {
         }
 
         const paramsJson = JSON.stringify(step.params || {}, null, 2);
+
+        if (header) {
+            header.innerHTML = `
+                <span>Properties</span>
+                <label class="checkbox-wrapper header-checkbox">
+                    <span>無効化</span>
+                    <input type="checkbox" id="prop-ignore" ${step.ignore ? 'checked' : ''}>
+                </label>
+            `;
+        }
 
         this.panel.innerHTML = `
             <div class="props-container">
@@ -69,13 +81,6 @@ export class PropertiesPanel {
                     </select>
                 </div>
                 
-
-                <div class="form-group">
-                    <label class="checkbox-wrapper">
-                        <input type="checkbox" id="prop-ignore" ${step.ignore ? 'checked' : ''}>
-                        <span>無効化</span>
-                    </label>
-                </div>
 
                 <hr class="props-divider">
 
