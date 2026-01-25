@@ -152,11 +152,13 @@ export class ScenarioEditor {
         const ignoredClass = group.ignore ? 'ignored' : '';
         const itemsHtml = group.items.map(s => this.renderStep(s, sectionKey)).join('');
         const activeClass = group.id === this.activeItemId ? 'selected-primary' : '';
+        const checked = this.selectedSteps.has(group.id) ? 'checked' : '';
 
         return `
             <div class="group-item ${collapsedClass} ${ignoredClass} ${activeClass}" data-id="${group.id}" data-type="group" data-section="${sectionKey}">
                 <div class="group-header">
                     <div class="step-grip"><ion-icon name="reorder-two-outline"></ion-icon></div>
+                    <input type="checkbox" class="step-checkbox" ${checked}>
                     <div class="group-toggle" data-action="toggle-collapse">
                         <ion-icon name="${group.collapsed ? 'chevron-forward-outline' : 'chevron-down-outline'}"></ion-icon>
                     </div>
@@ -295,12 +297,18 @@ export class ScenarioEditor {
         this.container.querySelectorAll('.group-header').forEach(header => {
             header.onclick = (e) => {
                 if (e.target.closest('.step-grip') || e.target.closest('.group-toggle') ||
-                    e.target.closest('.group-actions')) return;
+                    e.target.closest('.group-actions') || e.target.classList.contains('step-checkbox')) return;
 
                 // Allow selection when clicking the name input if it's readonly (not currently editing)
                 if (e.target.classList.contains('group-name') && !e.target.readOnly) return;
 
                 this.selectItem(header.closest('.group-item'), e.shiftKey);
+            };
+
+            const cb = header.querySelector('.step-checkbox');
+            if (cb) cb.onclick = (e) => {
+                e.stopPropagation();
+                this.toggleSelection(header.closest('.group-item').dataset.id, e.target.checked, e.shiftKey);
             };
         });
 
@@ -407,7 +415,22 @@ export class ScenarioEditor {
     }
 
     toggleSelection(stepId, checked, shiftKey = false) {
-        if (shiftKey && this.lastCheckedStepId) {
+        if (stepId.startsWith('grp_')) {
+            // Group selection: Check/Uncheck the group and all its children
+            if (checked) this.selectedSteps.add(stepId);
+            else this.selectedSteps.delete(stepId);
+
+            ['setup', 'steps', 'teardown'].forEach(section => {
+                const meta = this.currentData._editor.sections[section];
+                if (meta && meta.groups[stepId]) {
+                    meta.groups[stepId].items.forEach(sid => {
+                        if (checked) this.selectedSteps.add(sid);
+                        else this.selectedSteps.delete(sid);
+                    });
+                }
+            });
+            this.lastCheckedStepId = stepId;
+        } else if (shiftKey && this.lastCheckedStepId) {
             const allSteps = Array.from(this.container.querySelectorAll('.step-item'));
             const lastIdx = allSteps.findIndex(el => el.dataset.id === this.lastCheckedStepId);
             const currIdx = allSteps.findIndex(el => el.dataset.id === stepId);
@@ -472,6 +495,20 @@ export class ScenarioEditor {
                     this.selectedSteps.add(itemId);
                     this.lastCheckedStepId = itemId;
                 }
+            }
+        } else if (type === 'group') {
+            // Selection for groups: select the group and all its children
+            const alreadySelected = this.selectedSteps.has(itemId);
+            if (!alreadySelected || shiftKey) {
+                if (!shiftKey) this.selectedSteps.clear();
+                this.selectedSteps.add(itemId);
+
+                // Add children
+                const grp = this.currentData._editor.sections[section].groups[itemId];
+                if (grp && grp.items) {
+                    grp.items.forEach(sid => this.selectedSteps.add(sid));
+                }
+                this.lastCheckedStepId = itemId;
             }
         }
 
@@ -703,6 +740,8 @@ export class ScenarioEditor {
 
         ['setup', 'steps', 'teardown'].forEach(section => {
             if (!this.currentData[section]) return;
+
+            // Handle individual steps
             this.currentData[section].forEach(step => {
                 if (this.selectedSteps.has(step._stepId)) {
                     if (ignore) {
@@ -712,6 +751,28 @@ export class ScenarioEditor {
                     }
                 }
             });
+
+            // Handle groups
+            const meta = this.currentData._editor?.sections[section];
+            if (meta && meta.groups) {
+                Object.entries(meta.groups).forEach(([groupId, group]) => {
+                    if (this.selectedSteps.has(groupId)) {
+                        if (ignore) {
+                            group.ignore = true;
+                        } else {
+                            delete group.ignore;
+                        }
+                        // Ensure all items in the group are also updated (redundant if they were also selected, but safe)
+                        group.items.forEach(sid => {
+                            const step = this.currentData[section].find(s => s._stepId === sid);
+                            if (step) {
+                                if (ignore) step.ignore = true;
+                                else delete step.ignore;
+                            }
+                        });
+                    }
+                });
+            }
         });
 
         this.rerender();

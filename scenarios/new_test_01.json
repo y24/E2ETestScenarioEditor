@@ -18,22 +18,6 @@
       "params": {
         "action": ""
       },
-      "_stepId": "stp_thi5chg2s"
-    },
-    {
-      "name": "新しいステップ1",
-      "type": "system",
-      "params": {
-        "action": ""
-      },
-      "_stepId": "stp_swesd1z5t"
-    },
-    {
-      "name": "新しいステップ",
-      "type": "system",
-      "params": {
-        "action": ""
-      },
       "_stepId": "stp_363vm0mp2"
     },
     {
@@ -48,6 +32,24 @@
       "name": "新しいステップ",
       "type": "none",
       "_stepId": "stp_qr795tb5h"
+    },
+    {
+      "name": "新しいステップ1",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_swesd1z5t",
+      "ignore": true
+    },
+    {
+      "name": "新しいステップ",
+      "type": "system",
+      "params": {
+        "action": ""
+      },
+      "_stepId": "stp_thi5chg2s",
+      "ignore": true
     }
   ],
   "teardown": [],
@@ -62,19 +64,23 @@
       "steps": {
         "layout": [
           "stp_t3h4gxqfl",
-          "grp_v3u6rp8q4",
           "stp_363vm0mp2",
           "stp_cj0i3cv8l",
-          "stp_qr795tb5h"
+          "stp_qr795tb5h",
+          "grp_v3u6rp8q4"
         ],
         "groups": {
           "grp_v3u6rp8q4": {
             "name": "New Group",
             "collapsed": false,
             "items": [
-              "stp_thi5chg2s",
-              "stp_swesd1z5t"
-            ]
+              "stp_swesd1z5t",
+              "stp_thi5chg2s"
+            ],
+            "_isGroup": true,
+            "_groupId": "grp_v3u6rp8q4",
+            "_section": "steps",
+            "ignore": true
           }
         }
       },
