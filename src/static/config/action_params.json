@@ -29,10 +29,10 @@
         ],
         "paramValues": {
             "operation": [
-                "input",
-                "input_keys",
                 "click",
                 "click_input",
+                "input",
+                "input_keys",
                 "read"
             ]
         }
