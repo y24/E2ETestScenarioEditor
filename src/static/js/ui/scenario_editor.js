@@ -1,4 +1,5 @@
 import { GroupManager } from './group_manager.js';
+import { showToast } from './toast.js';
 
 export class ScenarioEditor {
     constructor(containerId, onStepSelect, onDataChange) {
@@ -511,6 +512,7 @@ export class ScenarioEditor {
         if (steps.length > 0) {
             try {
                 await navigator.clipboard.writeText(JSON.stringify(steps, null, 2));
+                showToast('コピーしました');
             } catch (err) {
                 console.error('Failed to copy: ', err);
                 alert('Copy failed: ' + err.message);
