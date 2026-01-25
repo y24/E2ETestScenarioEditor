@@ -97,6 +97,14 @@
     background: transparent;
 }
 
+#meta-id {
+    width: 120px;
+}
+
+#meta-name {
+    flex: 1;
+}
+
 .meta-input:focus {
     outline: none;
     border-bottom-color: var(--accent-color);
