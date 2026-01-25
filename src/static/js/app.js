@@ -93,6 +93,8 @@ class App {
             } else {
                 this.fileBrowser.load();
             }
+
+            this.updateActionButtons();
         } catch (e) {
             console.error(e);
         }
@@ -229,6 +231,8 @@ class App {
 
             if (closeAfterSave) {
                 this.tabManager.forceCloseTab(tab.id);
+            } else {
+                this.updateActionButtons();
             }
         }
     }
@@ -278,6 +282,24 @@ class App {
         this.editor.render(tab);
         // Clear properties panel when switching tabs
         this.propertiesPanel.render(null);
+        this.updateActionButtons();
+    }
+
+    updateActionButtons() {
+        const tab = this.tabManager.getActiveTab();
+        const btnSave = document.getElementById('btn-save');
+        const btnReload = document.getElementById('btn-reload');
+
+        if (!tab) {
+            btnSave.disabled = true;
+            btnReload.disabled = true;
+            btnSave.type = 'button'; // Ensure it's treated as a button
+            btnReload.type = 'button';
+        } else {
+            btnSave.disabled = false;
+            // Reload is only enabled if the file has a path (saved on disk)
+            btnReload.disabled = !tab.file.path;
+        }
     }
 
     onTabCloseRequest(tab) {

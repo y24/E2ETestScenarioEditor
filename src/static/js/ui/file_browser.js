@@ -6,6 +6,7 @@ export class FileBrowser {
         this.onFileSelect = onFileSelect;
         this.data = null; // Store raw data
         this.searchQuery = '';
+        this.collapsedDirs = new Set(); // Keep track of collapsed directories
 
         this.initSearch();
     }
@@ -61,28 +62,43 @@ export class FileBrowser {
         }
 
         data.directories.forEach((directory, index) => {
-            if (index > 0) {
-                const sep = document.createElement('div');
-                sep.style.height = '16px';
-                this.container.appendChild(sep);
-            }
             this.renderSection(directory.name, directory.files);
         });
     }
 
     renderSection(title, files) {
+        // 検索クエリがある場合は展開した状態にする。そうでない場合は、保存されている折りたたみ状態に従う。
+        const isCollapsed = this.collapsedDirs.has(title) && !this.searchQuery;
+
         const header = document.createElement('div');
-        header.className = 'section-header';
-        header.style.padding = '8px 16px';
-        header.style.fontWeight = 'bold';
-        header.style.color = '#666';
-        header.style.fontSize = '0.8rem';
-        header.textContent = title;
+        header.className = `section-header ${isCollapsed ? 'collapsed' : ''}`;
+        header.innerHTML = `
+            <ion-icon name="chevron-down-outline"></ion-icon>
+            <span>${title}</span>
+        `;
+
+        const content = document.createElement('div');
+        content.className = `section-content ${isCollapsed ? 'collapsed' : ''}`;
+
+        header.onclick = () => {
+            const nowCollapsed = !content.classList.contains('collapsed');
+            header.classList.toggle('collapsed', nowCollapsed);
+            content.classList.toggle('collapsed', nowCollapsed);
+
+            if (nowCollapsed) {
+                this.collapsedDirs.add(title);
+            } else {
+                this.collapsedDirs.delete(title);
+            }
+        };
+
         this.container.appendChild(header);
+        this.container.appendChild(content);
 
         files.forEach(file => {
             const el = document.createElement('div');
             el.className = 'file-item';
+            el.style.paddingLeft = '32px'; // Indent files under folder
             el.innerHTML = `
                 <ion-icon name="document-text-outline" class="file-icon"></ion-icon>
                 <div class="file-info">
@@ -90,16 +106,18 @@ export class FileBrowser {
                     <div class="file-path" style="font-size:0.75rem; color:#999;">${file.parent}</div>
                 </div>
             `;
-            el.onclick = () => {
+            el.onclick = (e) => {
+                e.stopPropagation();
                 // Highlight selection
                 this.container.querySelectorAll('.file-item').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
                 this.onFileSelect(file, true); // true = isPreview
             };
-            el.ondblclick = () => {
+            el.ondblclick = (e) => {
+                e.stopPropagation();
                 this.onFileSelect(file, false); // false = not preview
             };
-            this.container.appendChild(el);
+            content.appendChild(el);
         });
     }
 }
