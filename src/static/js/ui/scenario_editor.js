@@ -543,7 +543,6 @@ export class ScenarioEditor {
 
             steps.forEach(s => {
                 s._stepId = this.groupManager.generateStepId();
-                if (s.name) s.name += " (Pasted)";
 
                 this.currentData[sectionKey].push(s);
 
