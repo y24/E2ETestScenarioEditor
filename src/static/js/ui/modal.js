@@ -209,10 +209,10 @@ export class SaveAsModal extends BaseModal {
         if (btnSave) btnSave.onclick = () => this.confirm();
     }
 
-    open(closeAfterSave = false) {
+    open(defaultFilename = '', closeAfterSave = false) {
         this.closeAfterSave = closeAfterSave;
         this.inputSubdir.value = '';
-        this.inputFilename.value = '';
+        this.inputFilename.value = defaultFilename;
 
         // Populate directory dropdown
         const config = this.getConfigCallback();
@@ -234,6 +234,7 @@ export class SaveAsModal extends BaseModal {
 
         super.open();
         this.inputFilename.focus();
+        this.inputFilename.select();
     }
 
     async confirm() {

@@ -132,7 +132,8 @@ class App {
 
         // If new file (no path), open Save As modal
         if (!tab.file.path) {
-            this.saveAsModal.open();
+            const defaultName = tab.data.id ? `${tab.data.id}.json` : '';
+            this.saveAsModal.open(defaultName);
             return;
         }
 
@@ -313,7 +314,8 @@ class App {
                     if (!tab.file.path) {
                         // For untitled files, we need to activate first so Save As knows which one to save
                         this.tabManager.activateTab(tab.id);
-                        this.saveAsModal.open(true);
+                        const defaultName = tab.data.id ? `${tab.data.id}.json` : '';
+                        this.saveAsModal.open(defaultName, true);
                     } else {
                         await this.performSave(tab.file.path, tab.data, tab.id);
                         this.tabManager.forceCloseTab(tab.id);
