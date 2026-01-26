@@ -43,6 +43,12 @@ export class SettingsModal extends BaseModal {
             this.btnPickPageObjectFolder.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
         }
 
+        if (this.pageObjectFolderInput) {
+            this.pageObjectFolderInput.readOnly = true;
+            this.pageObjectFolderInput.classList.add('clickable-input');
+            this.pageObjectFolderInput.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
+        }
+
         // Settings Events
         const btnOpen = document.getElementById('btn-settings');
         if (btnOpen) btnOpen.onclick = () => this.open(this.getConfigCallback ? this.getConfigCallback() : {});
@@ -68,6 +74,9 @@ export class SettingsModal extends BaseModal {
     }
 
     async openDirectoryPicker(pathInput, nameInput, isPageObjectFolder = false) {
+        if (this.isPickingDirectory) return;
+        this.isPickingDirectory = true;
+
         try {
             const result = await API.pickDirectory();
             if (result && result.path) {
@@ -84,6 +93,8 @@ export class SettingsModal extends BaseModal {
         } catch (e) {
             console.error('Failed to pick directory:', e);
             alert('フォルダ選択に失敗しました。');
+        } finally {
+            this.isPickingDirectory = false;
         }
     }
 
@@ -106,9 +117,11 @@ export class SettingsModal extends BaseModal {
 
             const pathInput = document.createElement('input');
             pathInput.type = 'text';
-            pathInput.className = 'form-input dir-path';
+            pathInput.className = 'form-input dir-path clickable-input';
             pathInput.value = dir.path || '';
             pathInput.placeholder = 'Absolute path';
+            pathInput.readOnly = true;
+            pathInput.onclick = () => this.openDirectoryPicker(pathInput, nameInput);
 
             // --- Name Input (Define early for picker) ---
             const nameInput = document.createElement('input');
