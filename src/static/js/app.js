@@ -35,7 +35,8 @@ class App {
         this.propertiesPanel = new PropertiesPanel(
             'properties-panel',
             this.onPropertyUpdated.bind(this), // Prop edit
-            this.targetSelectorModal
+            this.targetSelectorModal,
+            (newConfig) => this.onConfigSaved(newConfig)
         );
 
         this.tabManager = new TabManager(
@@ -80,6 +81,7 @@ class App {
     async init() {
         try {
             this.config = await API.getConfig();
+            this.propertiesPanel.setAppConfig(this.config);
 
             // Load Icon Mapping
             const iconsLabel = await fetch('/static/js/ui/icons.json');

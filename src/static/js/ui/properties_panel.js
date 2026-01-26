@@ -1,14 +1,20 @@
 export class PropertiesPanel {
-    constructor(panelId, onUpdate, targetSelectorModal) {
+    constructor(panelId, onUpdate, targetSelectorModal, onConfigUpdate) {
         this.panel = document.getElementById(panelId);
         this.currentStep = null;
         this.onUpdate = onUpdate; // callback when data changes
         this.targetSelectorModal = targetSelectorModal;
+        this.onConfigUpdate = onConfigUpdate; // callback when UI config matches
         this.actionParamsConfig = {};
+        this.appConfig = {};
     }
 
     setActionParamsConfig(config) {
         this.actionParamsConfig = config;
+    }
+
+    setAppConfig(config) {
+        this.appConfig = config || {};
     }
 
     render(step) {
@@ -65,6 +71,8 @@ export class PropertiesPanel {
             `;
         }
 
+        const isRawDataCollapsed = this.appConfig.ui_settings?.rawDataCollapsed !== false;
+
         this.panel.innerHTML = `
             <div class="props-container">
                 <div class="form-group">
@@ -94,8 +102,13 @@ export class PropertiesPanel {
                 <hr class="props-divider">
 
                 <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
-                    <label>Raw Data (JSON)</label>
-                    <textarea id="prop-params" class="code-editor" spellcheck="false">${fullJson}</textarea>
+                    <div class="section-header ${isRawDataCollapsed ? 'collapsed' : ''}" id="raw-data-header" style="background: none; border: none; padding: 0; margin-bottom: 8px;">
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                        <label style="cursor: pointer; margin-bottom: 0;">Raw Data (JSON)</label>
+                    </div>
+                    <div id="raw-data-content" class="section-content ${isRawDataCollapsed ? 'collapsed' : ''}" style="flex: 1; flex-direction: column; display: ${isRawDataCollapsed ? 'none' : 'flex'};">
+                        <textarea id="prop-params" class="code-editor" spellcheck="false" style="flex: 1; min-height: 200px;">${fullJson}</textarea>
+                    </div>
                 </div>
             </div>
         `;
@@ -449,6 +462,22 @@ export class PropertiesPanel {
         paramsTextarea.onchange = (e) => {
             this.updateRawJsonTextarea(); // Format on blur
         };
+
+        // Collapsible Raw Data
+        const rawHeader = document.getElementById('raw-data-header');
+        const rawContent = document.getElementById('raw-data-content');
+        if (rawHeader && rawContent) {
+            rawHeader.onclick = () => {
+                const isCollapsed = rawHeader.classList.toggle('collapsed');
+                rawContent.classList.toggle('collapsed', isCollapsed);
+                rawContent.style.display = isCollapsed ? 'none' : 'flex';
+
+                // Save to config
+                if (!this.appConfig.ui_settings) this.appConfig.ui_settings = {};
+                this.appConfig.ui_settings.rawDataCollapsed = isCollapsed;
+                if (this.onConfigUpdate) this.onConfigUpdate(this.appConfig);
+            };
+        }
     }
 
     updateRawJsonTextarea() {
