@@ -398,6 +398,45 @@ export class RenameModal extends BaseModal {
     }
 }
 
+export class GroupRenameModal extends BaseModal {
+    constructor(onConfirm) {
+        super('group-rename-modal');
+        this.onConfirm = onConfirm;
+        this.input = document.getElementById('group-rename-input');
+        this.sectionKey = null;
+        this.groupId = null;
+
+        const btnClose = this.modal.querySelector('.close-modal');
+        if (btnClose) btnClose.onclick = () => this.cancel();
+
+        const btnConfirm = document.getElementById('btn-group-rename-confirm');
+        if (btnConfirm) btnConfirm.onclick = () => this.confirm();
+
+        this.input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                this.confirm();
+            }
+        };
+    }
+
+    open(sectionKey, groupId, currentName) {
+        this.sectionKey = sectionKey;
+        this.groupId = groupId;
+        this.input.value = currentName || '';
+        super.open();
+        this.input.focus();
+        this.input.select();
+    }
+
+    confirm() {
+        const newName = this.input.value.trim();
+        if (newName && this.onConfirm) {
+            this.onConfirm(this.sectionKey, this.groupId, newName);
+        }
+        this.close();
+    }
+}
+
 export class GenericConfirmModal extends BaseModal {
     constructor() {
         super('generic-confirm-modal');

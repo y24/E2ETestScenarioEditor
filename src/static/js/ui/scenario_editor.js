@@ -2,7 +2,7 @@ import { GroupManager } from './group_manager.js';
 import { showToast } from './toast.js';
 
 export class ScenarioEditor {
-    constructor(containerId, onStepSelect, onDataChange, metaModal) {
+    constructor(containerId, onStepSelect, onDataChange, metaModal, groupRenameModal) {
         this.container = document.getElementById(containerId);
         this.currentData = null;
         this.sortables = [];
@@ -11,6 +11,18 @@ export class ScenarioEditor {
         this.onStepSelect = onStepSelect;
         this.onDataChange = onDataChange;
         this.metaModal = metaModal;
+        this.groupRenameModal = groupRenameModal;
+
+        if (this.groupRenameModal) {
+            this.groupRenameModal.onConfirm = (sectionKey, groupId, newName) => {
+                const grp = this.currentData._editor.sections[sectionKey].groups[groupId];
+                if (grp) {
+                    grp.name = newName;
+                    this.onDataChange();
+                    this.rerender();
+                }
+            };
+        }
 
         this.selectedSteps = new Set(); // Set<stepId>
         this.selectedEl = null;         // Single selection element (legacy support for Right Pane)
@@ -176,7 +188,10 @@ export class ScenarioEditor {
                     <ion-icon name="folder-open-outline" class="group-icon"></ion-icon>
                     <input type="text" class="group-name" value="${group.name}" readonly ondblclick="this.readOnly=false" autocomplete="off">
                     <div class="group-actions">
-                         <button class="step-action-btn" data-action="ungroup" title="グループ解除">
+                        <button class="step-action-btn" data-action="rename-group-modal" title="グループ名を編集">
+                        <ion-icon name="create-outline"></ion-icon>
+                    </button>
+                    <button class="step-action-btn" data-action="ungroup" title="グループ解除">
                             <ion-icon name="folder-open-outline"></ion-icon>
                         </button>
                     </div>
@@ -437,6 +452,11 @@ export class ScenarioEditor {
 
             if (action === 'ungroup') {
                 this.ungroup(section, groupId);
+            } else if (action === 'rename-group-modal') {
+                const group = this.currentData._editor.sections[section].groups[groupId];
+                if (this.groupRenameModal && group) {
+                    this.groupRenameModal.open(section, groupId, group.name);
+                }
             }
         }
     }

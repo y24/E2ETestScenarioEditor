@@ -1,6 +1,6 @@
 import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
-import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal, RenameModal, GenericConfirmModal } from './ui/modal.js';
+import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal, RenameModal, GenericConfirmModal, GroupRenameModal } from './ui/modal.js';
 import { TargetSelectorModal } from './ui/target_selector_modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
@@ -18,6 +18,7 @@ class App {
         this.targetSelectorModal = new TargetSelectorModal();
         this.metaModal = new ScenarioMetaModal(this.onMetaSaved.bind(this));
         this.renameModal = new RenameModal(this.onFileRenameConfirmed.bind(this));
+        this.groupRenameModal = new GroupRenameModal();
         this.genericConfirmModal = new GenericConfirmModal();
 
         // Explorer Event Handlers
@@ -29,7 +30,8 @@ class App {
             'editor-container',
             this.onStepSelected.bind(this), // Step click
             this.onDataChanged.bind(this),  // Step reorder/edit
-            this.metaModal                   // Pass modal to editor
+            this.metaModal,                 // Pass modal to editor
+            this.groupRenameModal
         );
 
         this.propertiesPanel = new PropertiesPanel(
