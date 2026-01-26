@@ -197,8 +197,9 @@ class App {
         const doReload = async () => {
             // Visual feedback
             const btn = document.getElementById('btn-reload');
-            const originalIcon = '<ion-icon name="refresh-outline"></ion-icon>';
-            btn.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon>';
+            const icon = btn.querySelector('ion-icon');
+            const originalName = icon.getAttribute('name');
+            icon.setAttribute('name', 'hourglass-outline');
 
             try {
                 const data = await API.loadScenario(tab.file.path);
@@ -206,15 +207,19 @@ class App {
                 this.tabManager.markDirty(tab.id, false);
                 this.onTabChange(tab);
 
-                btn.innerHTML = '<ion-icon name="checkmark-outline" style="color: #2ecc71;"></ion-icon>';
+                icon.setAttribute('name', 'checkmark-outline');
+                icon.style.color = '#2ecc71';
                 setTimeout(() => {
-                    btn.innerHTML = originalIcon;
+                    icon.setAttribute('name', originalName);
+                    icon.style.color = '';
                 }, 1000);
             } catch (e) {
                 alert("Error reloading file: " + e.message);
-                btn.innerHTML = '<ion-icon name="alert-circle-outline" style="color: #e74c3c;"></ion-icon>';
+                icon.setAttribute('name', 'alert-circle-outline');
+                icon.style.color = '#e74c3c';
                 setTimeout(() => {
-                    btn.innerHTML = originalIcon;
+                    icon.setAttribute('name', originalName);
+                    icon.style.color = '';
                 }, 2000);
             }
         };
@@ -290,8 +295,9 @@ class App {
     async performSave(path, data, tabId) {
         // Visual feedback
         const btn = document.getElementById('btn-save');
-        const originalIcon = '<ion-icon name="save-outline"></ion-icon>';
-        btn.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon>';
+        const icon = btn.querySelector('ion-icon');
+        const originalName = icon.getAttribute('name');
+        icon.setAttribute('name', 'hourglass-outline');
 
         try {
             await API.saveScenario(path, data);
@@ -302,16 +308,23 @@ class App {
 
             // Toast or visual success
             showToast("保存しました");
-            btn.innerHTML = '<ion-icon name="checkmark-outline" style="color: #2ecc71;"></ion-icon>';
+            icon.setAttribute('name', 'checkmark-outline');
+            icon.style.color = '#fff'; // On green background, white checkmark is better
+
+            this.updateActionButtons(); // Update button state after save
+
             setTimeout(() => {
-                btn.innerHTML = originalIcon;
+                icon.setAttribute('name', originalName);
+                icon.style.color = '';
             }, 1000);
 
         } catch (e) {
             alert("Failed to save: " + e.message);
-            btn.innerHTML = '<ion-icon name="alert-circle-outline" style="color: #e74c3c;"></ion-icon>';
+            icon.setAttribute('name', 'alert-circle-outline');
+            icon.style.color = '#e74c3c';
             setTimeout(() => {
-                btn.innerHTML = originalIcon;
+                icon.setAttribute('name', originalName);
+                icon.style.color = '';
             }, 2000);
             throw e;
         }
@@ -395,10 +408,9 @@ class App {
         if (!tab) {
             btnSave.disabled = true;
             btnReload.disabled = true;
-            btnSave.type = 'button'; // Ensure it's treated as a button
-            btnReload.type = 'button';
         } else {
-            btnSave.disabled = false;
+            // Save is only enabled if tab is dirty (or if it's a new unsaved file)
+            btnSave.disabled = !tab.isDirty && tab.file.path !== null;
             // Reload is only enabled if the file has a path (saved on disk)
             btnReload.disabled = !tab.file.path;
         }
@@ -453,6 +465,7 @@ class App {
         const tab = this.tabManager.getActiveTab();
         if (tab) {
             this.tabManager.markDirty(tab.id);
+            this.updateActionButtons();
         }
     }
 
