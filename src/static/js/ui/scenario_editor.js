@@ -36,6 +36,9 @@ export class ScenarioEditor {
                     <p>左側のリストからシナリオを選択するか、新規作成してください</p>
                 </div>
             `;
+            this.selectedSteps.clear();
+            this.activeItemId = null;
+            this.selectedStep = null;
             if (this.onStepSelect) this.onStepSelect(null);
             return;
         }

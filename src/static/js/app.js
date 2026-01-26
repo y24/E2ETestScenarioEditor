@@ -395,8 +395,13 @@ class App {
 
     onTabChange(tab) {
         this.editor.render(tab);
-        // Restore properties panel if a step was selected
-        this.propertiesPanel.render(this.editor.selectedStep);
+        if (tab) {
+            // Restore properties panel if a step was selected in this tab
+            this.propertiesPanel.render(this.editor.selectedStep);
+        } else {
+            // No tab open, clear properties panel
+            this.propertiesPanel.render(null);
+        }
         this.updateActionButtons();
     }
 
