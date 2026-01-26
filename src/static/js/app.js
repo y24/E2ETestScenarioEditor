@@ -31,7 +31,8 @@ class App {
             this.onStepSelected.bind(this), // Step click
             this.onDataChanged.bind(this),  // Step reorder/edit
             this.metaModal,                 // Pass modal to editor
-            this.groupRenameModal
+            this.groupRenameModal,
+            this.genericConfirmModal
         );
 
         this.propertiesPanel = new PropertiesPanel(

@@ -2,9 +2,8 @@ import { GroupManager } from './group_manager.js';
 import { showToast } from './toast.js';
 
 export class ScenarioEditor {
-    constructor(containerId, onStepSelect, onDataChange, metaModal, groupRenameModal) {
+    constructor(containerId, onStepSelect, onDataChange, metaModal, groupRenameModal, genericConfirmModal) {
         this.container = document.getElementById(containerId);
-        this.currentData = null;
         this.sortables = [];
         this.groupManager = new GroupManager(this);
 
@@ -12,6 +11,7 @@ export class ScenarioEditor {
         this.onDataChange = onDataChange;
         this.metaModal = metaModal;
         this.groupRenameModal = groupRenameModal;
+        this.genericConfirmModal = genericConfirmModal;
 
         if (this.groupRenameModal) {
             this.groupRenameModal.onConfirm = (sectionKey, groupId, newName) => {
@@ -98,11 +98,15 @@ export class ScenarioEditor {
 
         // Render Selection Toolbar (Fixed at the bottom via CSS)
         if (this.selectedSteps.size > 0) {
+            const hasGroupSelected = Array.from(this.selectedSteps).some(id => id.startsWith('grp_'));
+            const groupBtnLabel = hasGroupSelected ? 'Ungroup' : 'Group';
+            const groupBtnIcon = hasGroupSelected ? 'folder-open-outline' : 'folder-outline';
+
             html += `
                 <div class="selection-toolbar">
                     <span class="selection-count">${this.selectedSteps.size} selected</span>
                     <button class="btn-toolbar" id="btn-group-action">
-                        <ion-icon name="folder-outline"></ion-icon> Group
+                        <ion-icon name="${groupBtnIcon}"></ion-icon> ${groupBtnLabel}
                     </button>
                     <button class="btn-toolbar" id="btn-disable-selection">
                         <ion-icon name="eye-off-outline"></ion-icon> Disable
@@ -189,10 +193,7 @@ export class ScenarioEditor {
                     <input type="text" class="group-name" value="${group.name}" readonly ondblclick="this.readOnly=false" autocomplete="off">
                     <div class="group-actions">
                         <button class="step-action-btn" data-action="rename-group-modal" title="グループ名を編集">
-                        <ion-icon name="create-outline"></ion-icon>
-                    </button>
-                    <button class="step-action-btn" data-action="ungroup" title="グループ解除">
-                            <ion-icon name="folder-open-outline"></ion-icon>
+                            <ion-icon name="create-outline"></ion-icon>
                         </button>
                     </div>
                 </div>
@@ -595,6 +596,29 @@ export class ScenarioEditor {
 
     groupSelected() {
         if (this.selectedSteps.size === 0) return;
+
+        const selectedGroupIds = Array.from(this.selectedSteps).filter(id => id.startsWith('grp_'));
+        if (selectedGroupIds.length > 0) {
+            this.genericConfirmModal.open(
+                "グループ解除",
+                "選択したグループを解除してもよろしいですか？",
+                () => {
+                    selectedGroupIds.forEach(groupId => {
+                        ['setup', 'steps', 'teardown'].forEach(sectionKey => {
+                            if (this.currentData._editor.sections[sectionKey].groups[groupId]) {
+                                this.groupManager.ungroup(sectionKey, this.currentData, groupId);
+                                this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
+                            }
+                        });
+                        this.selectedSteps.delete(groupId);
+                    });
+                    this.rerender();
+                    this.onDataChange();
+                },
+                { confirmText: "解除", isDanger: true }
+            );
+            return;
+        }
 
         // Determine section. Groups can only happen within one section.
         // We find all sections involved in the selection.
