@@ -395,8 +395,8 @@ class App {
 
     onTabChange(tab) {
         this.editor.render(tab);
-        // Clear properties panel when switching tabs
-        this.propertiesPanel.render(null);
+        // Restore properties panel if a step was selected
+        this.propertiesPanel.render(this.editor.selectedStep);
         this.updateActionButtons();
     }
 

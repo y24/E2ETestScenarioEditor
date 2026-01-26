@@ -41,16 +41,20 @@ export class ScenarioEditor {
         }
 
         // Initialize/Normalize Data
-        const oldData = this.currentData;
         this.currentData = this.groupManager.normalizeData(tab.data);
 
-        // Reset selection if we loaded a different scenario
-        if (oldData !== this.currentData) {
-            this.selectedSteps.clear();
-            this.selectedEl = null;
-            this.selectedStep = null;
-            this.activeItemId = null;
+        // Restore selection state from tab
+        if (!tab.uiState) {
+            tab.uiState = {
+                selectedSteps: new Set(),
+                activeItemId: null,
+                selectedStep: null
+            };
         }
+        this.selectedSteps = tab.uiState.selectedSteps;
+        this.activeItemId = tab.uiState.activeItemId;
+        this.selectedStep = tab.uiState.selectedStep;
+        this.currentTab = tab;
 
         // Render Header
         let html = `
@@ -251,6 +255,10 @@ export class ScenarioEditor {
                 this.selectedSteps.clear();
                 this.activeItemId = null;
                 this.selectedStep = null;
+                if (this.currentTab && this.currentTab.uiState) {
+                    this.currentTab.uiState.activeItemId = null;
+                    this.currentTab.uiState.selectedStep = null;
+                }
                 this.rerender();
                 if (this.onStepSelect) this.onStepSelect(null);
             }
@@ -354,6 +362,10 @@ export class ScenarioEditor {
             this.selectedSteps.clear();
             this.activeItemId = null;
             this.selectedStep = null;
+            if (this.currentTab && this.currentTab.uiState) {
+                this.currentTab.uiState.activeItemId = null;
+                this.currentTab.uiState.selectedStep = null;
+            }
             this.rerender();
             if (this.onStepSelect) this.onStepSelect(null);
         };
@@ -548,6 +560,13 @@ export class ScenarioEditor {
         }
 
         this.selectedStep = itemData;
+
+        // Update tab state
+        if (this.currentTab && this.currentTab.uiState) {
+            this.currentTab.uiState.activeItemId = this.activeItemId;
+            this.currentTab.uiState.selectedStep = itemData;
+        }
+
         if (this.onStepSelect) this.onStepSelect(itemData);
     }
 
@@ -917,7 +936,11 @@ export class ScenarioEditor {
     }
 
     rerender() {
-        this.render({ data: this.currentData }); // Mock tab object wrapper
+        if (this.currentTab) {
+            this.render(this.currentTab);
+        } else {
+            this.render({ data: this.currentData }); // Fallback
+        }
     }
 
     bindMetaEvents() {
