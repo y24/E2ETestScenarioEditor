@@ -10,79 +10,9 @@
 
 ---
 
-## Type（ステップタイプ）の定義変更
+## ステップタイプとパラメータの定義変更
 
-ステップタイプ（system, ui, web, excel, verify, debugなど）やそれに紐づくアクション/オペレーションを追加・変更する場合の手順です。
-
-### 編集対象ファイル
-
-**`src/static/js/ui/actions.json`**
-
-### ファイル構造
-
-```json
-{
-    "タイプ名": {
-        "action": [アクションのリスト],
-        "operation": [オペレーションのリスト],
-        "type": [タイプのリスト]
-    }
-}
-```
-
-### 編集方法
-
-#### 1. 新しいタイプを追加する場合
-
-```json
-{
-    "system": { ... },
-    "ui": { ... },
-    "新しいタイプ名": {
-        "action": [
-            "アクション1",
-            "アクション2"
-        ]
-    }
-}
-```
-
-#### 2. 既存タイプにアクション/オペレーションを追加する場合
-
-例：`system`タイプに新しいアクション`new_action`を追加
-
-```json
-{
-    "system": {
-        "action": [
-            "sleep",
-            "command",
-            "print",
-            "start_app",
-            "set_variables",
-            "new_action"  // ← 追加
-        ]
-    }
-}
-```
-
-#### 3. アクション/オペレーションを削除する場合
-
-該当する配列から削除したい項目を削除してください。
-
-### 注意事項
-
-- `action`, `operation`, `type`のキー名は、タイプによって異なります
-  - `system`, `excel`, `debug`: `action`
-  - `ui`, `web`: `operation`
-  - `verify`: `type`
-- JSONの構文エラーに注意してください（最後の要素にカンマを付けない、など）
-
----
-
-## Params（パラメータ）の定義変更
-
-各ステップタイプで使用可能なパラメータ名や、パラメータの選択肢を追加・変更する場合の手順です。
+ステップタイプ（system, ui, web, excel, verify, debugなど）や、各タイプで使用可能なパラメータ、アクション、オペレーションを追加・変更する場合の手順です。
 
 ### 編集対象ファイル
 
@@ -95,7 +25,7 @@
     "タイプ名": {
         "paramNames": [利用可能なパラメータ名のリスト],
         "paramValues": {
-            "パラメータ名": [選択肢のリスト]
+            "パラメータ名": [選択肢のリスト（アクション/オペレーション含む）]
         }
     }
 }
@@ -103,9 +33,44 @@
 
 ### 編集方法
 
-#### 1. 新しいパラメータ名を追加する場合
+#### 1. 新しいタイプを追加する場合
 
-例：`ui`タイプに`timeout`パラメータを追加
+`action_params.json` に新しいキーを追加します。
+
+```json
+{
+    "system": { ... },
+    "新しいタイプ名": {
+        "paramNames": ["action", "param1"],
+        "paramValues": {
+            "action": ["step1", "step2"]
+        }
+    }
+}
+```
+
+#### 2. 既存タイプにアクション/オペレーションを追加する場合
+
+`paramValues` 内の該当するキー（`action`, `operation`, `type`など）に値を追加します。
+
+```json
+{
+    "system": {
+        "paramNames": [...],
+        "paramValues": {
+            "action": [
+                "sleep",
+                "command",
+                "new_action"  // ← 追加
+            ]
+        }
+    }
+}
+```
+
+#### 3. 新しいパラメータ名を追加する場合
+
+`paramNames` に項目を追加します。
 
 ```json
 {
@@ -113,9 +78,6 @@
         "paramNames": [
             "operation",
             "target",
-            "value",
-            "regex",
-            "save_as",
             "timeout"  // ← 追加
         ],
         "paramValues": {
@@ -125,53 +87,13 @@
 }
 ```
 
-#### 2. パラメータの選択肢を追加する場合
-
-例：`web`の`browser`パラメータに`safari`を追加
-
-```json
-{
-    "web": {
-        "paramNames": [...],
-        "paramValues": {
-            "browser": [
-                "chrome",
-                "firefox",
-                "edge",
-                "safari"  // ← 追加
-            ]
-        }
-    }
-}
-```
-
-#### 3. 新しいタイプのパラメータ定義を追加する場合
-
-```json
-{
-    "system": { ... },
-    "ui": { ... },
-    "新しいタイプ名": {
-        "paramNames": [
-            "param1",
-            "param2"
-        ],
-        "paramValues": {
-            "param1": [
-                "value1",
-                "value2"
-            ]
-        }
-    }
-}
-```
-
 ### 注意事項
 
-- `paramNames`に追加したパラメータは、プロパティパネルで入力可能になります
-- `paramValues`に定義されたパラメータは、ドロップダウンで選択可能になります
-- `paramValues`に定義されていないパラメータは、テキスト入力フィールドとして表示されます
-- `actions.json`で定義したタイプと対応させる必要があります
+- `paramNames` に追加したパラメータは、プロパティパネルで入力可能になります。
+- `paramValues` に定義されたパラメータは、プロパティパネルでドロップダウン選択可能になります。
+- アクションやオペレーションも、`paramValues` 内の `action` や `operation` キーとして定義されます。
+- `verify` タイプの場合は、`type` キーを使用して比較方法を定義します。
+- JSONの構文エラーに注意してください。
 
 ---
 
@@ -284,11 +206,10 @@
 
 ### 1. 整合性の確認
 
-3つのファイルを変更する際は、以下の整合性を保つ必要があります：
+ファイルを変更する際は、以下の整合性を保つ必要があります：
 
-- `actions.json`で定義したタイプ → `action_params.json`でパラメータを定義
-- `actions.json`で定義したタイプ → `icons.json`でアイコンを定義
-- `actions.json`で定義したアクション/オペレーション → `icons.json`でアイコンを定義（任意）
+- `action_params.json` で定義したタイプ → `icons.json` でアイコンを定義
+- `action_params.json` で定義したアクション/オペレーション → `icons.json` でアイコンを定義（任意）
 
 ### 2. JSON構文の確認
 

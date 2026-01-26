@@ -86,11 +86,6 @@ class App {
             const icons = await iconsLabel.json();
             this.editor.setIcons(icons);
 
-            // Load Action Config
-            const actionsLabel = await fetch('/static/js/ui/actions.json');
-            const actions = await actionsLabel.json();
-            this.propertiesPanel.setActionConfig(actions);
-
             // Load Action Parameters Config
             const actionParamsResponse = await fetch('/static/config/action_params.json');
             const actionParams = await actionParamsResponse.json();

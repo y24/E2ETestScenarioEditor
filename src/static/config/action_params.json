@@ -176,13 +176,8 @@
     },
     "run_scenario": {
         "paramNames": [
-            "action",
             "path"
         ],
-        "paramValues": {
-            "action": [
-                "run"
-            ]
-        }
+        "paramValues": {}
     }
 }

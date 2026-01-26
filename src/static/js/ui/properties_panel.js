@@ -4,12 +4,7 @@ export class PropertiesPanel {
         this.currentStep = null;
         this.onUpdate = onUpdate; // callback when data changes
         this.targetSelectorModal = targetSelectorModal;
-        this.actionConfig = {};
         this.actionParamsConfig = {};
-    }
-
-    setActionConfig(config) {
-        this.actionConfig = config;
     }
 
     setActionParamsConfig(config) {
