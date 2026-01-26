@@ -14,7 +14,7 @@ set URL=http://%HOST%:%PORT%
 start "" "%URL%"
 
 :: python -m uvicorn を使用することで PATH の問題を回避しやすくします
-python -m uvicorn src.backend.main:app --host %HOST% --port %PORT%
+python -m uvicorn src.backend.main:app --host %HOST% --port %PORT% --reload
 
 if %ERRORLEVEL% neq 0 (
     echo.

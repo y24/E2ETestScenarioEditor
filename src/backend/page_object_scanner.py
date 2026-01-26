@@ -35,15 +35,31 @@ def scan_page_objects(root_dir: str) -> List[Dict[str, str]]:
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
                     class_name = node.name
+                    # Add class itself as a target
+                    class_target = f"{module_path}.{class_name}"
+                    targets.append({
+                        "target": class_target,
+                        "doc": ast.get_docstring(node) or ""
+                    })
+                    
+                    # Inside the class, find methods and properties
                     for item in node.body:
+                        name = None
+                        doc = ""
+                        
                         if isinstance(item, ast.FunctionDef):
-                            method_name = item.name
-                            if not method_name.startswith("_"):
-                                target = f"{module_path}.{class_name}.{method_name}"
-                                targets.append({
-                                    "target": target,
-                                    "doc": ast.get_docstring(item) or ""
-                                })
+                            name = item.name
+                            doc = ast.get_docstring(item) or ""
+                        elif isinstance(item, ast.AsyncFunctionDef):
+                            name = item.name
+                            doc = ast.get_docstring(item) or ""
+                        
+                        if name and not name.startswith("_"):
+                            target = f"{class_target}.{name}"
+                            targets.append({
+                                "target": target,
+                                "doc": doc
+                            })
         except Exception as e:
             print(f"Error parsing {path}: {e}")
             
