@@ -13,7 +13,6 @@ set URL=http://%HOST%:%PORT%
 
 start "" "%URL%"
 
-:: uvicorn でサーバーを起動
 :: python -m uvicorn を使用することで PATH の問題を回避しやすくします
 python -m uvicorn src.backend.main:app --host %HOST% --port %PORT%
 

@@ -6,10 +6,12 @@
         "web": "globe-outline",
         "excel": "stats-chart-outline",
         "verify": "checkmark-circle-outline",
-        "debug": "bug-outline"
+        "debug": "bug-outline",
+        "run_scenario": "repeat-outline"
     },
     "operations": {
         "click": "navigate-outline",
+        "click_by_image": "image-outline",
         "click_input": "navigate-outline",
         "input": "create-outline",
         "input_keys": "create-outline",

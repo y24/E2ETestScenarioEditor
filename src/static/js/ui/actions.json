@@ -12,6 +12,7 @@
         "operation": [
             "input",
             "click",
+            "click_by_image",
             "read"
         ]
     },
@@ -59,6 +60,11 @@
             "list_desktop_windows",
             "list_descendants",
             "check_dialog"
+        ]
+    },
+    "run_scenario": {
+        "action": [
+            "run"
         ]
     }
 }

@@ -75,14 +75,10 @@ export class PropertiesPanel {
                 <div class="form-group">
                     <label>Type</label>
                     <select id="prop-type" class="form-input">
-                        <option value="none" ${step.type === 'none' || step.type === 'other' || (!step.type) || (!this.actionConfig[step.type] && step.type !== 'screenshot' && step.type !== 'system' && step.type !== 'ui' && step.type !== 'web' && step.type !== 'excel' && step.type !== 'verify' && step.type !== 'debug') ? 'selected' : ''}>(なし)</option>
-                        <option value="system" ${step.type === 'system' ? 'selected' : ''}>System</option>
-                        <option value="ui" ${step.type === 'ui' ? 'selected' : ''}>UI</option>
-                        <option value="web" ${step.type === 'web' ? 'selected' : ''}>Web</option>
-                        <option value="excel" ${step.type === 'excel' ? 'selected' : ''}>Excel</option>
-                        <option value="verify" ${step.type === 'verify' ? 'selected' : ''}>Verify</option>
-                        <option value="debug" ${step.type === 'debug' ? 'selected' : ''}>Debug</option>
-                        <option value="screenshot" ${step.type === 'screenshot' ? 'selected' : ''}>Screenshot</option>
+                        <option value="none" ${!step.type || step.type === 'none' ? 'selected' : ''}>(なし)</option>
+                        ${Object.keys(this.actionParamsConfig).map(type => `
+                            <option value="${type}" ${step.type === type ? 'selected' : ''}>${type}</option>
+                        `).join('')}
                     </select>
                 </div>
                 

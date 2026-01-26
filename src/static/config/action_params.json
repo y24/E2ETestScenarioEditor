@@ -30,6 +30,7 @@
         "paramValues": {
             "operation": [
                 "click",
+                "click_by_image",
                 "click_input",
                 "input",
                 "input_keys",
@@ -170,6 +171,17 @@
                 "list_desktop_windows",
                 "list_descendants",
                 "check_dialog"
+            ]
+        }
+    },
+    "run_scenario": {
+        "paramNames": [
+            "action",
+            "path"
+        ],
+        "paramValues": {
+            "action": [
+                "run"
             ]
         }
     }
