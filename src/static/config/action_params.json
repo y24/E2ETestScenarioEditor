@@ -30,8 +30,8 @@
         "paramValues": {
             "operation": [
                 "click",
-                "click_by_image",
                 "click_input",
+                "click_by_image",
                 "input",
                 "input_keys",
                 "read"
