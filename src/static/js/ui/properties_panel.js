@@ -238,7 +238,7 @@ export class PropertiesPanel {
                 e.stopPropagation();
                 const isVisible = keyDropdown.classList.contains('visible');
                 // Close all other menus first
-                document.querySelectorAll('.param-key-dropdown.visible').forEach(m => m.classList.remove('visible'));
+                document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                 toggleKeyDropdown(!isVisible);
             };
         }
@@ -287,8 +287,7 @@ export class PropertiesPanel {
         keyInput.onfocus = () => {
             if (paramNames.length > 0) {
                 // Close all other dropdowns first
-                document.querySelectorAll('.param-key-dropdown.visible').forEach(m => m.classList.remove('visible'));
-                document.querySelectorAll('.params-row .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+                document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                 toggleKeyDropdown(true);
             }
         };
@@ -297,7 +296,7 @@ export class PropertiesPanel {
             e.stopPropagation();
             const isVisible = menu.classList.contains('visible');
             // Close all other menus first
-            document.querySelectorAll('.params-row .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+            document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
             toggleDropdown(!isVisible);
         };
 
@@ -311,8 +310,7 @@ export class PropertiesPanel {
                 const suggestions = paramValues[currentKey] || [];
                 if (suggestions.length > 0) {
                     // Close all other dropdowns first
-                    document.querySelectorAll('.param-key-dropdown.visible').forEach(m => m.classList.remove('visible'));
-                    document.querySelectorAll('.params-row .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+                    document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                     toggleDropdown(true);
                 }
             }
