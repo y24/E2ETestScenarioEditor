@@ -292,6 +292,14 @@ export class PropertiesPanel {
             }
         };
 
+        // Open dropdown on click even if already focused
+        keyInput.onclick = () => {
+            if (paramNames.length > 0 && !keyDropdown.classList.contains('visible')) {
+                document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+                toggleKeyDropdown(true);
+            }
+        };
+
         arrow.onclick = (e) => {
             e.stopPropagation();
             const isVisible = menu.classList.contains('visible');
@@ -310,6 +318,23 @@ export class PropertiesPanel {
                 const suggestions = paramValues[currentKey] || [];
                 if (suggestions.length > 0) {
                     // Close all other dropdowns first
+                    document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+                    toggleDropdown(true);
+                }
+            }
+        };
+
+        // Open value dropdown on click even if already focused
+        valInput.onclick = (e) => {
+            const currentKey = keyInput.value.trim();
+            if (currentKey.toLowerCase() === 'target') {
+                e.preventDefault();
+                return;
+            }
+            if (!menu.classList.contains('visible')) {
+                const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
+                const suggestions = paramValues[currentKey] || [];
+                if (suggestions.length > 0) {
                     document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                     toggleDropdown(true);
                 }
