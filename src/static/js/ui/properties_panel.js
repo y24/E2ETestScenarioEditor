@@ -49,7 +49,11 @@ export class PropertiesPanel {
             return;
         }
 
-        const paramsJson = JSON.stringify(step.params || {}, null, 2);
+        const stepData = {};
+        Object.keys(step).forEach(k => {
+            if (!k.startsWith('_')) stepData[k] = step[k];
+        });
+        const fullJson = JSON.stringify(stepData, null, 2);
 
         if (header) {
             header.innerHTML = `
@@ -76,9 +80,6 @@ export class PropertiesPanel {
                         `).join('')}
                     </select>
                 </div>
-                
-
-                <hr class="props-divider">
 
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -90,9 +91,11 @@ export class PropertiesPanel {
                     </button>
                 </div>
 
+                <hr class="props-divider">
+
                 <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
-                    <label>Params (JSON)</label>
-                    <textarea id="prop-params" class="code-editor">${paramsJson}</textarea>
+                    <label>Raw Data (JSON)</label>
+                    <textarea id="prop-params" class="code-editor" spellcheck="false">${fullJson}</textarea>
                 </div>
             </div>
         `;
@@ -348,14 +351,7 @@ export class PropertiesPanel {
         });
 
         this.currentStep.params = newParams;
-
-        // Update JSON textarea
-        const textarea = document.getElementById('prop-params');
-        if (textarea) {
-            textarea.value = JSON.stringify(newParams, null, 2);
-            textarea.style.borderColor = '#ddd';
-        }
-
+        this.updateRawJsonTextarea();
         this.emitUpdate();
     }
 
@@ -391,13 +387,15 @@ export class PropertiesPanel {
         // Name
         document.getElementById('prop-name').oninput = (e) => {
             this.currentStep.name = e.target.value;
+            this.updateRawJsonTextarea();
             this.emitUpdate();
         };
 
         // Type
         document.getElementById('prop-type').onchange = (e) => {
             this.currentStep.type = e.target.value;
-            this.renderParamsGrid(); // Refresh to update datalist associations
+            this.renderParamsGrid();
+            this.updateRawJsonTextarea();
             this.emitUpdate();
         };
 
@@ -409,6 +407,7 @@ export class PropertiesPanel {
             } else {
                 delete this.currentStep.ignore;
             }
+            this.updateRawJsonTextarea();
             this.emitUpdate();
         };
 
@@ -419,12 +418,27 @@ export class PropertiesPanel {
             row.querySelector('.param-key').focus();
         };
 
-        // JSON Params
+        // Raw Data JSON
         const paramsTextarea = document.getElementById('prop-params');
         paramsTextarea.oninput = (e) => {
             try {
-                const newParams = JSON.parse(e.target.value);
-                this.currentStep.params = newParams;
+                const updated = JSON.parse(e.target.value);
+                // Remove non-internal properties
+                Object.keys(this.currentStep).forEach(k => {
+                    if (!k.startsWith('_')) delete this.currentStep[k];
+                });
+                // Apply updated properties
+                Object.assign(this.currentStep, updated);
+
+                // Sync UI
+                const nameInput = document.getElementById('prop-name');
+                const typeSelect = document.getElementById('prop-type');
+                const ignoreCheck = document.getElementById('prop-ignore');
+                if (nameInput) nameInput.value = this.currentStep.name || '';
+                if (typeSelect) typeSelect.value = this.currentStep.type || 'none';
+                if (ignoreCheck) ignoreCheck.checked = !!this.currentStep.ignore;
+
+                this.renderParamsGrid();
                 e.target.style.borderColor = '#ddd';
                 this.emitUpdate();
             } catch (err) {
@@ -433,13 +447,20 @@ export class PropertiesPanel {
         };
 
         paramsTextarea.onchange = (e) => {
-            try {
-                const newParams = JSON.parse(e.target.value);
-                this.currentStep.params = newParams;
-                this.renderParamsGrid(); // Sync grid on blur
-                this.emitUpdate();
-            } catch (err) { }
+            this.updateRawJsonTextarea(); // Format on blur
         };
+    }
+
+    updateRawJsonTextarea() {
+        const textarea = document.getElementById('prop-params');
+        if (!textarea || !this.currentStep) return;
+
+        const stepData = {};
+        Object.keys(this.currentStep).forEach(k => {
+            if (!k.startsWith('_')) stepData[k] = this.currentStep[k];
+        });
+        textarea.value = JSON.stringify(stepData, null, 2);
+        textarea.style.borderColor = '#ddd';
     }
 
     emitUpdate() {
