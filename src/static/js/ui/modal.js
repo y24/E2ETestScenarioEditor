@@ -219,7 +219,11 @@ export class SettingsModal extends BaseModal {
             .map(d => ({ name: d.name.trim(), path: d.path.trim() }))
             .filter(d => d.name && d.path);
 
+        // Get current full config to preserve other settings (like ui_settings)
+        const currentConfig = this.getConfigCallback ? this.getConfigCallback() : {};
+
         const newConfig = {
+            ...currentConfig,
             scenario_directories: newDirectories,
             page_object_folder: this.pageObjectFolderInput ? this.pageObjectFolderInput.value.trim() : null,
             shared_scenario_dir: this.sharedScenarioInput ? this.sharedScenarioInput.value.trim() : null
