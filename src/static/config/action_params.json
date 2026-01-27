@@ -17,6 +17,10 @@
                 "print",
                 "start_app",
                 "set_variables"
+            ],
+            "backend": [
+                "win32",
+                "uia"
             ]
         }
     },
