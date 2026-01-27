@@ -56,40 +56,6 @@
         ],
         "paramValues": {}
     },
-    "web": {
-        "summaryParam": "operation",
-        "paramNames": [
-            "operation",
-            "target",
-            "url",
-            "value",
-            "clear",
-            "timeout",
-            "browser",
-            "headless",
-            "debugger_address",
-            "save_as",
-            "duration"
-        ],
-        "paramValues": {
-            "operation": [
-                "start_browser",
-                "connect_browser",
-                "navigate",
-                "click",
-                "input",
-                "read",
-                "accept_alert",
-                "dismiss_alert",
-                "wait",
-                "close_browser"
-            ],
-            "clear": [
-                "true",
-                "false"
-            ]
-        }
-    },
     "excel": {
         "summaryParam": "action",
         "paramNames": [
