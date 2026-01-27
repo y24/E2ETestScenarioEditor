@@ -102,16 +102,62 @@ async def load_scenario(path: str):
         
     try:
         data = await FileService.load_json(path)
-        return data
+        last_modified = os.path.getmtime(path)
+        return {
+            "data": data,
+            "last_modified": last_modified
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/scenarios/status")
+async def check_file_status(path: str):
+    if not os.path.exists(path):
+         raise HTTPException(status_code=404, detail="File not found")
+    try:
+        return {"last_modified": os.path.getmtime(path)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SaveScenarioRequest(BaseModel):
+    path: str
+    data: Dict[str, Any]
+    last_modified: Optional[float] = None
+    force: Optional[bool] = False
 
 @router.post("/scenarios/save")
 async def save_scenario(req: SaveScenarioRequest):
     # パスが正当かどうかのチェック（ローカルツールとしての最低限）
     try:
+        file_exists = os.path.exists(req.path)
+
+        # Safety Check: Require last_modified for existing files if not forced
+        if file_exists and not req.force and req.last_modified is None:
+             print("[ERROR] Missing last_modified for existing file. Rejecting save.")
+             raise HTTPException(
+                status_code=422,
+                detail="Missing concurrency token. Please reload the editor."
+             )
+
+        # Conflict Check
+        if not req.force and req.last_modified is not None and file_exists:
+            current_mtime = os.path.getmtime(req.path)
+            
+            # Allow some small epsilon for clock differences or filesystem precision, 
+            # but usually equality or strictly greater check is fine.
+            # If disk version is newer than loaded version, it's a conflict.
+            if current_mtime > req.last_modified + 0.001: 
+                raise HTTPException(
+                    status_code=409, 
+                    detail="File on disk has changed.",
+                    headers={"X-Current-Modified": str(current_mtime)}
+                )
+
         await FileService.save_json(req.path, req.data)
-        return {"status": "success", "path": req.path}
+        new_mtime = os.path.getmtime(req.path)
+        return {"status": "success", "path": req.path, "last_modified": new_mtime}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

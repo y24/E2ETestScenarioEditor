@@ -39,13 +39,27 @@ export const API = {
         return res.json();
     },
 
-    async saveScenario(path, data) {
+    async checkFileStatus(path) {
+        const params = new URLSearchParams({ path });
+        const res = await fetch(`${API_BASE}/scenarios/status?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to check file status');
+        return res.json();
+    },
+
+    async saveScenario(path, data, lastModified = null, force = false) {
         const res = await fetch(`${API_BASE}/scenarios/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path, data })
+            body: JSON.stringify({ path, data, last_modified: lastModified, force })
         });
-        if (!res.ok) throw new Error('Failed to save scenario');
+        if (!res.ok) {
+            if (res.status === 409) {
+                const error = new Error('Conflict');
+                error.status = 409;
+                throw error;
+            }
+            throw new Error('Failed to save scenario');
+        }
         return res.json();
     },
 

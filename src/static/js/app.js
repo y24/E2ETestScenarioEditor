@@ -144,8 +144,47 @@ class App {
             }
 
             this.updateActionButtons();
+
+            // Window Focus / Tab Switch Events for File Sync
+            window.addEventListener('focus', () => this.checkActiveTabForUpdates());
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    this.checkActiveTabForUpdates();
+                }
+            });
+
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    async checkActiveTabForUpdates() {
+        const tab = this.tabManager.getActiveTab();
+        if (!tab || !tab.file.path) return;
+
+        try {
+            const status = await API.checkFileStatus(tab.file.path);
+            const diskModified = status.last_modified;
+
+            if (!tab.lastModified) {
+                tab.lastModified = diskModified;
+                return;
+            }
+
+            // Check if newer (allow small epsilon)
+            if (diskModified > tab.lastModified + 0.001) {
+                if (!tab.isDirty) {
+                    console.log("File changed on disk, auto-reloading...");
+                    await this.reloadCurrentTab(true); // silent=true
+                    showToast("ファイルを再読み込みしました: " + tab.file.name);
+                } else {
+                    // Alert user but don't force reload to avoid data loss
+                    showToast("警告: このファイルは外部で変更されています", "warning");
+                }
+            }
+        } catch (e) {
+            // File might have been deleted or network error
+            console.warn("Check status failed:", e);
         }
     }
 
@@ -241,14 +280,7 @@ class App {
 
         // Reload the file to refresh the display
         setTimeout(async () => {
-            try {
-                const data = await API.loadScenario(tab.file.path);
-                tab.data = data;
-                this.tabManager.markDirty(tab.id, false);
-                this.onTabChange(tab);
-            } catch (e) {
-                console.error("Failed to reload after cleanup:", e);
-            }
+            await this.reloadCurrentTab(true);
         }, 500);
     }
 
@@ -257,7 +289,8 @@ class App {
         if (!selectedFile) return;
 
         try {
-            const data = await API.loadScenario(selectedFile.path);
+            const response = await API.loadScenario(selectedFile.path);
+            const data = response.data; // Unwrap
 
             // Clone data
             const duplicatedData = JSON.parse(JSON.stringify(data));
@@ -295,7 +328,7 @@ class App {
         }
     }
 
-    async reloadCurrentTab() {
+    async reloadCurrentTab(silent = false) {
         const tab = this.tabManager.getActiveTab();
         if (!tab || !tab.file.path) return;
 
@@ -304,39 +337,50 @@ class App {
             const btn = document.getElementById('btn-reload');
             const icon = btn.querySelector('ion-icon');
             const originalName = icon.getAttribute('name');
-            icon.setAttribute('name', 'hourglass-outline');
+
+            if (!silent) icon.setAttribute('name', 'hourglass-outline');
 
             try {
-                const data = await API.loadScenario(tab.file.path);
-                tab.data = data;
+                const response = await API.loadScenario(tab.file.path);
+                tab.data = response.data;
+                tab.lastModified = response.last_modified;
+
                 this.tabManager.markDirty(tab.id, false);
                 this.onTabChange(tab);
 
-                icon.setAttribute('name', 'checkmark-outline');
-                icon.style.color = '#2ecc71';
-                setTimeout(() => {
-                    icon.setAttribute('name', originalName);
-                    icon.style.color = '';
-                }, 1000);
+                if (!silent) {
+                    icon.setAttribute('name', 'checkmark-outline');
+                    icon.style.color = '#2ecc71';
+                    setTimeout(() => {
+                        icon.setAttribute('name', originalName);
+                        icon.style.color = '';
+                    }, 1000);
+                }
             } catch (e) {
                 alert("Error reloading file: " + e.message);
-                icon.setAttribute('name', 'alert-circle-outline');
-                icon.style.color = '#e74c3c';
-                setTimeout(() => {
-                    icon.setAttribute('name', originalName);
-                    icon.style.color = '';
-                }, 2000);
+                if (!silent) {
+                    icon.setAttribute('name', 'alert-circle-outline');
+                    icon.style.color = '#e74c3c';
+                    setTimeout(() => {
+                        icon.setAttribute('name', originalName);
+                        icon.style.color = '';
+                    }, 2000);
+                }
             }
         };
 
-        if (tab.isDirty) {
+        if (tab.isDirty && !silent) {
             this.confirmModal.open(
                 '変更の保存',
                 `"${tab.file.name}" への変更を保存しますか？`,
                 {
                     onYes: async () => {
-                        await this.performSave(tab.file.path, tab.data, tab.id);
-                        await doReload();
+                        try {
+                            await this.performSave(tab.file.path, tab.data, tab.id);
+                            await doReload();
+                        } catch (e) {
+                            // Save failed (maybe conflict), stop reload
+                        }
                     },
                     onNo: () => {
                         doReload();
@@ -366,9 +410,6 @@ class App {
 
         let basePath = selectedDir.path;
 
-        // Simple path join (NOTE: assumes forward slashes or handles via backend normalization, 
-        // but for Windows client side path construction, we should be careful. 
-        // Best approach is sending components to backend, but let's try simple join)
         let fullPath = basePath;
         if (subdir) fullPath += '/' + subdir;
         fullPath += '/' + filename;
@@ -384,29 +425,51 @@ class App {
             this.tabManager.renderTabBar();
 
             // Perform Save
-            await this.performSave(fullPath, tab.data, tab.id);
+            // For Save As, we are creating a new file or overwriting. 
+            // If overwriting, likely we should warn? 
+            // But usually the OS dialog handles that? 
+            // Here we don't have OS dialog. Our modal should have checked existence?
+            // For now, treat Save As as 'Force Save' effectively since it's a new identity.
+            // But technically we should respect conflict if we chose an existing file.
+            // Let's pass null for lastModified to enforce no-check? Or just let standard overwrite happen?
+            // User intention in Save As is usually explicit overwrite.
+            // We'll pass force=true.
+            try {
+                await this.performSave(fullPath, tab.data, tab.id, true); // Force save
 
-            // Refresh file list
-            this.fileBrowser.load();
+                // Refresh file list
+                this.fileBrowser.load();
 
-            if (closeAfterSave) {
-                this.tabManager.forceCloseTab(tab.id);
-            } else {
-                this.updateActionButtons();
+                if (closeAfterSave) {
+                    this.tabManager.forceCloseTab(tab.id);
+                } else {
+                    this.updateActionButtons();
+                }
+            } catch (e) {
+                // handled in performSave
             }
         }
     }
 
-    async performSave(path, data, tabId) {
+    async performSave(path, data, tabId, force = false) {
         // Visual feedback
         const btn = document.getElementById('btn-save');
         const icon = btn.querySelector('ion-icon');
         const originalName = icon.getAttribute('name');
         icon.setAttribute('name', 'hourglass-outline');
 
+        const tab = this.tabManager.tabs.find(t => t.id === tabId);
+        const lastModified = tab ? tab.lastModified : null;
+
         try {
-            await API.saveScenario(path, data);
+            const response = await API.saveScenario(path, data, lastModified, force);
+
             this.tabManager.markDirty(tabId, false);
+
+            // Update lastModified from response
+            if (tab && response.last_modified) {
+                tab.lastModified = response.last_modified;
+            }
 
             // Refresh file list to reflect any name changes
             this.fileBrowser.load();
@@ -424,6 +487,22 @@ class App {
             }, 1000);
 
         } catch (e) {
+            if (e.status === 409) {
+                // Conflict
+                icon.setAttribute('name', originalName); // reset icon
+                icon.style.color = '';
+
+                this.genericConfirmModal.open(
+                    "保存の競合",
+                    "このファイルは他のプロセスによって変更されています。\n上書きしますか？",
+                    async () => {
+                        await this.performSave(path, data, tabId, true);
+                    },
+                    { confirmText: "上書き", cancelText: "キャンセル", isDanger: true }
+                );
+                return; // Don't throw, handled.
+            }
+
             alert("Failed to save: " + e.message);
             icon.setAttribute('name', 'alert-circle-outline');
             icon.style.color = '#e74c3c';
@@ -442,8 +521,18 @@ class App {
 
     async onFileSelected(file, isPreview = false) {
         try {
-            const data = await API.loadScenario(file.path);
-            this.tabManager.openTab(file, data, isPreview);
+            const response = await API.loadScenario(file.path);
+            const tab = this.tabManager.openTab(file, response.data, isPreview);
+
+            // Force update data and timestamp (in case tab was already open)
+            tab.data = response.data;
+            tab.lastModified = response.last_modified;
+
+            // If tab was already open, openTab triggers render with old data.
+            // We need to re-render with new data.
+            this.tabManager.markDirty(tab.id, false);
+            this.onTabChange(tab);
+
         } catch (e) {
             alert("Error: " + e.message);
         }
@@ -503,6 +592,9 @@ class App {
         if (tab) {
             // Restore properties panel if a step was selected in this tab
             this.propertiesPanel.render(this.editor.selectedStep);
+
+            // Check for updates when switching to this tab
+            this.checkActiveTabForUpdates();
         } else {
             // No tab open, clear properties panel
             this.propertiesPanel.render(null);
