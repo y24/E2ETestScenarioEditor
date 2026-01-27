@@ -99,6 +99,13 @@ class App {
                 e.preventDefault();
                 this.reloadCurrentTab();
             }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q')) {
+                const activeTab = this.tabManager.getActiveTab();
+                if (activeTab) {
+                    e.preventDefault();
+                    this.tabManager.closeTab(activeTab.id);
+                }
+            }
         });
 
         // Browser Close/Reload Confirmation
