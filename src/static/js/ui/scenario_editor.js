@@ -214,7 +214,7 @@ export class ScenarioEditor {
                                 <ion-icon name="add-outline"></ion-icon> ステップを追加
                             </button>
                             <button class="dropdown-item" data-action="paste" data-section="${key}" ${(!this.internalClipboard || this.internalClipboard.length === 0) ? 'disabled' : ''}>
-                                <ion-icon name="clipboard-outline"></ion-icon> 貼り付け
+                                <ion-icon name="clipboard-outline"></ion-icon> ステップを貼り付け
                             </button>
                         </div>
                     </div>
