@@ -161,5 +161,13 @@
             "args"
         ],
         "paramValues": {}
+    },
+    "paramTypes": {
+        "timeout": "float",
+        "duration": "float",
+        "value": "string",
+        "text": "string",
+        "path": "string",
+        "filename": "string"
     }
 }

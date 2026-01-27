@@ -427,6 +427,7 @@ export class PropertiesPanel {
     updateParamsFromGrid() {
         const grid = document.getElementById('params-grid');
         const rows = grid.querySelectorAll('.params-row');
+        const paramTypes = this.actionParamsConfig.paramTypes || {};
         const newParams = {};
 
         rows.forEach(row => {
@@ -434,14 +435,43 @@ export class PropertiesPanel {
             let value = row.querySelector('.param-value').value;
 
             if (key) {
-                // Try to infer types
-                if (value === 'true') value = true;
-                else if (value === 'false') value = false;
-                else if (value !== '' && !isNaN(value)) value = Number(value);
-                else if (value.startsWith('{') || value.startsWith('[')) {
-                    try {
-                        value = JSON.parse(value);
-                    } catch (e) { /* keep as string if not valid JSON */ }
+                // Determine logic based on defined type
+                let type = paramTypes[key];
+                // Fallback to leaf key (e.g. args.timeout -> timeout)
+                if (!type && key.includes('.')) {
+                    type = paramTypes[key.split('.').pop()];
+                }
+
+                if (type) {
+                    // Type enforcement
+                    if (type === 'string') {
+                        // Keep as string
+                        value = String(value);
+                    } else if (type === 'float' || type === 'number') {
+                        if (value !== '' && !isNaN(value)) {
+                            value = Number(value);
+                        }
+                        // else keep as string (invalid number)
+                    } else if (type === 'integer' || type === 'int') {
+                        if (value !== '' && !isNaN(value)) {
+                            value = parseInt(value, 10);
+                        }
+                    } else if (type === 'boolean' || type === 'bool') {
+                        if (value === 'true') value = true;
+                        else if (value === 'false') value = false;
+                        else if (value === 'True') value = true; // Python style support just in case
+                        else if (value === 'False') value = false;
+                    }
+                } else {
+                    // Default inference
+                    if (value === 'true') value = true;
+                    else if (value === 'false') value = false;
+                    else if (value !== '' && !isNaN(value)) value = Number(value);
+                    else if (value.startsWith('{') || value.startsWith('[')) {
+                        try {
+                            value = JSON.parse(value);
+                        } catch (e) { /* keep as string if not valid JSON */ }
+                    }
                 }
 
                 this.setDeepValue(newParams, key, value);
