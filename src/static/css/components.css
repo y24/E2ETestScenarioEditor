@@ -250,7 +250,11 @@
     text-overflow: ellipsis;
 }
 
-
+/* Step Actions (Buttons) */
+.step-actions {
+    display: flex;
+    gap: 4px;
+}
 
 .step-action-btn {
     background: none;

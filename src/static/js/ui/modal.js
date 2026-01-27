@@ -398,18 +398,20 @@ export class RenameModal extends BaseModal {
     }
 }
 
-export class GroupRenameModal extends BaseModal {
+export class ItemRenameModal extends BaseModal {
     constructor(onConfirm) {
-        super('group-rename-modal');
+        super('item-rename-modal');
         this.onConfirm = onConfirm;
-        this.input = document.getElementById('group-rename-input');
+        this.titleEl = document.getElementById('item-rename-title');
+        this.labelEl = document.getElementById('item-rename-label');
+        this.input = document.getElementById('item-rename-input');
         this.sectionKey = null;
-        this.groupId = null;
+        this.itemId = null;
 
         const btnClose = this.modal.querySelector('.close-modal');
         if (btnClose) btnClose.onclick = () => this.cancel();
 
-        const btnConfirm = document.getElementById('btn-group-rename-confirm');
+        const btnConfirm = document.getElementById('btn-item-rename-confirm');
         if (btnConfirm) btnConfirm.onclick = () => this.confirm();
 
         this.input.onkeydown = (e) => {
@@ -419,10 +421,14 @@ export class GroupRenameModal extends BaseModal {
         };
     }
 
-    open(sectionKey, groupId, currentName) {
+    open(sectionKey, itemId, currentName, options = {}) {
         this.sectionKey = sectionKey;
-        this.groupId = groupId;
+        this.itemId = itemId;
         this.input.value = currentName || '';
+
+        if (options.title) this.titleEl.textContent = options.title;
+        if (options.label) this.labelEl.textContent = options.label;
+
         super.open();
         this.input.focus();
         this.input.select();
@@ -431,7 +437,7 @@ export class GroupRenameModal extends BaseModal {
     confirm() {
         const newName = this.input.value.trim();
         if (newName && this.onConfirm) {
-            this.onConfirm(this.sectionKey, this.groupId, newName);
+            this.onConfirm(this.sectionKey, this.itemId, newName);
         }
         this.close();
     }

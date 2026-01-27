@@ -2,7 +2,7 @@ import { GroupManager } from './group_manager.js';
 import { showToast } from './toast.js';
 
 export class ScenarioEditor {
-    constructor(containerId, onStepSelect, onDataChange, metaModal, groupRenameModal, genericConfirmModal) {
+    constructor(containerId, onStepSelect, onDataChange, metaModal, itemRenameModal, genericConfirmModal) {
         this.container = document.getElementById(containerId);
         this.sortables = [];
         this.groupManager = new GroupManager(this);
@@ -10,16 +10,24 @@ export class ScenarioEditor {
         this.onStepSelect = onStepSelect;
         this.onDataChange = onDataChange;
         this.metaModal = metaModal;
-        this.groupRenameModal = groupRenameModal;
+        this.itemRenameModal = itemRenameModal;
         this.genericConfirmModal = genericConfirmModal;
 
-        if (this.groupRenameModal) {
-            this.groupRenameModal.onConfirm = (sectionKey, groupId, newName) => {
-                const grp = this.currentData._editor.sections[sectionKey].groups[groupId];
-                if (grp) {
-                    grp.name = newName;
-                    this.onDataChange();
-                    this.rerender();
+        if (this.itemRenameModal) {
+            this.itemRenameModal.onConfirm = (sectionKey, itemId, newName) => {
+                if (itemId.startsWith('grp_')) {
+                    const grp = this.currentData._editor.sections[sectionKey].groups[itemId];
+                    if (grp) grp.name = newName;
+                } else {
+                    const step = this.currentData[sectionKey].find(s => s._stepId === itemId);
+                    if (step) step.name = newName;
+                }
+                this.onDataChange();
+                this.rerender();
+
+                // Synchronize Properties Panel if the renamed item is currently active
+                if (itemId === this.activeItemId && this.onStepSelect && this.selectedStep) {
+                    this.onStepSelect(this.selectedStep);
                 }
             };
         }
@@ -230,6 +238,11 @@ export class ScenarioEditor {
                 <div class="step-content">
                     <div class="step-name">${name}</div>
                     <div class="step-desc">${op}</div>
+                </div>
+                <div class="step-actions">
+                    <button class="step-action-btn" data-action="rename-step-modal" title="ステップ名を編集">
+                        <ion-icon name="create-outline"></ion-icon>
+                    </button>
                 </div>
             </div>
         `;
@@ -472,8 +485,12 @@ export class ScenarioEditor {
             const stepId = stepItem.dataset.id;
             const section = stepItem.dataset.section;
 
-            // Hover buttons for steps (duplicate/delete) have been removed.
-            // Features are now handled by the selection toolbar.
+            if (action === 'rename-step-modal') {
+                const step = this.currentData[section].find(s => s._stepId === stepId);
+                if (this.itemRenameModal && step) {
+                    this.itemRenameModal.open(section, stepId, step.name, { title: 'ステップ名の編集', label: 'ステップ名' });
+                }
+            }
         } else if (groupItem) {
             const groupId = groupItem.dataset.id;
             const section = groupItem.dataset.section;
@@ -482,8 +499,8 @@ export class ScenarioEditor {
                 this.ungroup(section, groupId);
             } else if (action === 'rename-group-modal') {
                 const group = this.currentData._editor.sections[section].groups[groupId];
-                if (this.groupRenameModal && group) {
-                    this.groupRenameModal.open(section, groupId, group.name);
+                if (this.itemRenameModal && group) {
+                    this.itemRenameModal.open(section, groupId, group.name, { title: 'グループ名の編集', label: 'グループ名' });
                 }
             }
         }
