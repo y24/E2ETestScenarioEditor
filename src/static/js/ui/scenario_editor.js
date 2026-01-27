@@ -104,17 +104,18 @@ export class ScenarioEditor {
             const groupBtnLabel = hasGroupSelected ? 'Ungroup' : 'Group';
             const groupBtnIcon = hasGroupSelected ? 'folder-open-outline' : 'folder-outline';
 
+            const allIgnored = this.isSelectionAllIgnored();
+            const disableBtnLabel = allIgnored ? 'Enable' : 'Disable';
+            const disableBtnIcon = allIgnored ? 'eye-outline' : 'eye-off-outline';
+
             html += `
                 <div class="selection-toolbar">
                     <span class="selection-count">${this.selectedSteps.size} selected</span>
                     <button class="btn-toolbar" id="btn-group-action">
                         <ion-icon name="${groupBtnIcon}"></ion-icon> ${groupBtnLabel}
                     </button>
-                    <button class="btn-toolbar" id="btn-disable-selection">
-                        <ion-icon name="eye-off-outline"></ion-icon> Disable
-                    </button>
-                    <button class="btn-toolbar" id="btn-enable-selection">
-                        <ion-icon name="eye-outline"></ion-icon> Enable
+                    <button class="btn-toolbar" id="btn-toggle-disable">
+                        <ion-icon name="${disableBtnIcon}"></ion-icon> ${disableBtnLabel}
                     </button>
                     <button class="btn-toolbar" id="btn-copy-selection">
                         <ion-icon name="copy-outline"></ion-icon> Copy
@@ -394,11 +395,13 @@ export class ScenarioEditor {
         const btnCopy = this.container.querySelector('#btn-copy-selection');
         if (btnCopy) btnCopy.onclick = this.copySelection;
 
-        const btnDisable = this.container.querySelector('#btn-disable-selection');
-        if (btnDisable) btnDisable.onclick = () => this.toggleIgnoreSelection(true);
-
-        const btnEnable = this.container.querySelector('#btn-enable-selection');
-        if (btnEnable) btnEnable.onclick = () => this.toggleIgnoreSelection(false);
+        const btnToggleDisable = this.container.querySelector('#btn-toggle-disable');
+        if (btnToggleDisable) {
+            btnToggleDisable.onclick = () => {
+                const allIgnored = this.isSelectionAllIgnored();
+                this.toggleIgnoreSelection(!allIgnored);
+            };
+        }
 
         const btnClear = this.container.querySelector('#btn-clear-selection');
         if (btnClear) btnClear.onclick = () => {
@@ -844,6 +847,39 @@ export class ScenarioEditor {
                 alert('Copy failed: ' + err.message);
             }
         }
+    }
+
+    isSelectionAllIgnored() {
+        if (this.selectedSteps.size === 0) return false;
+
+        for (const id of this.selectedSteps) {
+            let found = false;
+            let ignored = false;
+            for (const section of ['setup', 'steps', 'teardown']) {
+                if (!this.currentData[section]) continue;
+
+                // Check steps
+                const step = this.currentData[section].find(s => s._stepId === id);
+                if (step) {
+                    found = true;
+                    if (step.ignore) ignored = true;
+                    break;
+                }
+
+                // Check groups
+                const meta = this.currentData._editor.sections[section];
+                if (meta && meta.groups[id]) {
+                    found = true;
+                    if (meta.groups[id].ignore) ignored = true;
+                    break;
+                }
+            }
+            // If we found the item and it was NOT ignored, then not all are ignored.
+            if (found && !ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 
     toggleIgnoreSelection(ignore) {
