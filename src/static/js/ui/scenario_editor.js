@@ -213,7 +213,7 @@ export class ScenarioEditor {
                             <button class="dropdown-item" data-action="add" data-section="${key}">
                                 <ion-icon name="add-outline"></ion-icon> ステップを追加
                             </button>
-                            <button class="dropdown-item" data-action="paste" data-section="${key}">
+                            <button class="dropdown-item" data-action="paste" data-section="${key}" ${(!this.internalClipboard || this.internalClipboard.length === 0) ? 'disabled' : ''}>
                                 <ion-icon name="clipboard-outline"></ion-icon> 貼り付け
                             </button>
                         </div>
@@ -945,6 +945,8 @@ export class ScenarioEditor {
                 // Still show success because internal clipboard worked
                 showToast('コピーしました（アプリ内のみ）');
             }
+            // Trigger rerender to enable Paste buttons
+            this.rerender();
         }
     }
 

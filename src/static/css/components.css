@@ -586,9 +586,19 @@
     text-align: left;
 }
 
-.dropdown-item:hover {
+.dropdown-item:hover:not(:disabled) {
     background-color: #f5f5f5;
     color: var(--accent-color);
+}
+
+.dropdown-item:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    color: #999 !important;
+}
+
+.dropdown-item:disabled ion-icon {
+    color: inherit !important;
 }
 
 .dropdown-divider {
