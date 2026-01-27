@@ -347,6 +347,7 @@ body {
     border-bottom: 1px solid var(--border-color);
     border-top: 1px solid var(--border-color);
     margin-top: -1px;
+    margin-bottom: 2px;
     /* Overlap borders */
 }
 
@@ -370,6 +371,7 @@ body {
 
 .section-content {
     overflow: hidden;
+    margin-bottom: 8px;
 }
 
 .section-content.collapsed {
