@@ -49,6 +49,8 @@ export class ScenarioEditor {
         this.copySelection = this.copySelection.bind(this);
 
         this.actionParamsConfig = {};
+
+        this.bindGlobalKeys();
     }
 
     render(tab) {
@@ -429,6 +431,81 @@ export class ScenarioEditor {
             this.rerender();
             if (this.onStepSelect) this.onStepSelect(null);
         };
+    }
+
+    bindGlobalKeys() {
+        document.addEventListener('keydown', (e) => {
+            // Check if any tab is active
+            if (!this.currentTab) return;
+
+            // Ignore if focus is in an input field or textarea
+            const target = e.target;
+            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+            // Allow Ctrl+C/V even in inputs? Usually we want standard behavior there.
+            // But if it's the group-name input (text), we handle it separately.
+            if (isInput) return;
+
+            if (document.querySelector('.modal.visible')) return;
+
+            // Handle Arrow Keys
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.navigateSteps(e.key === 'ArrowDown' ? 1 : -1);
+            }
+
+            // Handle Ctrl+C (Copy)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                if (this.selectedSteps.size > 0) {
+                    e.preventDefault();
+                    this.copySelection();
+                }
+            }
+
+            // Handle Ctrl+V (Paste)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                e.preventDefault();
+                let section = 'steps';
+                if (this.activeItemId) {
+                    const el = this.container.querySelector(`[data-id="${this.activeItemId}"]`);
+                    if (el) section = el.dataset.section;
+                }
+                this.pasteSteps(section).catch(err => console.error('Paste error:', err));
+            }
+
+            // Handle Delete key
+            if (e.key === 'Delete' || (e.metaKey && e.key === 'Backspace')) {
+                if (this.selectedSteps.size > 0) {
+                    e.preventDefault();
+                    this.deleteSelection();
+                }
+            }
+        });
+    }
+
+    navigateSteps(direction) {
+        // Find all visible step and group items in the DOM order
+        const items = Array.from(this.container.querySelectorAll('.step-item, .group-item'));
+        if (items.length === 0) return;
+
+        let currentIndex = -1;
+        if (this.activeItemId) {
+            currentIndex = items.findIndex(el => el.dataset.id === this.activeItemId);
+        }
+
+        let nextIndex = currentIndex + direction;
+
+        // Clamp selection
+        if (nextIndex < 0) nextIndex = 0;
+        if (nextIndex >= items.length) nextIndex = items.length - 1;
+
+        if (nextIndex !== currentIndex) {
+            const nextEl = items[nextIndex];
+            this.selectItem(nextEl);
+
+            // Scroll into view if needed
+            nextEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
 
     initSortables() {
