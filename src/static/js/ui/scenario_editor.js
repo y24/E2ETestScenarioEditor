@@ -459,7 +459,9 @@ export class ScenarioEditor {
             this.addStep(section);
         } else if (action === 'paste') {
             this.groupManager.editor = this;
-            this.pasteSteps(section);
+            this.pasteSteps(section).catch(err => {
+                console.error('Failed to paste:', err);
+            });
         }
     }
 
@@ -548,6 +550,11 @@ export class ScenarioEditor {
 
         this.activeItemId = itemId;
 
+        // Update tab state BEFORE rerender
+        if (this.currentTab && this.currentTab.uiState) {
+            this.currentTab.uiState.activeItemId = this.activeItemId;
+        }
+
         // Sync checkbox state for steps
         if (type === 'step') {
             if (shiftKey && this.lastCheckedStepId) {
@@ -618,9 +625,8 @@ export class ScenarioEditor {
 
         this.selectedStep = itemData;
 
-        // Update tab state
+        // Update tab state again with selectedStep
         if (this.currentTab && this.currentTab.uiState) {
-            this.currentTab.uiState.activeItemId = this.activeItemId;
             this.currentTab.uiState.selectedStep = itemData;
         }
 
@@ -745,7 +751,24 @@ export class ScenarioEditor {
 
         // Add to layout
         const meta = this.currentData._editor.sections[sectionKey];
-        if (meta) meta.layout.push(newStep._stepId);
+        if (meta) {
+            // 現在選択中のステップの1つ下に挿入
+            const insertionResult = this.findInsertionPoint(sectionKey, meta);
+            if (insertionResult) {
+                const { isGroup, target, index } = insertionResult;
+                if (isGroup) {
+                    // グループ内に挿入
+                    const grp = meta.groups[target];
+                    if (grp) grp.items.splice(index + 1, 0, newStep._stepId);
+                } else {
+                    // ルートレイアウトに挿入
+                    meta.layout.splice(index + 1, 0, newStep._stepId);
+                }
+            } else {
+                // 選択がない場合は末尾に追加
+                meta.layout.push(newStep._stepId);
+            }
+        }
 
         this.rerender();
         this.onDataChange();
@@ -1005,12 +1028,28 @@ export class ScenarioEditor {
             if (!this.currentData[sectionKey]) this.currentData[sectionKey] = [];
             const meta = this.currentData._editor.sections[sectionKey];
 
-            steps.forEach(s => {
-                s._stepId = this.groupManager.generateStepId();
+            // 現在選択中のステップの1つ下に挿入
+            const insertionResult = this.findInsertionPoint(sectionKey, meta);
+            let insertIndex = insertionResult ? insertionResult.index + 1 : null;
+            let targetGroup = insertionResult && insertionResult.isGroup ? insertionResult.target : null;
 
+            steps.forEach((s, i) => {
+                s._stepId = this.groupManager.generateStepId();
                 this.currentData[sectionKey].push(s);
 
-                if (meta) meta.layout.push(s._stepId);
+                if (meta) {
+                    if (targetGroup) {
+                        // グループ内に挿入
+                        const grp = meta.groups[targetGroup];
+                        if (grp) grp.items.splice(insertIndex + i, 0, s._stepId);
+                    } else if (insertIndex !== null) {
+                        // ルートレイアウトに挿入
+                        meta.layout.splice(insertIndex + i, 0, s._stepId);
+                    } else {
+                        // 選択がない場合は末尾に追加
+                        meta.layout.push(s._stepId);
+                    }
+                }
             });
 
             this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
@@ -1021,6 +1060,56 @@ export class ScenarioEditor {
             console.error('Failed to paste: ', err);
             alert('Paste failed: ' + err.message);
         }
+    }
+
+    // 現在選択中のステップの挿入位置を見つける
+    findInsertionPoint(sectionKey, meta) {
+        if (!this.activeItemId || !meta) return null;
+
+        // アクティブなアイテムが選択されたセクションに属しているか確認
+        const activeEl = this.container.querySelector(`[data-id="${this.activeItemId}"]`);
+        if (!activeEl || activeEl.dataset.section !== sectionKey) return null;
+
+        const itemId = this.activeItemId;
+
+        // グループが選択されている場合
+        if (itemId.startsWith('grp_')) {
+            const grp = meta.groups[itemId];
+            if (grp && grp.items.length > 0) {
+                // グループ内の最後のアイテムの後に挿入
+                const lastItemId = grp.items[grp.items.length - 1];
+                return {
+                    isGroup: true,
+                    target: itemId,
+                    index: grp.items.length - 1
+                };
+            }
+        }
+
+        // ステップが選択されている場合
+        // まずグループ内を探す
+        for (const [groupId, grp] of Object.entries(meta.groups)) {
+            const idx = grp.items.indexOf(itemId);
+            if (idx > -1) {
+                return {
+                    isGroup: true,
+                    target: groupId,
+                    index: idx
+                };
+            }
+        }
+
+        // ルートレイアウトを探す
+        const rootIdx = meta.layout.indexOf(itemId);
+        if (rootIdx > -1) {
+            return {
+                isGroup: false,
+                target: null,
+                index: rootIdx
+            };
+        }
+
+        return null;
     }
 
     // --- Drag & Drop ---
