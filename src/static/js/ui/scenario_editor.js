@@ -966,7 +966,17 @@ export class ScenarioEditor {
     }
 
     refreshSelectedStep() {
-        if (!this.selectedEl || !this.selectedStep) return;
+        if (!this.selectedStep) return;
+
+        // Ensure we have the live element
+        if (!this.selectedEl || !document.body.contains(this.selectedEl)) {
+            const id = this.activeItemId || (this.selectedStep._isGroup ? this.selectedStep._groupId : this.selectedStep._stepId);
+            if (id) {
+                this.selectedEl = this.container.querySelector(`[data-id="${id}"]`);
+            }
+        }
+
+        if (!this.selectedEl) return;
 
         if (this.selectedStep._isGroup) {
             // Refresh group
@@ -991,8 +1001,11 @@ export class ScenarioEditor {
             }
         } else {
             // Refresh step
-            this.selectedEl.querySelector('.step-name').textContent = this.selectedStep.name || 'Untitled';
-            this.selectedEl.querySelector('.step-desc').textContent = this.selectedStep.params?.operation || this.selectedStep.params?.action || '';
+            const nameEl = this.selectedEl.querySelector('.step-name');
+            if (nameEl) nameEl.textContent = this.selectedStep.name || 'Untitled';
+
+            const descEl = this.selectedEl.querySelector('.step-desc');
+            if (descEl) descEl.textContent = this.getStepDescription(this.selectedStep);
 
             // Update Icon
             const iconTypeEl = this.selectedEl.querySelector('.step-icon_type');
