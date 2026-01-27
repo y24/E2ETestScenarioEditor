@@ -80,6 +80,13 @@ async def list_files():
             name=dir_config.name,
             files=files
         ))
+
+    if config.shared_scenario_dir and os.path.exists(config.shared_scenario_dir):
+        files = FileService.list_files(config.shared_scenario_dir)
+        directories.append(DirectoryFiles(
+            name="scenarios_shared",
+            files=files
+        ))
         
     return FileListResponse(directories=directories)
 

@@ -2,6 +2,7 @@ import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
 import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal, RenameModal, GenericConfirmModal, ItemRenameModal } from './ui/modal.js';
 import { TargetSelectorModal } from './ui/target_selector_modal.js';
+import { SharedScenarioSelectorModal } from './ui/shared_scenario_selector_modal.js';
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
 import { PropertiesPanel } from './ui/properties_panel.js';
@@ -16,6 +17,7 @@ class App {
         this.saveAsModal = new SaveAsModal(this.onSaveAsConfirmed.bind(this), () => this.config);
         this.confirmModal = new ConfirmModal({});
         this.targetSelectorModal = new TargetSelectorModal();
+        this.sharedScenarioSelectorModal = new SharedScenarioSelectorModal();
         this.metaModal = new ScenarioMetaModal(this.onMetaSaved.bind(this));
         this.renameModal = new RenameModal(this.onFileRenameConfirmed.bind(this));
         this.itemRenameModal = new ItemRenameModal();
@@ -39,6 +41,7 @@ class App {
             'properties-panel',
             this.onPropertyUpdated.bind(this), // Prop edit
             this.targetSelectorModal,
+            this.sharedScenarioSelectorModal,
             (newConfig) => this.onConfigSaved(newConfig)
         );
 
@@ -49,7 +52,11 @@ class App {
             this.onTabCloseRequest.bind(this)
         );
 
-        document.getElementById('btn-refresh-files').onclick = () => this.fileBrowser.load();
+        document.getElementById('btn-refresh-files').onclick = () => {
+            this.fileBrowser.load();
+            this.propertiesPanel.loadAvailableSharedScenarios();
+            this.propertiesPanel.loadAvailableTargets();
+        };
         document.getElementById('btn-toggle-view').onclick = () => this.toggleFileView();
         document.getElementById('btn-new-file').onclick = () => this.createNewScenario();
         document.getElementById('btn-duplicate-file').onclick = () => this.duplicateSelectedFile();
@@ -153,6 +160,8 @@ class App {
                 this.settingsModal.open(this.config);
             } else {
                 this.fileBrowser.load();
+                this.propertiesPanel.loadAvailableSharedScenarios();
+                this.propertiesPanel.loadAvailableTargets();
             }
 
             this.updateActionButtons();
@@ -322,7 +331,17 @@ class App {
             const parts = (selectedFile.relativePath || "").split(/[/\\]/);
             parts.pop(); // Remove filename
             const subdir = parts.join('/');
-            const dirIndex = selectedFile.dirIndex;
+
+            // Determine corect dirIndex for SaveAsModal
+            // FileBrowser uses index from API response list. 
+            // If index >= config.scenario_directories.length, it is likely the shared directory.
+            let dirIndex = selectedFile.dirIndex;
+            const configDirsCount = (this.config.scenario_directories || []).length;
+
+            if (dirIndex >= configDirsCount) {
+                // Assuming it's the shared directory appended at the end
+                dirIndex = -1;
+            }
 
             // Trigger Save As without opening a tab
             this.saveAsModal.open(
@@ -425,12 +444,21 @@ class App {
 
     async onSaveAsConfirmed({ dirIndex, subdir, filename, closeAfterSave }) {
         // Get directory from config
-        if (!this.config.scenario_directories || this.config.scenario_directories.length === 0) {
-            alert("No directories configured.");
-            return;
+        let selectedDir;
+        if (dirIndex === -1) {
+            if (!this.config.shared_scenario_dir) {
+                alert("Shared scenario directory is not configured.");
+                return;
+            }
+            selectedDir = { path: this.config.shared_scenario_dir, name: "scenarios_shared" };
+        } else {
+            if (!this.config.scenario_directories || this.config.scenario_directories.length === 0) {
+                alert("No directories configured.");
+                return;
+            }
+            selectedDir = this.config.scenario_directories[dirIndex];
         }
 
-        const selectedDir = this.config.scenario_directories[dirIndex];
         if (!selectedDir) {
             alert("Invalid directory selection.");
             return;
@@ -547,6 +575,8 @@ class App {
     async onConfigSaved(newConfig) {
         this.config = await API.saveConfig(newConfig);
         this.fileBrowser.load();
+        this.propertiesPanel.loadAvailableSharedScenarios();
+        this.propertiesPanel.loadAvailableTargets();
     }
 
     async onFileSelected(file, isPreview = false) {

@@ -48,6 +48,18 @@ export class SettingsModal extends BaseModal {
             this.btnPickPageObjectFolder.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
         }
 
+        this.sharedScenarioInput = document.getElementById('shared-scenario-dir');
+        this.btnPickSharedScenario = document.getElementById('btn-pick-shared-scenario');
+
+        if (this.btnPickSharedScenario) {
+            this.btnPickSharedScenario.onclick = () => this.openDirectoryPicker(this.sharedScenarioInput, null, true);
+        }
+        if (this.sharedScenarioInput) {
+            this.sharedScenarioInput.readOnly = true;
+            this.sharedScenarioInput.classList.add('clickable-input');
+            this.sharedScenarioInput.onclick = () => this.openDirectoryPicker(this.sharedScenarioInput, null, true);
+        }
+
         if (this.pageObjectFolderInput) {
             this.pageObjectFolderInput.readOnly = true;
             this.pageObjectFolderInput.classList.add('clickable-input');
@@ -71,8 +83,13 @@ export class SettingsModal extends BaseModal {
     open(currentConfig = {}) {
         this.directories = currentConfig.scenario_directories || [];
         this.pageObjectFolder = currentConfig.page_object_folder || '';
+        this.sharedScenarioDir = currentConfig.shared_scenario_dir || '';
+
         if (this.pageObjectFolderInput) {
             this.pageObjectFolderInput.value = this.pageObjectFolder;
+        }
+        if (this.sharedScenarioInput) {
+            this.sharedScenarioInput.value = this.sharedScenarioDir;
         }
         this.renderDirectories();
         super.open();
@@ -204,7 +221,8 @@ export class SettingsModal extends BaseModal {
 
         const newConfig = {
             scenario_directories: newDirectories,
-            page_object_folder: this.pageObjectFolderInput ? this.pageObjectFolderInput.value.trim() : null
+            page_object_folder: this.pageObjectFolderInput ? this.pageObjectFolderInput.value.trim() : null,
+            shared_scenario_dir: this.sharedScenarioInput ? this.sharedScenarioInput.value.trim() : null
         };
         await this.saveCallback(newConfig);
         this.close();
@@ -252,7 +270,36 @@ export class SaveAsModal extends BaseModal {
                 }
                 this.inputDirType.appendChild(option);
             });
-        } else {
+        }
+
+        if (config.shared_scenario_dir) {
+            const option = document.createElement('option');
+            option.value = "-1";
+            option.textContent = "scenarios_shared";
+            // Check if checking for shared dir logic is needed for default selection, usually defaultDirIndex is -1 for shared if we map it that way? 
+            // In duplicateScenario, we pass dirIndex. If it was shared file, how do we know?
+            // Existing logic passes dirIndex. If I use -1 for shared, I should match it here.
+            if (defaultDirIndex === -1 && this.inputDirType.options.length > 0 && !this.inputDirType.value) {
+                // heuristic: if defaultDirIndex is -1 but we have directories, wait. 
+                // Actually defaultDirIndex is -1 by default (unselected).
+                // We should rely on caller passing correct index. 
+                // If caller passes -1 (and it means Shared), we select it.
+                // But wait, defaultDirIndex=-1 is default arg.
+            }
+            if (defaultDirIndex === -1 && config.shared_scenario_dir) {
+                // If explicit -1 is passed and we interpret it as shared?
+                // Or maybe we need a clearer signal. For now, let's assume -1 means shared if passed explicitly? 
+                // But -1 is also "not found".
+                // Let's just append it. If passed defaultDirIndex matches -1, it gets selected.
+                // Note: values are strings. "-1" vs -1.
+                if (String(defaultDirIndex) === "-1") {
+                    option.selected = true;
+                }
+            }
+            this.inputDirType.appendChild(option);
+        }
+
+        if (this.inputDirType.options.length === 0) {
             const option = document.createElement('option');
             option.value = '';
             option.textContent = 'No directories configured';

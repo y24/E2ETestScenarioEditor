@@ -1,16 +1,19 @@
 import { API } from '../api.js';
 
 export class PropertiesPanel {
-    constructor(panelId, onUpdate, targetSelectorModal, onConfigUpdate) {
+    constructor(panelId, onUpdate, targetSelectorModal, sharedScenarioSelectorModal, onConfigUpdate) {
         this.panel = document.getElementById(panelId);
         this.currentStep = null;
         this.onUpdate = onUpdate; // callback when data changes
         this.targetSelectorModal = targetSelectorModal;
+        this.sharedScenarioSelectorModal = sharedScenarioSelectorModal;
         this.onConfigUpdate = onConfigUpdate; // callback when UI config matches
         this.actionParamsConfig = {};
         this.appConfig = {};
         this.availableTargets = []; // Cache of available targets
+        this.availableSharedScenarios = []; // Cache of available shared scenarios
         this.loadAvailableTargets(); // Load targets on initialization
+        this.loadAvailableSharedScenarios();
     }
 
     setActionParamsConfig(config) {
@@ -30,6 +33,46 @@ export class PropertiesPanel {
             console.error('Failed to load available targets:', e);
             this.availableTargets = [];
         }
+    }
+
+    async loadAvailableSharedScenarios() {
+        try {
+            const response = await API.listFiles();
+            // Find "scenarios_shared" directory
+            const sharedDir = response.directories.find(d => d.name === 'scenarios_shared');
+            if (sharedDir) {
+                this.availableSharedScenarios = sharedDir.files
+                    .filter(f => f.name.endsWith('.json'))
+                    .map(f => f.relativePath.replace(/\\/g, '/')); // Normalize to forward slash
+            } else {
+                this.availableSharedScenarios = [];
+            }
+        } catch (e) {
+            console.error('Failed to load available shared scenarios:', e);
+            this.availableSharedScenarios = [];
+        }
+    }
+
+    validateTarget(targetValue) {
+        if (!targetValue || targetValue.trim() === '') {
+            return true; // Empty is considered valid (no error state)
+        }
+        return this.availableTargets.includes(targetValue.trim());
+    }
+
+    validateSharedPath(pathValue) {
+        if (!pathValue || pathValue.trim() === '') {
+            return true;
+        }
+        // Check if path exists in available shared scenarios
+        if (!this.availableSharedScenarios || this.availableSharedScenarios.length === 0) {
+            // If info not loaded yet, or no shared scenarios, assume valid or invalid?
+            // Maybe try reload
+            this.loadAvailableSharedScenarios(); // Async, wont help immediately
+            return true; // lenience
+        }
+        const normalized = pathValue.trim().replace(/\\/g, '/').toLowerCase();
+        return this.availableSharedScenarios.some(p => p.toLowerCase() === normalized);
     }
 
     validateTarget(targetValue) {
@@ -223,18 +266,31 @@ export class PropertiesPanel {
         const menu = row.querySelector('.dropdown-menu');
         const delBtn = row.querySelector('.btn-remove-param');
 
-        // Helper to setup target selector behavior
-        const checkTargetKey = () => {
+        // Helper to setup special key behavior (target, shared path)
+        const checkSpecialKeys = () => {
             const currentKey = keyInput.value.trim();
-            const isTarget = currentKey.toLowerCase() === 'target';
-            if (isTarget) {
+            const lowerKey = currentKey.toLowerCase();
+
+            // 1. Target Selector
+            if (lowerKey === 'target') {
                 valInput.readOnly = true;
                 valInput.style.cursor = 'pointer';
                 valInput.style.borderStyle = 'dashed';
                 // Validate target value
                 const isValid = this.validateTarget(valInput.value);
                 valInput.style.backgroundColor = isValid ? '#ecf5ff' : '#ffe0e0';
-            } else {
+            }
+            // 2. Shared Scenario Path Selector (only for run_scenario)
+            else if (this.currentStep.type === 'run_scenario' && lowerKey === 'path') {
+                valInput.readOnly = true;
+                valInput.style.cursor = 'pointer';
+                valInput.style.borderStyle = 'dashed';
+                // Validate path
+                const isValid = this.validateSharedPath(valInput.value);
+                valInput.style.backgroundColor = isValid ? '#ecf5ff' : '#ffe0e0';
+            }
+            // 3. Normal
+            else {
                 valInput.readOnly = false;
                 valInput.style.cursor = 'text';
                 valInput.style.backgroundColor = '';
@@ -244,13 +300,23 @@ export class PropertiesPanel {
 
         // Use mousedown to trigger selector (often more reliable than click for readonly)
         valInput.addEventListener('mousedown', (e) => {
-            const currentKey = keyInput.value.trim();
-            if (currentKey.toLowerCase() === 'target') {
+            const currentKey = keyInput.value.trim().toLowerCase();
+
+            if (currentKey === 'target') {
                 e.preventDefault();
                 if (this.targetSelectorModal) {
                     this.targetSelectorModal.open(valInput.value, (selectedValue) => {
                         valInput.value = selectedValue;
-                        checkTargetKey(); // Re-validate after selection
+                        checkSpecialKeys(); // Re-validate after selection
+                        this.updateParamsFromGrid();
+                    });
+                }
+            } else if (this.currentStep.type === 'run_scenario' && currentKey === 'path') {
+                e.preventDefault();
+                if (this.sharedScenarioSelectorModal) {
+                    this.sharedScenarioSelectorModal.open(valInput.value, (selectedValue) => {
+                        valInput.value = selectedValue;
+                        checkSpecialKeys();
                         this.updateParamsFromGrid();
                     });
                 }
@@ -259,14 +325,14 @@ export class PropertiesPanel {
 
         // Block normal click processing
         valInput.addEventListener('click', (e) => {
-            const currentKey = keyInput.value.trim();
-            if (currentKey.toLowerCase() === 'target') {
+            const currentKey = keyInput.value.trim().toLowerCase();
+            if (currentKey === 'target' || (this.currentStep.type === 'run_scenario' && currentKey === 'path')) {
                 e.preventDefault();
             }
         });
 
         // Initial check
-        checkTargetKey();
+        checkSpecialKeys();
 
         // Parameter name dropdown functionality
         const toggleKeyDropdown = (show) => {
@@ -280,7 +346,7 @@ export class PropertiesPanel {
                 keyDropdown.querySelectorAll('.dropdown-item').forEach(btn => {
                     btn.onclick = () => {
                         keyInput.value = btn.dataset.value;
-                        checkTargetKey();
+                        checkSpecialKeys();
                         updateArrowVisibility();
                         this.updateParamsFromGrid();
                         toggleKeyDropdown(false);
@@ -337,7 +403,7 @@ export class PropertiesPanel {
 
         // Events - always use input event for text input
         keyInput.oninput = () => {
-            checkTargetKey();
+            checkSpecialKeys();
             updateArrowVisibility();
             this.updateParamsFromGrid();
         };
@@ -379,10 +445,10 @@ export class PropertiesPanel {
             // Close all other dropdowns first
             document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
 
-            const currentKey = keyInput.value.trim();
-            if (currentKey.toLowerCase() !== 'target') {
+            const currentKey = keyInput.value.trim().toLowerCase();
+            if (currentKey !== 'target' && !(this.currentStep.type === 'run_scenario' && currentKey === 'path')) {
                 const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
-                const suggestions = paramValues[currentKey] || [];
+                const suggestions = paramValues[keyInput.value.trim()] || [];
                 if (suggestions.length > 0) {
                     toggleDropdown(true);
                 }
