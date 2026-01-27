@@ -487,7 +487,7 @@ export class ScenarioEditor {
             // But if it's the group-name input (text), we handle it separately.
             if (isInput) return;
 
-            if (document.querySelector('.modal.visible')) return;
+            if (document.querySelector('.modal:not(.hidden)')) return;
 
             // Handle Arrow Keys
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {

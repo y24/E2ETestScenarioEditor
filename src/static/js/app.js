@@ -91,6 +91,11 @@ class App {
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
+            // Check if any modal is visible
+            if (document.querySelector('.modal:not(.hidden)')) {
+                return;
+            }
+
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 this.saveCurrentTab();
