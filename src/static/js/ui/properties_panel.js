@@ -56,7 +56,7 @@ export class PropertiesPanel {
                 header.innerHTML = `
                     <span>Group Properties</span>
                     <label class="checkbox-wrapper header-checkbox">
-                        <span>無効化</span>
+                        <span>Disabled</span>
                         <input type="checkbox" id="prop-group-ignore" ${step.ignore ? 'checked' : ''}>
                     </label>
                 `;
@@ -86,7 +86,7 @@ export class PropertiesPanel {
             header.innerHTML = `
                 <span>Properties</span>
                 <label class="checkbox-wrapper header-checkbox">
-                    <span>無効化</span>
+                    <span>Disabled</span>
                     <input type="checkbox" id="prop-ignore" ${step.ignore ? 'checked' : ''}>
                 </label>
             `;
