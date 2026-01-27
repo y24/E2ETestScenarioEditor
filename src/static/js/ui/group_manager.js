@@ -55,31 +55,55 @@ export class GroupManager {
     }
 
     reconcileLayout(steps, sectionMeta) {
-        const existingIds = new Set(steps.map(s => s._stepId));
-        const layoutIds = new Set();
-
-        // レイアウト内のIDを収集（グループ内含む）
-        sectionMeta.layout.forEach(item => {
-            if (item.startsWith('grp_')) {
-                const grp = sectionMeta.groups[item];
-                if (grp && grp.items) {
-                    grp.items.forEach(id => layoutIds.add(id));
-                }
-            } else {
-                layoutIds.add(item);
+        // 1. Map step IDs to their Group IDs
+        const stepToGroup = new Map();
+        Object.keys(sectionMeta.groups || {}).forEach(groupId => {
+            const grp = sectionMeta.groups[groupId];
+            if (grp && grp.items) {
+                grp.items.forEach(stepId => {
+                    stepToGroup.set(stepId, groupId);
+                });
             }
         });
 
-        // レイアウトにないステップを末尾に追加
+        // 2. Rebuild layout based on the order of 'steps' array
+        const newLayout = [];
+        const processedIds = new Set(); // Tracks added steps and groups
+
         steps.forEach(step => {
-            if (!layoutIds.has(step._stepId)) {
-                sectionMeta.layout.push(step._stepId);
+            const stepId = step._stepId;
+            if (processedIds.has(stepId)) return; // Already handled (e.g. as part of a group)
+
+            const groupId = stepToGroup.get(stepId);
+            if (groupId) {
+                // This step belongs to a group
+                if (!processedIds.has(groupId)) {
+                    // Group not yet added; add it now
+                    if (sectionMeta.groups[groupId]) { // Verify group still exists
+                        newLayout.push(groupId);
+                        processedIds.add(groupId);
+
+                        // Mark all members of this group as processed so we don't add them individually
+                        // or add the group again.
+                        sectionMeta.groups[groupId].items.forEach(gItem => {
+                            processedIds.add(gItem);
+                        });
+                    } else {
+                        // Fallback: Group metadata missing? Treat as standalone
+                        newLayout.push(stepId);
+                        processedIds.add(stepId);
+                    }
+                }
+                // If group is already processed, do nothing (step is implicitly inside the group)
+            } else {
+                // Standalone step
+                newLayout.push(stepId);
+                processedIds.add(stepId);
             }
         });
 
-        // レイアウトにあって実体がないステップを除去する処理は
-        // 複雑になるので、ここでは簡易的に「表示時」に無視する方針とする。
-        // 保存時に再構築する。
+        // 3. Update the layout
+        sectionMeta.layout = newLayout;
 
         // クリーニング: _children は実行時用プロパティであり保存すべきではないため削除
         Object.values(sectionMeta.groups).forEach(grp => {
