@@ -1057,6 +1057,9 @@ export class ScenarioEditor {
 
         this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
         this.onDataChange();
+
+        // Dragged item is selected immediately
+        this.selectItem(item);
     }
 
     refreshSelectedStep() {
