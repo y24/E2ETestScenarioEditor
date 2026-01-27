@@ -746,24 +746,29 @@ export class ScenarioEditor {
     }
 
     deleteStep(sectionKey, stepId) {
-        if (!confirm("削除しますか？")) return;
+        this.genericConfirmModal.open(
+            "削除の確認",
+            "このステップを削除してもよろしいですか？",
+            () => {
+                // Remove from data
+                const index = this.currentData[sectionKey].findIndex(s => s._stepId === stepId);
+                if (index > -1) this.currentData[sectionKey].splice(index, 1);
 
-        // Remove from data
-        const index = this.currentData[sectionKey].findIndex(s => s._stepId === stepId);
-        if (index > -1) this.currentData[sectionKey].splice(index, 1);
+                // Remove from Layout and Groups
+                const meta = this.currentData._editor.sections[sectionKey];
+                if (meta) {
+                    meta.layout = meta.layout.filter(id => id !== stepId);
+                    Object.values(meta.groups).forEach(grp => {
+                        grp.items = grp.items.filter(id => id !== stepId);
+                    });
+                }
 
-        // Remove from Layout and Groups
-        const meta = this.currentData._editor.sections[sectionKey];
-        if (meta) {
-            meta.layout = meta.layout.filter(id => id !== stepId);
-            Object.values(meta.groups).forEach(grp => {
-                grp.items = grp.items.filter(id => id !== stepId);
-            });
-        }
-
-        this.selectedSteps.delete(stepId);
-        this.rerender();
-        this.onDataChange();
+                this.selectedSteps.delete(stepId);
+                this.rerender();
+                this.onDataChange();
+            },
+            { confirmText: "削除", isDanger: true }
+        );
     }
 
     duplicateStep(sectionKey, stepId) {
