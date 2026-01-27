@@ -1,4 +1,5 @@
 import { API } from '../api.js';
+import { showToast } from './toast.js';
 
 export class PropertiesPanel {
     constructor(panelId, onUpdate, targetSelectorModal, sharedScenarioSelectorModal, onConfigUpdate) {
@@ -167,9 +168,14 @@ export class PropertiesPanel {
                 <hr class="props-divider">
 
                 <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
-                    <div class="section-header ${isRawDataCollapsed ? 'collapsed' : ''}" id="raw-data-header" style="background: none; border: none; padding: 0; margin-bottom: 8px;">
-                        <ion-icon name="chevron-down-outline"></ion-icon>
-                        <label style="cursor: pointer; margin-bottom: 0;">Raw Data (JSON)</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="section-header ${isRawDataCollapsed ? 'collapsed' : ''}" id="raw-data-header" style="background: none; border: none; padding: 0; margin-bottom: 0;">
+                            <ion-icon name="chevron-down-outline"></ion-icon>
+                            <label style="cursor: pointer; margin-bottom: 0;">Raw Data (JSON)</label>
+                        </div>
+                        <button id="btn-copy-json" class="icon-btn-small" title="JSONをコピー" style="display: ${isRawDataCollapsed ? 'none' : 'flex'}; align-items: center; justify-content: center; padding: 4px;">
+                            <ion-icon name="copy-outline"></ion-icon>
+                        </button>
                     </div>
                     <div id="raw-data-content" class="section-content ${isRawDataCollapsed ? 'collapsed' : ''}" style="flex: 1; flex-direction: column; display: ${isRawDataCollapsed ? 'none' : 'flex'};">
                         <div class="code-editor-wrapper" style="flex: 1; display: flex; position: relative; min-height: 200px;">
@@ -719,6 +725,9 @@ export class PropertiesPanel {
                 rawContent.classList.toggle('collapsed', isCollapsed);
                 rawContent.style.display = isCollapsed ? 'none' : 'flex';
 
+                const btnCopy = document.getElementById('btn-copy-json');
+                if (btnCopy) btnCopy.style.display = isCollapsed ? 'none' : 'flex';
+
                 // Save to config
                 if (!this.appConfig.ui_settings) this.appConfig.ui_settings = {};
                 this.appConfig.ui_settings.rawDataCollapsed = isCollapsed;
@@ -726,6 +735,32 @@ export class PropertiesPanel {
 
                 if (!isCollapsed) {
                     setTimeout(() => this.updateLineNumbers(), 0);
+                }
+            };
+        }
+
+        // Copy JSON Button
+        const btnCopy = document.getElementById('btn-copy-json');
+        if (btnCopy) {
+            btnCopy.onclick = (e) => {
+                const textarea = document.getElementById('prop-params');
+                if (textarea) {
+                    navigator.clipboard.writeText(textarea.value).then(() => {
+                        showToast('JSONをクリップボードにコピーしました');
+
+                        // Visual feedback
+                        const icon = btnCopy.querySelector('ion-icon');
+                        const originalName = icon.getAttribute('name');
+                        icon.setAttribute('name', 'checkmark-outline');
+                        btnCopy.style.color = '#27ae60';
+                        setTimeout(() => {
+                            icon.setAttribute('name', originalName);
+                            btnCopy.style.color = '';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy JSON: ', err);
+                        showToast('コピーに失敗しました', 3000);
+                    });
                 }
             };
         }
