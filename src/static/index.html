@@ -31,10 +31,23 @@
                     <ion-icon name="refresh-outline"></ion-icon>
                     <span>再読込</span>
                 </button>
-                <button id="btn-save" class="header-btn header-btn-save" title="保存 (Ctrl+S)">
-                    <ion-icon name="save-outline"></ion-icon>
-                    <span>保存</span>
-                </button>
+                <div class="save-button-container">
+                    <button id="btn-save" class="header-btn header-btn-save" title="保存 (Ctrl+S)">
+                        <ion-icon name="save-outline"></ion-icon>
+                        <span>保存</span>
+                    </button>
+                    <button id="btn-save-dropdown" class="header-btn header-btn-save-dropdown" title="保存オプション">
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="save-dropdown-menu">
+                        <button class="dropdown-item" data-action="save-normal">
+                            <ion-icon name="save-outline"></ion-icon> 保存
+                        </button>
+                        <button class="dropdown-item" data-action="save-clean">
+                            <ion-icon name="sparkles-outline"></ion-icon> メタ情報を削除して保存
+                        </button>
+                    </div>
+                </div>
                 <button id="btn-settings" class="icon-btn" title="設定">
                     <ion-icon name="settings-outline"></ion-icon>
                 </button>

@@ -147,6 +147,9 @@ body {
     background: #27ae60;
     border-color: #2ecc71;
     color: white;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
 }
 
 .header-btn-save:hover:not(:disabled) {
@@ -159,6 +162,94 @@ body {
     border-color: transparent;
     color: rgba(255, 255, 255, 0.5);
 }
+
+/* Save Button Container */
+.save-button-container {
+    position: relative;
+    display: flex;
+}
+
+.header-btn-save-dropdown {
+    background: #27ae60;
+    border-color: #2ecc71;
+    color: white;
+    padding: 4px 6px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-btn-save-dropdown:hover:not(:disabled) {
+    background: #2ecc71;
+    border-color: #40d47e;
+}
+
+.header-btn-save-dropdown:disabled {
+    background: rgba(39, 174, 96, 0.2);
+    border-color: transparent;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.header-btn-save-dropdown ion-icon {
+    font-size: 0.9rem;
+}
+
+.save-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 240px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+}
+
+.save-dropdown-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.save-dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: background-color 0.15s;
+}
+
+.save-dropdown-menu .dropdown-item:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.save-dropdown-menu .dropdown-item:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.save-dropdown-menu .dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+.save-dropdown-menu .dropdown-item ion-icon {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
 
 .icon-btn {
     background: none;

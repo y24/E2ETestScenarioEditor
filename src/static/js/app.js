@@ -55,6 +55,35 @@ class App {
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
         document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
 
+        // Save dropdown menu
+        const saveDropdownBtn = document.getElementById('btn-save-dropdown');
+        const saveDropdownMenu = document.querySelector('.save-dropdown-menu');
+
+        saveDropdownBtn.onclick = (e) => {
+            e.stopPropagation();
+            saveDropdownMenu.classList.toggle('visible');
+        };
+
+        // Save dropdown menu items
+        document.querySelectorAll('.save-dropdown-menu .dropdown-item').forEach(item => {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                const action = item.dataset.action;
+                saveDropdownMenu.classList.remove('visible');
+
+                if (action === 'save-normal') {
+                    this.saveCurrentTab();
+                } else if (action === 'save-clean') {
+                    this.saveCurrentTabWithCleanup();
+                }
+            };
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            saveDropdownMenu.classList.remove('visible');
+        });
+
         this.fileBrowser.onSelectionChange = (file) => {
             document.getElementById('btn-duplicate-file').disabled = !file;
         };
@@ -151,6 +180,50 @@ class App {
 
         // Existing file save
         await this.performSave(tab.file.path, tab.data, tab.id);
+    }
+
+    async saveCurrentTabWithCleanup() {
+        const tab = this.tabManager.getActiveTab();
+        if (!tab) return;
+
+        // If new file (no path), open Save As modal
+        if (!tab.file.path) {
+            showToast("新規ファイルは先に通常保存してください", "error");
+            return;
+        }
+
+        // Clone data to avoid modifying the current tab's data
+        const cleanData = JSON.parse(JSON.stringify(tab.data));
+
+        // Remove metadata from all sections
+        ['setup', 'steps', 'teardown'].forEach(section => {
+            if (cleanData[section] && Array.isArray(cleanData[section])) {
+                cleanData[section].forEach(step => {
+                    delete step._stepId;
+                });
+            }
+        });
+
+        // Remove _editor metadata
+        delete cleanData._editor;
+
+        // Save the cleaned data
+        await this.performSave(tab.file.path, cleanData, tab.id);
+
+        // Show toast notification
+        showToast("メタ情報を削除しました");
+
+        // Reload the file to refresh the display
+        setTimeout(async () => {
+            try {
+                const data = await API.loadScenario(tab.file.path);
+                tab.data = data;
+                this.tabManager.markDirty(tab.id, false);
+                this.onTabChange(tab);
+            } catch (e) {
+                console.error("Failed to reload after cleanup:", e);
+            }
+        }, 500);
     }
 
     async duplicateSelectedFile() {
@@ -414,14 +487,18 @@ class App {
     updateActionButtons() {
         const tab = this.tabManager.getActiveTab();
         const btnSave = document.getElementById('btn-save');
+        const btnSaveDropdown = document.getElementById('btn-save-dropdown');
         const btnReload = document.getElementById('btn-reload');
 
         if (!tab) {
+            // No tab open: disable all buttons
             btnSave.disabled = true;
+            btnSaveDropdown.disabled = true;
             btnReload.disabled = true;
         } else {
-            // Save is only enabled if tab is dirty (or if it's a new unsaved file)
-            btnSave.disabled = !tab.isDirty && tab.file.path !== null;
+            // Tab is open: always enable save buttons (for meta cleanup even when not dirty)
+            btnSave.disabled = false;
+            btnSaveDropdown.disabled = false;
             // Reload is only enabled if the file has a path (saved on disk)
             btnReload.disabled = !tab.file.path;
         }
