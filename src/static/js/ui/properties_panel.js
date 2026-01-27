@@ -1,3 +1,5 @@
+import { API } from '../api.js';
+
 export class PropertiesPanel {
     constructor(panelId, onUpdate, targetSelectorModal, onConfigUpdate) {
         this.panel = document.getElementById(panelId);
@@ -7,6 +9,8 @@ export class PropertiesPanel {
         this.onConfigUpdate = onConfigUpdate; // callback when UI config matches
         this.actionParamsConfig = {};
         this.appConfig = {};
+        this.availableTargets = []; // Cache of available targets
+        this.loadAvailableTargets(); // Load targets on initialization
     }
 
     setActionParamsConfig(config) {
@@ -15,6 +19,23 @@ export class PropertiesPanel {
 
     setAppConfig(config) {
         this.appConfig = config || {};
+    }
+
+    async loadAvailableTargets() {
+        try {
+            const targets = await API.getPageObjects();
+            this.availableTargets = targets.map(t => t.target);
+        } catch (e) {
+            console.error('Failed to load available targets:', e);
+            this.availableTargets = [];
+        }
+    }
+
+    validateTarget(targetValue) {
+        if (!targetValue || targetValue.trim() === '') {
+            return true; // Empty is considered valid (no error state)
+        }
+        return this.availableTargets.includes(targetValue.trim());
     }
 
     render(step) {
@@ -107,7 +128,10 @@ export class PropertiesPanel {
                         <label style="cursor: pointer; margin-bottom: 0;">Raw Data (JSON)</label>
                     </div>
                     <div id="raw-data-content" class="section-content ${isRawDataCollapsed ? 'collapsed' : ''}" style="flex: 1; flex-direction: column; display: ${isRawDataCollapsed ? 'none' : 'flex'};">
-                        <textarea id="prop-params" class="code-editor" spellcheck="false" style="flex: 1; min-height: 200px;">${fullJson}</textarea>
+                        <div class="code-editor-wrapper" style="flex: 1; display: flex; position: relative; min-height: 200px;">
+                            <div class="code-line-numbers" id="code-line-numbers"></div>
+                            <textarea id="prop-params" class="code-editor" spellcheck="false" style="flex: 1;">${fullJson}</textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,6 +139,29 @@ export class PropertiesPanel {
 
         this.renderParamsGrid();
         this.bindEvents();
+        this.updateLineNumbers();
+    }
+
+    updateLineNumbers() {
+        const textarea = document.getElementById('prop-params');
+        const lineNumbers = document.getElementById('code-line-numbers');
+        if (!textarea || !lineNumbers) return;
+
+        const lines = textarea.value.split('\n');
+        const count = lines.length;
+        let numbersHTML = '';
+        for (let i = 1; i <= count; i++) {
+            numbersHTML += `<div>${i}</div>`;
+        }
+        lineNumbers.innerHTML = numbersHTML;
+        this.syncScroll();
+    }
+
+    syncScroll() {
+        const textarea = document.getElementById('prop-params');
+        const lineNumbers = document.getElementById('code-line-numbers');
+        if (!textarea || !lineNumbers) return;
+        lineNumbers.scrollTop = textarea.scrollTop;
     }
 
     renderParamsGrid() {
@@ -175,8 +222,10 @@ export class PropertiesPanel {
             if (isTarget) {
                 valInput.readOnly = true;
                 valInput.style.cursor = 'pointer';
-                valInput.style.backgroundColor = '#ecf5ff';
                 valInput.style.borderStyle = 'dashed';
+                // Validate target value
+                const isValid = this.validateTarget(valInput.value);
+                valInput.style.backgroundColor = isValid ? '#ecf5ff' : '#ffe0e0';
             } else {
                 valInput.readOnly = false;
                 valInput.style.cursor = 'text';
@@ -193,6 +242,7 @@ export class PropertiesPanel {
                 if (this.targetSelectorModal) {
                     this.targetSelectorModal.open(valInput.value, (selectedValue) => {
                         valInput.value = selectedValue;
+                        checkTargetKey(); // Re-validate after selection
                         this.updateParamsFromGrid();
                     });
                 }
@@ -468,6 +518,64 @@ export class PropertiesPanel {
 
         // Raw Data JSON
         const paramsTextarea = document.getElementById('prop-params');
+
+        // Handle Tab key for indentation
+        paramsTextarea.onkeydown = (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                const value = e.target.value;
+
+                if (e.shiftKey) {
+                    // Shift+Tab: Remove indentation
+                    const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+                    const lineEnd = value.indexOf('\n', end);
+                    const actualEnd = lineEnd === -1 ? value.length : lineEnd;
+
+                    const lines = value.substring(lineStart, actualEnd).split('\n');
+                    const dedentedLines = lines.map(line => {
+                        if (line.startsWith('  ')) return line.substring(2);
+                        if (line.startsWith('\t')) return line.substring(1);
+                        return line;
+                    });
+
+                    const newText = value.substring(0, lineStart) + dedentedLines.join('\n') + value.substring(actualEnd);
+                    e.target.value = newText;
+
+                    // Restore cursor position
+                    const removedChars = (value.substring(lineStart, actualEnd).length - dedentedLines.join('\n').length);
+                    e.target.selectionStart = Math.max(lineStart, start - Math.min(2, removedChars));
+                    e.target.selectionEnd = Math.max(lineStart, end - removedChars);
+                } else {
+                    // Tab: Add indentation
+                    if (start === end) {
+                        // No selection: insert tab at cursor
+                        e.target.value = value.substring(0, start) + '  ' + value.substring(end);
+                        e.target.selectionStart = e.target.selectionEnd = start + 2;
+                    } else {
+                        // Selection: indent all selected lines
+                        const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+                        const lineEnd = value.indexOf('\n', end);
+                        const actualEnd = lineEnd === -1 ? value.length : lineEnd;
+
+                        const lines = value.substring(lineStart, actualEnd).split('\n');
+                        const indentedLines = lines.map(line => '  ' + line);
+
+                        const newText = value.substring(0, lineStart) + indentedLines.join('\n') + value.substring(actualEnd);
+                        e.target.value = newText;
+
+                        // Restore selection
+                        e.target.selectionStart = start + 2;
+                        e.target.selectionEnd = end + (indentedLines.length * 2);
+                    }
+                }
+
+                // Trigger input event to validate JSON
+                e.target.dispatchEvent(new Event('input'));
+            }
+        };
+
         paramsTextarea.oninput = (e) => {
             try {
                 const updated = JSON.parse(e.target.value);
@@ -487,10 +595,10 @@ export class PropertiesPanel {
                 if (ignoreCheck) ignoreCheck.checked = !!this.currentStep.ignore;
 
                 this.renderParamsGrid();
-                e.target.style.borderColor = '#ddd';
+                e.target.style.borderColor = '#d0d0d0';
                 this.emitUpdate();
             } catch (err) {
-                e.target.style.borderColor = 'red';
+                e.target.style.borderColor = '#e74c3c';
             }
         };
 
@@ -511,8 +619,18 @@ export class PropertiesPanel {
                 if (!this.appConfig.ui_settings) this.appConfig.ui_settings = {};
                 this.appConfig.ui_settings.rawDataCollapsed = isCollapsed;
                 if (this.onConfigUpdate) this.onConfigUpdate(this.appConfig);
+
+                if (!isCollapsed) {
+                    setTimeout(() => this.updateLineNumbers(), 0);
+                }
             };
         }
+
+        // Sync scroll
+        paramsTextarea.onscroll = () => this.syncScroll();
+
+        // Update line numbers on input
+        paramsTextarea.addEventListener('input', () => this.updateLineNumbers());
     }
 
     updateRawJsonTextarea() {
@@ -524,7 +642,8 @@ export class PropertiesPanel {
             if (!k.startsWith('_')) stepData[k] = this.currentStep[k];
         });
         textarea.value = JSON.stringify(stepData, null, 2);
-        textarea.style.borderColor = '#ddd';
+        textarea.style.borderColor = '#d0d0d0';
+        this.updateLineNumbers();
     }
 
     flattenParams(obj, prefix = '', res = {}) {

@@ -312,17 +312,60 @@
     outline: none;
 }
 
+.code-editor-wrapper {
+    position: relative;
+    display: flex;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background-color: #0f172a;
+    overflow: hidden;
+}
+
+.code-line-numbers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background-color: #1e293b;
+    color: #64748b;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px 8px;
+    text-align: right;
+    user-select: none;
+    overflow: hidden;
+    border-right: 1px solid #334155;
+    z-index: 2;
+}
+
 .code-editor {
     width: 100%;
     flex: 1;
     min-height: 200px;
-    font-family: monospace;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    padding: 12px 12px 12px 50px;
+    border: none;
+    border-radius: 0;
     resize: vertical;
-    font-size: 0.85rem;
+    font-size: 13px;
+    line-height: 1.6;
     white-space: pre;
+    background-color: transparent;
+    color: #e2e8f0;
+    tab-size: 2;
+    -moz-tab-size: 2;
+    position: relative;
+    z-index: 1;
+}
+
+.code-editor:focus {
+    outline: none;
+}
+
+.code-editor-wrapper:focus-within {
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.15);
 }
 
 .checkbox-wrapper {
