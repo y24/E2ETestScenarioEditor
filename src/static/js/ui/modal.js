@@ -12,6 +12,11 @@ export class BaseModal {
     }
 
     open() {
+        // Close all open dropdowns/menus when a modal opens
+        document.querySelectorAll('.visible').forEach(el => {
+            el.classList.remove('visible');
+        });
+
         this.modal.classList.remove('hidden');
         this.backdrop.classList.remove('hidden');
         window.addEventListener('keydown', this._escListener);
