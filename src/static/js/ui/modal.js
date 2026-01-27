@@ -221,6 +221,7 @@ export class SaveAsModal extends BaseModal {
         this.inputSubdir = document.getElementById('save-subdir');
         this.inputFilename = document.getElementById('save-filename');
         this.closeAfterSave = false;
+        this.onCancelCallback = null;
 
         // Events
         const btnClose = this.modal.querySelector('.close-save-modal');
@@ -230,7 +231,9 @@ export class SaveAsModal extends BaseModal {
         if (btnSave) btnSave.onclick = () => this.confirm();
     }
 
-    open(defaultFilename = '', closeAfterSave = false, defaultSubdir = '', defaultDirIndex = -1) {
+    open(defaultFilename = '', closeAfterSave = false, defaultSubdir = '', defaultDirIndex = -1, onCancel = null, onSuccess = null) {
+        this.onCancelCallback = onCancel;
+        this.onSuccessCallback = onSuccess;
         this.closeAfterSave = closeAfterSave;
         this.inputSubdir.value = defaultSubdir;
         this.inputFilename.value = defaultFilename;
@@ -275,14 +278,27 @@ export class SaveAsModal extends BaseModal {
             filename += '.json';
         }
 
-        await this.saveCallback({
+        const result = {
             dirIndex,
             subdir,
             filename,
             closeAfterSave: this.closeAfterSave
-        });
+        };
+
+        if (this.onSuccessCallback) {
+            await this.onSuccessCallback(result);
+        } else {
+            await this.saveCallback(result);
+        }
         this.close();
         this.closeAfterSave = false;
+    }
+
+    cancel() {
+        super.cancel();
+        if (this.onCancelCallback) {
+            this.onCancelCallback();
+        }
     }
 }
 

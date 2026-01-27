@@ -302,7 +302,7 @@ class App {
 
         try {
             const response = await API.loadScenario(selectedFile.path);
-            const data = response.data; // Unwrap
+            const data = response.data;
 
             // Clone data
             const duplicatedData = JSON.parse(JSON.stringify(data));
@@ -312,29 +312,45 @@ class App {
                 duplicatedData.name += " (Copy)";
             }
 
-            // Pseudo file object for the new (duplicated) tab
             let baseName = selectedFile.name;
             if (baseName.endsWith('.json')) {
                 baseName = baseName.slice(0, -5);
             }
             const defaultName = baseName + '_copy';
 
-            const file = {
-                name: defaultName,
-                path: null, // null indicates new file
-                parent: selectedFile.parent
-            };
-
-            this.tabManager.openTab(file, duplicatedData);
-
             // Calculate subdir and dirIndex for SaveAsModal
-            const parts = selectedFile.relativePath.split('/');
+            const parts = (selectedFile.relativePath || "").split(/[/\\]/);
             parts.pop(); // Remove filename
             const subdir = parts.join('/');
             const dirIndex = selectedFile.dirIndex;
 
-            // Trigger Save As immediately
-            this.saveAsModal.open(defaultName + '.json', false, subdir, dirIndex);
+            // Trigger Save As without opening a tab
+            this.saveAsModal.open(
+                defaultName + '.json',
+                false,
+                subdir,
+                dirIndex,
+                null, // onCancel
+                async (result) => {
+                    const { dirIndex, subdir, filename } = result;
+                    const selectedDir = this.config.scenario_directories[dirIndex];
+                    let fullPath = selectedDir.path;
+                    if (subdir) {
+                        const separator = fullPath.includes('\\') ? '\\' : '/';
+                        fullPath += separator + subdir;
+                    }
+                    const separator = fullPath.includes('\\') ? '\\' : '/';
+                    fullPath += separator + filename;
+
+                    try {
+                        await API.saveScenario(fullPath, duplicatedData, null, true); // force=true for new file
+                        showToast("ファイルを複製しました");
+                        this.fileBrowser.load();
+                    } catch (e) {
+                        alert("複製に失敗しました: " + e.message);
+                    }
+                }
+            );
         } catch (e) {
             alert("Error: " + e.message);
         }
@@ -420,11 +436,13 @@ class App {
             return;
         }
 
-        let basePath = selectedDir.path;
-
         let fullPath = basePath;
-        if (subdir) fullPath += '/' + subdir;
-        fullPath += '/' + filename;
+        if (subdir) {
+            const separator = fullPath.includes('\\') ? '\\' : '/';
+            fullPath += separator + subdir;
+        }
+        const separator = fullPath.includes('\\') ? '\\' : '/';
+        fullPath += separator + filename;
 
         // Update tab info
         const tab = this.tabManager.getActiveTab();

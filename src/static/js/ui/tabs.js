@@ -9,8 +9,9 @@ export class TabManager {
     }
 
     openTab(file, data, isPreview = false) {
-        // Check if already open
-        const existing = this.tabs.find(t => t.file.path === file.path);
+        const normalize = (path) => path ? path.replace(/\\/g, '/') : path;
+        const normalizedPath = normalize(file.path);
+        const existing = this.tabs.find(t => normalize(t.file.path) === normalizedPath);
         if (existing) {
             // If it's a preview and we now want it permanent
             if (existing.isPreview && !isPreview) {
