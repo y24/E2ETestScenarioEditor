@@ -30,6 +30,9 @@ export class ScenarioEditor {
         this.activeItemId = null;       // ID of the active item for properties
         this.lastCheckedStepId = null;  // For shift-click range selection
 
+        // Internal clipboard for paste operations (avoids browser permission dialogs)
+        this.internalClipboard = null;
+
         // Bindings
         this.handleSectionAction = this.handleSectionAction.bind(this);
         this.handleStepAction = this.handleStepAction.bind(this);
@@ -873,12 +876,17 @@ export class ScenarioEditor {
         });
 
         if (steps.length > 0) {
+            // Save to internal clipboard (always succeeds)
+            this.internalClipboard = steps;
+
+            // Also try to save to browser clipboard (for external paste)
             try {
                 await navigator.clipboard.writeText(JSON.stringify(steps, null, 2));
                 showToast('コピーしました');
             } catch (err) {
-                console.error('Failed to copy: ', err);
-                alert('Copy failed: ' + err.message);
+                console.error('Failed to copy to browser clipboard: ', err);
+                // Still show success because internal clipboard worked
+                showToast('コピーしました（アプリ内のみ）');
             }
         }
     }
@@ -1009,15 +1017,22 @@ export class ScenarioEditor {
 
     async pasteSteps(sectionKey) {
         try {
-            const text = await navigator.clipboard.readText();
-            if (!text) return;
+            let steps = null;
 
-            let steps;
-            try {
-                steps = JSON.parse(text);
-            } catch (e) {
-                alert('Clipboard does not contain valid JSON');
-                return;
+            // First, try to use internal clipboard (no permission needed)
+            if (this.internalClipboard && this.internalClipboard.length > 0) {
+                steps = JSON.parse(JSON.stringify(this.internalClipboard)); // Deep copy
+            } else {
+                // Fallback to browser clipboard (requires permission)
+                const text = await navigator.clipboard.readText();
+                if (!text) return;
+
+                try {
+                    steps = JSON.parse(text);
+                } catch (e) {
+                    alert('クリップボードに有効なJSONが含まれていません');
+                    return;
+                }
             }
 
             if (!Array.isArray(steps)) steps = [steps];
@@ -1058,7 +1073,7 @@ export class ScenarioEditor {
 
         } catch (err) {
             console.error('Failed to paste: ', err);
-            alert('Paste failed: ' + err.message);
+            alert('貼り付けに失敗しました: ' + err.message);
         }
     }
 
