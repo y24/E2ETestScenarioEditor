@@ -11,8 +11,20 @@ export class FileBrowser {
         this.data = null; // Store raw data
         this.searchQuery = '';
         this.collapsedDirs = new Set(); // Keep track of collapsed directories
+        this.isCompact = false;
 
         this.initSearch();
+    }
+
+    toggleViewMode() {
+        this.isCompact = !this.isCompact;
+        this.container.classList.toggle('compact-view', this.isCompact);
+        return this.isCompact;
+    }
+
+    setCompactMode(isCompact) {
+        this.isCompact = isCompact;
+        this.container.classList.toggle('compact-view', this.isCompact);
     }
 
     initSearch() {

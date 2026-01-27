@@ -445,6 +445,22 @@ body {
 }
 
 
+
+/* Compact View */
+.file-browser.compact-view .file-item {
+    padding: 2px 16px;
+    /* reduced vertical padding */
+    height: 28px;
+}
+
+.file-browser.compact-view .file-scenario-name {
+    display: none;
+}
+
+.file-browser.compact-view .file-actions {
+    margin-left: auto;
+}
+
 /* Empty State */
 .empty-state {
     display: flex;

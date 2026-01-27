@@ -50,6 +50,7 @@ class App {
         );
 
         document.getElementById('btn-refresh-files').onclick = () => this.fileBrowser.load();
+        document.getElementById('btn-toggle-view').onclick = () => this.toggleFileView();
         document.getElementById('btn-new-file').onclick = () => this.createNewScenario();
         document.getElementById('btn-duplicate-file').onclick = () => this.duplicateSelectedFile();
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
@@ -115,6 +116,13 @@ class App {
             this.config = await API.getConfig();
             this.propertiesPanel.setAppConfig(this.config);
 
+            // Apply Saved UI Settings
+            if (this.config.ui_settings && this.config.ui_settings.explorerCompactMode) {
+                this.fileBrowser.setCompactMode(true);
+                const btn = document.getElementById('btn-toggle-view');
+                if (btn) btn.title = "詳細表示に切り替え";
+            }
+
             // Load Icon Mapping
             const iconsLabel = await fetch('/static/js/ui/icons.json');
             const icons = await iconsLabel.json();
@@ -142,6 +150,24 @@ class App {
     }
 
     // --- Actions ---
+
+    toggleFileView() {
+        const isCompact = this.fileBrowser.toggleViewMode();
+        const btn = document.getElementById('btn-toggle-view');
+        // Update title
+        btn.title = isCompact ? "詳細表示に切り替え" : "コンパクト表示に切り替え";
+
+        // Save to config
+        if (!this.config.ui_settings) {
+            this.config.ui_settings = {};
+        }
+        this.config.ui_settings.explorerCompactMode = isCompact;
+
+        // Save silently (don't reload file browser)
+        API.saveConfig(this.config).then(updated => {
+            this.config = updated;
+        }).catch(e => console.error("Failed to save view config", e));
+    }
 
     createNewScenario() {
         const timestamp = new Date().toISOString();
