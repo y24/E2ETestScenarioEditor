@@ -897,6 +897,7 @@ export class ScenarioEditor {
             }
         }
 
+        this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
         this.rerender();
         this.onDataChange();
     }
@@ -979,6 +980,8 @@ export class ScenarioEditor {
                                 grp.items = grp.items.filter(sid => !idsToDelete.has(sid));
                             }
                         });
+
+                        this.groupManager.sortSectionDataByLayout(section, this.currentData);
                     }
                 });
 
