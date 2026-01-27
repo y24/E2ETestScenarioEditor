@@ -26,6 +26,7 @@ class App {
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
         this.fileBrowser.onDelete = (file) => this.onFileDeleteRequested(file);
+        this.fileBrowser.onCollapseChange = (dirs) => this.onExplorerCollapseChanged(dirs);
 
         // Pass callbacks to Editor
         this.editor = new ScenarioEditor(
@@ -141,6 +142,9 @@ class App {
                 const btn = document.getElementById('btn-toggle-view');
                 if (btn) btn.title = "詳細表示に切り替え";
             }
+            if (this.config.ui_settings && this.config.ui_settings.collapsedDirs) {
+                this.fileBrowser.setCollapsedDirs(this.config.ui_settings.collapsedDirs);
+            }
 
             // Load Icon Mapping
             const iconsLabel = await fetch('/static/js/ui/icons.json');
@@ -227,6 +231,18 @@ class App {
         API.saveConfig(this.config).then(updated => {
             this.config = updated;
         }).catch(e => console.error("Failed to save view config", e));
+    }
+
+    onExplorerCollapseChanged(dirs) {
+        if (!this.config.ui_settings) {
+            this.config.ui_settings = {};
+        }
+        this.config.ui_settings.collapsedDirs = dirs;
+
+        // Save silently
+        API.saveConfig(this.config).then(updated => {
+            this.config = updated;
+        }).catch(e => console.error("Failed to save collapse config", e));
     }
 
     createNewScenario() {

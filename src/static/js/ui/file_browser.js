@@ -12,6 +12,7 @@ export class FileBrowser {
         this.searchQuery = '';
         this.collapsedDirs = new Set(); // Keep track of collapsed directories
         this.isCompact = false;
+        this.onCollapseChange = null;
 
         this.initSearch();
     }
@@ -25,6 +26,10 @@ export class FileBrowser {
     setCompactMode(isCompact) {
         this.isCompact = isCompact;
         this.container.classList.toggle('compact-view', this.isCompact);
+    }
+
+    setCollapsedDirs(dirs) {
+        this.collapsedDirs = new Set(dirs || []);
     }
 
     initSearch() {
@@ -107,6 +112,10 @@ export class FileBrowser {
                 this.collapsedDirs.add(title);
             } else {
                 this.collapsedDirs.delete(title);
+            }
+
+            if (this.onCollapseChange) {
+                this.onCollapseChange(Array.from(this.collapsedDirs));
             }
         };
 
