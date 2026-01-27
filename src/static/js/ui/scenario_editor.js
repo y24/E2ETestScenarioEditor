@@ -83,7 +83,48 @@ export class ScenarioEditor {
         }
         this.selectedSteps = tab.uiState.selectedSteps;
         this.activeItemId = tab.uiState.activeItemId;
-        this.selectedStep = tab.uiState.selectedStep;
+        this.selectedStep = null; // Re-find from current data
+
+        if (this.activeItemId) {
+            let found = false;
+            for (const section of ['setup', 'steps', 'teardown']) {
+                if (this.activeItemId.startsWith('grp_')) {
+                    const grp = this.currentData._editor.sections[section].groups[this.activeItemId];
+                    if (grp) {
+                        this.selectedStep = grp;
+                        this.selectedStep._isGroup = true;
+                        this.selectedStep._groupId = this.activeItemId;
+                        this.selectedStep._section = section;
+                        // Re-link children (non-enumerable)
+                        const children = (this.selectedStep.items || [])
+                            .map(sid => (this.currentData[section] || []).find(s => s._stepId === sid))
+                            .filter(s => !!s);
+                        Object.defineProperty(this.selectedStep, '_children', {
+                            value: children,
+                            writable: true,
+                            enumerable: false,
+                            configurable: true
+                        });
+                        found = true;
+                        break;
+                    }
+                } else {
+                    const step = (this.currentData[section] || []).find(s => s._stepId === this.activeItemId);
+                    if (step) {
+                        this.selectedStep = step;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                this.activeItemId = null;
+                tab.uiState.activeItemId = null;
+                tab.uiState.selectedStep = null;
+            } else {
+                tab.uiState.selectedStep = this.selectedStep;
+            }
+        }
         this.currentTab = tab;
 
         // Render Header

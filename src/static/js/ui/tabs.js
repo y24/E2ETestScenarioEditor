@@ -28,6 +28,7 @@ export class TabManager {
                 previewTab.file = file;
                 previewTab.data = data;
                 previewTab.isDirty = false;
+                delete previewTab.uiState; // Reset UI state for new file
                 this.activateTab(previewTab.id);
                 return previewTab;
             }
