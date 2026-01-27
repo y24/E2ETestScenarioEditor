@@ -172,9 +172,16 @@ export class PropertiesPanel {
         grid.innerHTML = '';
 
         const flatParams = this.flattenParams(params);
-        Object.entries(flatParams).forEach(([key, value]) => {
-            this.addParamRow(grid, key, value);
-        });
+        const entries = Object.entries(flatParams);
+
+        if (entries.length === 0) {
+            // Always show at least one empty row for convenience
+            this.addParamRow(grid);
+        } else {
+            entries.forEach(([key, value]) => {
+                this.addParamRow(grid, key, value);
+            });
+        }
     }
 
     addParamRow(container, key = '', value = '') {
