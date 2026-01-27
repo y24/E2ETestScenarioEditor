@@ -36,6 +36,8 @@ export class ScenarioEditor {
         this.toggleSelection = this.toggleSelection.bind(this);
         this.groupSelected = this.groupSelected.bind(this);
         this.copySelection = this.copySelection.bind(this);
+
+        this.actionParamsConfig = {};
     }
 
     render(tab) {
@@ -207,7 +209,7 @@ export class ScenarioEditor {
     renderStep(step, sectionKey) {
         const typeIcon = this.getIconForStep(step);
         const name = step.name || 'Untitled Step';
-        const op = step.params?.operation || step.params?.action || '';
+        const op = this.getStepDescription(step);
         const ignoredClass = step.ignore ? 'ignored' : '';
         const isSelected = this.selectedSteps.has(step._stepId) ? 'selected' : '';
         const checked = this.selectedSteps.has(step._stepId) ? 'checked' : '';
@@ -238,6 +240,28 @@ export class ScenarioEditor {
 
     setIcons(icons) {
         ScenarioEditor.ICON_MAPPING = icons;
+    }
+
+    setActionParamsConfig(config) {
+        this.actionParamsConfig = config;
+    }
+
+    getStepDescription(step) {
+        if (!step.params) return '';
+
+        let val = '';
+        if (this.actionParamsConfig && this.actionParamsConfig[step.type]) {
+            const field = this.actionParamsConfig[step.type].summaryParam;
+            if (field) {
+                val = step.params[field];
+            }
+        }
+
+        if (!val && val !== 0 && val !== false) {
+            val = step.params.operation || step.params.action || '';
+        }
+
+        return val;
     }
 
     getIconForStep(step) {

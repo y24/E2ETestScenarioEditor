@@ -95,6 +95,7 @@ class App {
             const actionParamsResponse = await fetch('/static/config/action_params.json');
             const actionParams = await actionParamsResponse.json();
             this.propertiesPanel.setActionParamsConfig(actionParams);
+            this.editor.setActionParamsConfig(actionParams);
 
             // Initialize resizer
             await resizer.init();

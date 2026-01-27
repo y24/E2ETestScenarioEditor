@@ -1,5 +1,6 @@
 {
     "system": {
+        "summaryParam": "action",
         "paramNames": [
             "action",
             "duration",
@@ -20,6 +21,7 @@
         }
     },
     "ui": {
+        "summaryParam": "operation",
         "paramNames": [
             "operation",
             "target",
@@ -42,6 +44,7 @@
         }
     },
     "screenshot": {
+        "summaryParam": "target",
         "paramNames": [
             "filename",
             "additional_name",
@@ -50,6 +53,7 @@
         "paramValues": {}
     },
     "web": {
+        "summaryParam": "operation",
         "paramNames": [
             "operation",
             "target",
@@ -83,6 +87,7 @@
         }
     },
     "excel": {
+        "summaryParam": "action",
         "paramNames": [
             "action",
             "file_path",
@@ -114,6 +119,7 @@
         }
     },
     "verify": {
+        "summaryParam": "type",
         "paramNames": [
             "type",
             "target",
@@ -159,6 +165,7 @@
         }
     },
     "debug": {
+        "summaryParam": "action",
         "paramNames": [
             "action",
             "target",
@@ -178,6 +185,7 @@
         }
     },
     "run_scenario": {
+        "summaryParam": "path",
         "paramNames": [
             "path",
             "args"
