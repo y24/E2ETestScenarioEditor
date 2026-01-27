@@ -498,7 +498,7 @@ body {
 .empty-state p {
     margin: 0;
     font-size: 0.95rem;
-    max-width: 260px;
+    max-width: 300px;
     line-height: 1.5;
 }
 
