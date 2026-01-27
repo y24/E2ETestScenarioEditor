@@ -25,7 +25,8 @@
             "target",
             "value",
             "regex",
-            "save_as"
+            "save_as",
+            "method"
         ],
         "paramValues": {
             "operation": [
@@ -34,6 +35,8 @@
                 "click_by_image",
                 "input",
                 "input_keys",
+                "wait_for_exists",
+                "custom_method",
                 "read"
             ]
         }
@@ -176,7 +179,8 @@
     },
     "run_scenario": {
         "paramNames": [
-            "path"
+            "path",
+            "args"
         ],
         "paramValues": {}
     }
