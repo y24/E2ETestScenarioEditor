@@ -286,17 +286,22 @@ export class PropertiesPanel {
 
         // Open dropdown on focus
         keyInput.onfocus = () => {
+            // Close all other dropdowns first
+            document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+
             if (paramNames.length > 0) {
-                // Close all other dropdowns first
-                document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                 toggleKeyDropdown(true);
             }
         };
 
         // Open dropdown on click even if already focused
         keyInput.onclick = () => {
+            // Close other dropdowns
+            document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => {
+                if (m !== keyDropdown) m.classList.remove('visible');
+            });
+
             if (paramNames.length > 0 && !keyDropdown.classList.contains('visible')) {
-                document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                 toggleKeyDropdown(true);
             }
         };
@@ -313,13 +318,14 @@ export class PropertiesPanel {
 
         // Open value dropdown on focus (except for target)
         valInput.onfocus = () => {
+            // Close all other dropdowns first
+            document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
+
             const currentKey = keyInput.value.trim();
             if (currentKey.toLowerCase() !== 'target') {
                 const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
                 const suggestions = paramValues[currentKey] || [];
                 if (suggestions.length > 0) {
-                    // Close all other dropdowns first
-                    document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                     toggleDropdown(true);
                 }
             }
@@ -332,11 +338,16 @@ export class PropertiesPanel {
                 e.preventDefault();
                 return;
             }
+
+            // Close other dropdowns
+            document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => {
+                if (m !== menu) m.classList.remove('visible');
+            });
+
             if (!menu.classList.contains('visible')) {
                 const paramValues = (this.actionParamsConfig[this.currentStep.type] || {}).paramValues || {};
                 const suggestions = paramValues[currentKey] || [];
                 if (suggestions.length > 0) {
-                    document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
                     toggleDropdown(true);
                 }
             }
