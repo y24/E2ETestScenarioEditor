@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 
 from .api import router as api_router
 
-app = FastAPI(title="E2E Scenario Editor")
+app = FastAPI(title="Scenario Editor")
 
 # Include API Router
 app.include_router(api_router)

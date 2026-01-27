@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 > nul
 setlocal
-title E2E Scenario Editor
+title Scenario Editor
 
 :: スクリプトのディレクトリに移動
 cd /d "%~dp0"
