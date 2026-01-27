@@ -1086,7 +1086,7 @@ export class ScenarioEditor {
             this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
             this.rerender();
             this.onDataChange();
-
+            showToast('貼り付けました');
         } catch (err) {
             console.error('Failed to paste: ', err);
             alert('貼り付けに失敗しました: ' + err.message);
