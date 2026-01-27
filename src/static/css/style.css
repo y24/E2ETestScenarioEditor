@@ -333,16 +333,16 @@ body {
     padding: 0;
 }
 
-.section-header {
-    padding: 8px 12px;
+.file-browser .section-header {
+    padding: 3px 10px;
     font-weight: bold;
     color: #666;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     cursor: pointer;
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     background-color: #f8f9fa;
     border-bottom: 1px solid var(--border-color);
     border-top: 1px solid var(--border-color);
@@ -359,12 +359,12 @@ body {
     background-color: #eee;
 }
 
-.section-header ion-icon {
-    font-size: 1rem;
+.file-browser .section-header ion-icon {
+    font-size: 0.9rem;
     transition: transform 0.2s;
 }
 
-.section-header.collapsed ion-icon {
+.file-browser .section-header.collapsed ion-icon {
     transform: rotate(-90deg);
 }
 
@@ -377,12 +377,12 @@ body {
 }
 
 .file-item {
-    padding: 6px 16px;
+    padding: 4px 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .file-item:hover {
