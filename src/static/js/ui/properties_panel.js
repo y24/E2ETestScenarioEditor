@@ -124,7 +124,8 @@ export class PropertiesPanel {
         const params = this.currentStep.params || {};
         grid.innerHTML = '';
 
-        Object.entries(params).forEach(([key, value]) => {
+        const flatParams = this.flattenParams(params);
+        Object.entries(flatParams).forEach(([key, value]) => {
             this.addParamRow(grid, key, value);
         });
     }
@@ -382,7 +383,7 @@ export class PropertiesPanel {
                     } catch (e) { /* keep as string if not valid JSON */ }
                 }
 
-                newParams[key] = value;
+                this.setDeepValue(newParams, key, value);
             }
         });
 
@@ -513,6 +514,32 @@ export class PropertiesPanel {
         });
         textarea.value = JSON.stringify(stepData, null, 2);
         textarea.style.borderColor = '#ddd';
+    }
+
+    flattenParams(obj, prefix = '', res = {}) {
+        Object.keys(obj).forEach(key => {
+            const val = obj[key];
+            const newKey = prefix ? `${prefix}.${key}` : key;
+            if (val && typeof val === 'object' && !Array.isArray(val) && Object.keys(val).length > 0) {
+                this.flattenParams(val, newKey, res);
+            } else {
+                res[newKey] = val;
+            }
+        });
+        return res;
+    }
+
+    setDeepValue(obj, path, value) {
+        const parts = path.split('.');
+        let current = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            if (!current[part] || typeof current[part] !== 'object' || Array.isArray(current[part])) {
+                current[part] = {};
+            }
+            current = current[part];
+        }
+        current[parts[parts.length - 1]] = value;
     }
 
     emitUpdate() {
