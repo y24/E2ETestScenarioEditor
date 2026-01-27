@@ -120,6 +120,9 @@ export class ScenarioEditor {
                     <button class="btn-toolbar" id="btn-copy-selection">
                         <ion-icon name="copy-outline"></ion-icon> Copy
                     </button>
+                    <button class="btn-toolbar btn-danger" id="btn-delete-selection">
+                        <ion-icon name="trash-outline"></ion-icon> Delete
+                    </button>
                     <button class="btn-toolbar" id="btn-clear-selection" style="margin-left: auto;">Cancel</button>
                 </div>
             `;
@@ -394,6 +397,9 @@ export class ScenarioEditor {
 
         const btnCopy = this.container.querySelector('#btn-copy-selection');
         if (btnCopy) btnCopy.onclick = this.copySelection;
+
+        const btnDelete = this.container.querySelector('#btn-delete-selection');
+        if (btnDelete) btnDelete.onclick = () => this.deleteSelection();
 
         const btnToggleDisable = this.container.querySelector('#btn-toggle-disable');
         if (btnToggleDisable) {
@@ -852,6 +858,53 @@ export class ScenarioEditor {
                 alert('Copy failed: ' + err.message);
             }
         }
+    }
+
+    deleteSelection() {
+        if (this.selectedSteps.size === 0) return;
+
+        this.genericConfirmModal.open(
+            "一括削除",
+            `${this.selectedSteps.size}個の項目を削除してもよろしいですか？`,
+            () => {
+                const idsToDelete = new Set(this.selectedSteps);
+
+                ['setup', 'steps', 'teardown'].forEach(section => {
+                    if (!this.currentData[section]) return;
+                    const meta = this.currentData._editor.sections[section];
+
+                    // Remove steps from data
+                    this.currentData[section] = this.currentData[section].filter(s => !idsToDelete.has(s._stepId));
+
+                    if (meta) {
+                        // Remove from Layout
+                        meta.layout = meta.layout.filter(id => !idsToDelete.has(id));
+
+                        // Remove Groups
+                        Object.keys(meta.groups).forEach(groupId => {
+                            if (idsToDelete.has(groupId)) {
+                                delete meta.groups[groupId];
+                            } else {
+                                const grp = meta.groups[groupId];
+                                grp.items = grp.items.filter(sid => !idsToDelete.has(sid));
+                            }
+                        });
+                    }
+                });
+
+                this.selectedSteps.clear();
+                this.activeItemId = null;
+                this.selectedStep = null;
+                if (this.currentTab && this.currentTab.uiState) {
+                    this.currentTab.uiState.activeItemId = null;
+                    this.currentTab.uiState.selectedStep = null;
+                }
+                this.rerender();
+                this.onDataChange();
+                if (this.onStepSelect) this.onStepSelect(null);
+            },
+            { confirmText: "削除", isDanger: true }
+        );
     }
 
     isSelectionAllIgnored() {
