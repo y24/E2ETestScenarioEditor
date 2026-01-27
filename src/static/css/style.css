@@ -772,9 +772,28 @@ body {
     color: var(--text-primary);
 }
 
-.meta-value .placeholder {
-    color: #ccc;
+.meta-id {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    background-color: #f1f3f5;
+    color: #495057;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.meta-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.scenario-meta .placeholder {
+    color: #bdc3c7;
     font-style: italic;
+    font-size: 0.9rem;
 }
 
 .meta-edit-btn {

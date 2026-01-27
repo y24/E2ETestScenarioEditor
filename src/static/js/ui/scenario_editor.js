@@ -128,16 +128,17 @@ export class ScenarioEditor {
         this.currentTab = tab;
 
         // Render Header
+        const idHtml = tab.data.id ? `<span class="meta-value meta-id" title="Scenario ID">${tab.data.id}</span>` : '<span class="placeholder">(ID未設定)</span>';
+        const nameHtml = tab.data.name ? `<span class="meta-value meta-name" title="Scenario Name">${tab.data.name}</span>` : '<span class="placeholder">(名称未設定)</span>';
+
         let html = `
             <div class="scenario-meta">
                 <div class="meta-row">
                     <div class="meta-field">
-                        <label>ID:</label>
-                        <span class="meta-value">${tab.data.id || '<span class="placeholder">(未設定)</span>'}</span>
+                        ${idHtml}
                     </div>
                     <div class="meta-field">
-                        <label>Name:</label>
-                        <span class="meta-value">${tab.data.name || '<span class="placeholder">(未設定)</span>'}</span>
+                        ${nameHtml}
                     </div>
                     <button id="btn-edit-meta" class="icon-btn-small meta-edit-btn" title="基本情報を編集">
                         <ion-icon name="create-outline"></ion-icon> 編集
