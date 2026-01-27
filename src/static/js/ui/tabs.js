@@ -107,6 +107,12 @@ export class TabManager {
             el.querySelector('.tab-close').onclick = (e) => this.closeTab(tab.id, e);
 
             this.tabBar.appendChild(el);
+
+            if (tab.id === this.activeTabId) {
+                requestAnimationFrame(() => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                });
+            }
         });
     }
 
