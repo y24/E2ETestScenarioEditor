@@ -1,168 +1,172 @@
 {
-    "system": {
-        "summaryParam": "action",
-        "paramNames": [
-            "action",
-            "duration",
-            "command",
-            "message",
-            "path",
-            "backend",
-            "variables"
-        ],
-        "paramValues": {
-            "action": [
-                "sleep",
+    "actions": {
+        "system": {
+            "summaryParam": "action",
+            "paramNames": [
+                "action",
+                "duration",
                 "command",
-                "print",
-                "start_app",
-                "set_variables"
+                "message",
+                "path",
+                "backend",
+                "variables"
             ],
-            "backend": [
-                "win32",
-                "uia"
-            ]
-        }
-    },
-    "ui": {
-        "summaryParam": "operation",
-        "paramNames": [
-            "operation",
-            "target",
-            "value",
-            "regex",
-            "save_as",
-            "method"
-        ],
-        "paramValues": {
-            "operation": [
-                "click",
-                "click_input",
-                "click_by_image",
-                "input",
-                "input_keys",
-                "wait_for_exists",
-                "custom_method",
-                "read"
-            ]
-        }
-    },
-    "screenshot": {
-        "summaryParam": "target",
-        "paramNames": [
-            "filename",
-            "additional_name",
-            "target"
-        ],
-        "paramValues": {}
-    },
-    "excel": {
-        "summaryParam": "action",
-        "paramNames": [
-            "action",
-            "file_path",
-            "cell_address",
-            "row",
-            "column",
-            "value",
-            "shortcut",
-            "save",
-            "title_patterns",
-            "key_action",
-            "timeout"
-        ],
-        "paramValues": {
-            "action": [
-                "start_excel",
-                "select_cell",
-                "input_text",
-                "ribbon_shortcut",
-                "save_file",
-                "close_workbook",
-                "exit_excel",
-                "handle_dialog"
+            "paramValues": {
+                "action": [
+                    "sleep",
+                    "command",
+                    "print",
+                    "start_app",
+                    "set_variables"
+                ],
+                "backend": [
+                    "win32",
+                    "uia"
+                ]
+            }
+        },
+        "ui": {
+            "summaryParam": "operation",
+            "paramNames": [
+                "operation",
+                "target",
+                "value",
+                "regex",
+                "save_as",
+                "method"
             ],
-            "save": [
-                "true",
-                "false"
-            ]
-        }
-    },
-    "verify": {
-        "summaryParam": "type",
-        "paramNames": [
-            "type",
-            "target",
-            "actual",
-            "expected",
-            "contains",
-            "not_contains",
-            "regex",
-            "pattern",
-            "text",
-            "path",
-            "min_size",
-            "file_type",
-            "mode",
-            "encoding",
-            "cell",
-            "sheet"
-        ],
-        "paramValues": {
-            "type": [
-                "exists",
-                "not_exists",
-                "clickable",
-                "equals",
+            "paramValues": {
+                "operation": [
+                    "click",
+                    "click_input",
+                    "click_by_image",
+                    "input",
+                    "input_keys",
+                    "wait_for_exists",
+                    "custom_method",
+                    "read"
+                ]
+            }
+        },
+        "screenshot": {
+            "summaryParam": "target",
+            "paramNames": [
+                "filename",
+                "additional_name",
+                "target"
+            ],
+            "paramValues": {}
+        },
+        "excel": {
+            "summaryParam": "action",
+            "paramNames": [
+                "action",
+                "file_path",
+                "cell_address",
+                "row",
+                "column",
+                "value",
+                "shortcut",
+                "save",
+                "title_patterns",
+                "key_action",
+                "timeout"
+            ],
+            "paramValues": {
+                "action": [
+                    "start_excel",
+                    "select_cell",
+                    "input_text",
+                    "ribbon_shortcut",
+                    "save_file",
+                    "close_workbook",
+                    "exit_excel",
+                    "handle_dialog"
+                ],
+                "save": [
+                    "true",
+                    "false"
+                ]
+            }
+        },
+        "verify": {
+            "summaryParam": "type",
+            "paramNames": [
+                "type",
+                "target",
+                "actual",
+                "expected",
                 "contains",
                 "not_contains",
-                "matches",
-                "file_exists",
-                "file_content"
-            ],
-            "regex": [
-                "true",
-                "false"
-            ],
-            "file_type": [
+                "regex",
+                "pattern",
                 "text",
-                "excel",
-                "auto"
+                "path",
+                "min_size",
+                "file_type",
+                "mode",
+                "encoding",
+                "cell",
+                "sheet"
             ],
-            "mode": [
-                "exact"
-            ]
+            "paramValues": {
+                "type": [
+                    "exists",
+                    "not_exists",
+                    "clickable",
+                    "equals",
+                    "contains",
+                    "not_contains",
+                    "matches",
+                    "file_exists",
+                    "file_content"
+                ],
+                "regex": [
+                    "true",
+                    "false"
+                ],
+                "file_type": [
+                    "text",
+                    "excel",
+                    "auto"
+                ],
+                "mode": [
+                    "exact"
+                ]
+            }
+        },
+        "debug": {
+            "summaryParam": "action",
+            "paramNames": [
+                "action",
+                "target",
+                "filter",
+                "control_type",
+                "depth",
+                "class_name",
+                "title",
+                "timeout"
+            ],
+            "paramValues": {
+                "action": [
+                    "list_desktop_windows",
+                    "list_descendants",
+                    "check_dialog"
+                ]
+            }
+        },
+        "run_scenario": {
+            "summaryParam": "path",
+            "paramNames": [
+                "path",
+                "args"
+            ],
+            "paramValues": {}
         }
-    },
-    "debug": {
-        "summaryParam": "action",
-        "paramNames": [
-            "action",
-            "target",
-            "filter",
-            "control_type",
-            "depth",
-            "class_name",
-            "title",
-            "timeout"
-        ],
-        "paramValues": {
-            "action": [
-                "list_desktop_windows",
-                "list_descendants",
-                "check_dialog"
-            ]
-        }
-    },
-    "run_scenario": {
-        "summaryParam": "path",
-        "paramNames": [
-            "path",
-            "args"
-        ],
-        "paramValues": {}
     },
     "paramTypes": {
+        "operation": "string",
+        "action": "string",
         "timeout": "float",
         "duration": "float",
         "value": "string",

@@ -14,7 +14,8 @@ export class PropertiesPanel {
     }
 
     setActionParamsConfig(config) {
-        this.actionParamsConfig = config;
+        this.actionParamsConfig = config.actions || {};
+        this.paramTypes = config.paramTypes || {};
     }
 
     setAppConfig(config) {
@@ -434,7 +435,7 @@ export class PropertiesPanel {
     updateParamsFromGrid() {
         const grid = document.getElementById('params-grid');
         const rows = grid.querySelectorAll('.params-row');
-        const paramTypes = this.actionParamsConfig.paramTypes || {};
+        const paramTypes = this.paramTypes || {};
         const newParams = {};
 
         rows.forEach(row => {

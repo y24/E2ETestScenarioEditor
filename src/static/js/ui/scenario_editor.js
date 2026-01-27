@@ -298,7 +298,7 @@ export class ScenarioEditor {
     }
 
     setActionParamsConfig(config) {
-        this.actionParamsConfig = config;
+        this.actionParamsConfig = config.actions || {};
     }
 
     getStepDescription(step) {
