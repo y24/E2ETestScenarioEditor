@@ -250,18 +250,7 @@
     text-overflow: ellipsis;
 }
 
-/* Step Actions (Buttons) */
-.step-actions {
-    display: flex;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
 
-.step-item:hover .step-actions,
-.step-item:focus-within .step-actions {
-    opacity: 1;
-}
 
 .step-action-btn {
     background: none;

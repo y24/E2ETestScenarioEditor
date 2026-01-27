@@ -231,14 +231,6 @@ export class ScenarioEditor {
                     <div class="step-name">${name}</div>
                     <div class="step-desc">${op}</div>
                 </div>
-                <div class="step-actions">
-                    <button class="step-action-btn" data-action="duplicate" title="複製">
-                        <ion-icon name="copy-outline"></ion-icon>
-                    </button>
-                    <button class="step-action-btn btn-danger" data-action="delete" title="削除">
-                        <ion-icon name="trash-outline"></ion-icon>
-                    </button>
-                </div>
             </div>
         `;
     }
@@ -480,11 +472,8 @@ export class ScenarioEditor {
             const stepId = stepItem.dataset.id;
             const section = stepItem.dataset.section;
 
-            if (action === 'delete') {
-                this.deleteStep(section, stepId);
-            } else if (action === 'duplicate') {
-                this.duplicateStep(section, stepId);
-            }
+            // Hover buttons for steps (duplicate/delete) have been removed.
+            // Features are now handled by the selection toolbar.
         } else if (groupItem) {
             const groupId = groupItem.dataset.id;
             const section = groupItem.dataset.section;
@@ -777,74 +766,7 @@ export class ScenarioEditor {
         this.onDataChange();
     }
 
-    deleteStep(sectionKey, stepId) {
-        this.genericConfirmModal.open(
-            "削除の確認",
-            "このステップを削除してもよろしいですか？",
-            () => {
-                // Remove from data
-                const index = this.currentData[sectionKey].findIndex(s => s._stepId === stepId);
-                if (index > -1) this.currentData[sectionKey].splice(index, 1);
 
-                // Remove from Layout and Groups
-                const meta = this.currentData._editor.sections[sectionKey];
-                if (meta) {
-                    meta.layout = meta.layout.filter(id => id !== stepId);
-                    Object.values(meta.groups).forEach(grp => {
-                        grp.items = grp.items.filter(id => id !== stepId);
-                    });
-                }
-
-                this.selectedSteps.delete(stepId);
-                this.rerender();
-                this.onDataChange();
-            },
-            { confirmText: "削除", isDanger: true }
-        );
-    }
-
-    duplicateStep(sectionKey, stepId) {
-        const stepStr = JSON.stringify(this.currentData[sectionKey].find(s => s._stepId === stepId));
-        if (!stepStr) return;
-
-        const newStep = JSON.parse(stepStr);
-        newStep.name += " (Copy)";
-        newStep._stepId = this.groupManager.generateStepId();
-
-        this.currentData[sectionKey].push(newStep);
-
-        // Insert into layout after original
-        const meta = this.currentData._editor.sections[sectionKey];
-        if (meta) {
-            // Find where original is (root or group)
-            let inserted = false;
-
-            // Check root
-            const rootIdx = meta.layout.indexOf(stepId);
-            if (rootIdx > -1) {
-                meta.layout.splice(rootIdx + 1, 0, newStep._stepId);
-                inserted = true;
-            }
-
-            // Check groups
-            if (!inserted) {
-                for (const grp of Object.values(meta.groups)) {
-                    const idx = grp.items.indexOf(stepId);
-                    if (idx > -1) {
-                        grp.items.splice(idx + 1, 0, newStep._stepId);
-                        inserted = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!inserted) meta.layout.push(newStep._stepId);
-        }
-
-        this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
-        this.rerender();
-        this.onDataChange();
-    }
 
     async copySelection() {
         if (this.selectedSteps.size === 0) return;
