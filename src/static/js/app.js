@@ -669,11 +669,15 @@ class App {
             // Restore properties panel if a step was selected in this tab
             this.propertiesPanel.render(this.editor.selectedStep);
 
+            // Synchronize explorer highlight
+            this.fileBrowser.selectFileByPath(tab.file ? tab.file.path : null);
+
             // Check for updates when switching to this tab
             this.checkActiveTabForUpdates();
         } else {
             // No tab open, clear properties panel
             this.propertiesPanel.render(null);
+            this.fileBrowser.selectFileByPath(null);
         }
         this.updateActionButtons();
     }

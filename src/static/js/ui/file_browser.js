@@ -42,6 +42,25 @@ export class FileBrowser {
         }
     }
 
+    selectFileByPath(path) {
+        const normalize = (path) => path ? path.replace(/\\/g, '/') : path;
+        if (!path) {
+            this.selectedFile = null;
+        } else {
+            const normalizedPath = normalize(path);
+            // Find in current data if possible to get full file info
+            let found = null;
+            if (this.data) {
+                for (const dir of this.data.directories) {
+                    found = dir.files.find(f => normalize(f.path) === normalizedPath);
+                    if (found) break;
+                }
+            }
+            this.selectedFile = found || { path: path };
+        }
+        this.renderFiltered();
+    }
+
     async load() {
         this.container.innerHTML = '<div class="loading">Loading...</div>';
         try {
@@ -90,6 +109,7 @@ export class FileBrowser {
     }
 
     renderSection(title, files) {
+        const normalize = (path) => path ? path.replace(/\\/g, '/') : path;
         // 検索クエリがある場合は展開した状態にする。そうでない場合は、保存されている折りたたみ状態に従う。
         const isCollapsed = this.collapsedDirs.has(title) && !this.searchQuery;
 
@@ -124,7 +144,8 @@ export class FileBrowser {
 
         files.forEach(file => {
             const el = document.createElement('div');
-            el.className = 'file-item';
+            const isSelected = this.selectedFile && normalize(this.selectedFile.path) === normalize(file.path);
+            el.className = `file-item ${isSelected ? 'selected' : ''}`;
             el.style.paddingLeft = '32px'; // Indent files under folder
             el.innerHTML = `
                 <ion-icon name="document-text-outline" class="file-icon"></ion-icon>
