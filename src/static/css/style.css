@@ -840,7 +840,7 @@ body {
 
 /* Template List */
 .template-list-container {
-    max-height: 400px;
+    height: 400px;
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 4px;

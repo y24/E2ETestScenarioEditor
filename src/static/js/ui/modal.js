@@ -746,12 +746,18 @@ export class SelectTemplateModal extends BaseModal {
         this.onSelectCallback = onSelectCallback;
         this.list = document.getElementById('select-template-list');
         this.emptyState = document.getElementById('template-empty-state');
+        this.searchInput = document.getElementById('select-template-search');
+        this.allTemplates = [];
 
         const btnClose = this.modal.querySelector('.close-modal');
         if (btnClose) btnClose.onclick = () => this.cancel();
 
         const btnCancel = document.getElementById('btn-select-template-cancel');
         if (btnCancel) btnCancel.onclick = () => this.cancel();
+
+        if (this.searchInput) {
+            this.searchInput.oninput = () => this.filterTemplates();
+        }
     }
 
     async open(onSelect) {
@@ -760,19 +766,36 @@ export class SelectTemplateModal extends BaseModal {
         this.list.innerHTML = 'Loading...';
         this.emptyState.style.display = 'none';
 
+        if (this.searchInput) {
+            this.searchInput.value = '';
+        }
+
         try {
-            const templates = await API.getTemplates();
-            this.renderTemplates(templates);
+            this.allTemplates = await API.getTemplates();
+            this.filterTemplates();
         } catch (e) {
             console.error(e);
             this.list.innerHTML = 'Failed to load templates.';
         }
     }
 
+    filterTemplates() {
+        const query = this.searchInput ? this.searchInput.value.toLowerCase().trim() : '';
+        const filtered = this.allTemplates.filter(t => t.name.toLowerCase().includes(query));
+        this.renderTemplates(filtered);
+    }
+
     renderTemplates(templates) {
         this.list.innerHTML = '';
         if (templates.length === 0) {
-            this.emptyState.style.display = 'flex';
+            if (this.allTemplates.length === 0) {
+                this.emptyState.style.display = 'flex';
+                const p = this.emptyState.querySelector('p');
+                if (p) p.textContent = '保存されたテンプレートはありません。';
+            } else {
+                this.emptyState.style.display = 'none';
+                this.list.innerHTML = '<div style="padding:20px; color:#666; text-align:center;">一致するテンプレートはありません</div>';
+            }
             return;
         }
 
@@ -807,10 +830,6 @@ export class SelectTemplateModal extends BaseModal {
 
             info.appendChild(name);
             info.appendChild(meta);
-
-            // SelectTemplateModal doesn't need delete/favorite actions usually, 
-            // as it's for selecting. But we can add favorite toggle if requested.
-            // For now keep it simple: click to select.
 
             item.appendChild(info);
             this.list.appendChild(item);
