@@ -250,6 +250,7 @@ export class TemplateEditorModal extends BaseModal {
     constructor() {
         super('template-editor-modal');
         this.templatesContainer = document.getElementById('template-editor-list');
+        this.jsonEditor = new TemplateJsonEditorModal(() => this.loadTemplates());
 
         const btnClose = this.modal.querySelector('.close-modal');
         if (btnClose) btnClose.onclick = () => this.close();
@@ -286,6 +287,8 @@ export class TemplateEditorModal extends BaseModal {
         templates.forEach(t => {
             const item = document.createElement('div');
             item.className = 'template-item';
+            item.style.cursor = 'pointer';
+            item.onclick = () => this.jsonEditor.open(t);
 
             const info = document.createElement('div');
             info.className = 'template-info';
@@ -773,6 +776,7 @@ export class SelectTemplateModal extends BaseModal {
             const item = document.createElement('div');
             item.className = 'template-item';
             item.onclick = () => this.selectTemplate(t);
+            item.style.cursor = 'pointer';
 
             const info = document.createElement('div');
             info.className = 'template-info';
@@ -798,6 +802,10 @@ export class SelectTemplateModal extends BaseModal {
             info.appendChild(name);
             info.appendChild(meta);
 
+            // SelectTemplateModal doesn't need delete/favorite actions usually, 
+            // as it's for selecting. But we can add favorite toggle if requested.
+            // For now keep it simple: click to select.
+
             item.appendChild(info);
             this.list.appendChild(item);
         });
@@ -810,3 +818,60 @@ export class SelectTemplateModal extends BaseModal {
         this.close();
     }
 }
+
+export class TemplateJsonEditorModal extends BaseModal {
+    constructor(onSaveSuccess) {
+        super('template-json-editor-modal');
+        this.onSaveSuccess = onSaveSuccess;
+        this.inputName = document.getElementById('template-json-name');
+        this.inputJson = document.getElementById('template-json-content');
+        this.currentTemplateId = null;
+
+        const btnClose = this.modal.querySelector('.close-modal');
+        if (btnClose) btnClose.onclick = () => this.close();
+
+        const btnSave = document.getElementById('btn-template-json-save');
+        if (btnSave) btnSave.onclick = () => this.save();
+    }
+
+    open(template) {
+        this.currentTemplateId = template.id;
+        this.inputName.value = template.name;
+        // StepsのみをJSONとして表示・編集
+        this.inputJson.value = JSON.stringify(template.steps, null, 2);
+        super.open();
+    }
+
+    async save() {
+        const name = this.inputName.value.trim();
+        const jsonStr = this.inputJson.value;
+
+        if (!name) {
+            alert('テンプレート名を入力してください');
+            return;
+        }
+
+        let steps;
+        try {
+            steps = JSON.parse(jsonStr);
+            if (!Array.isArray(steps)) {
+                throw new Error('Root must be an array of steps');
+            }
+        } catch (e) {
+            alert('JSONが無効です: ' + e.message);
+            return;
+        }
+
+        try {
+            await API.updateTemplate(this.currentTemplateId, name, steps);
+            this.close();
+            if (this.onSaveSuccess) {
+                this.onSaveSuccess();
+            }
+        } catch (e) {
+            console.error(e);
+            alert('テンプレートの更新に失敗しました: ' + e.message);
+        }
+    }
+}
+

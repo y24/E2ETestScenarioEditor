@@ -78,3 +78,21 @@ class TemplatesService:
             cls._save_templates(templates)
             
         return target
+
+    @classmethod
+    def update_template(cls, template_id: str, name: str, steps: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        templates = cls._load_templates()
+        target = None
+        for t in templates:
+            if t["id"] == template_id:
+                t["name"] = name
+                t["steps"] = steps
+                # Optional: Update timestamp? usually we keep createdAt or add updatedAt.
+                # For simplicity, let's just update content.
+                target = t
+                break
+        
+        if target:
+            cls._save_templates(templates)
+            
+        return target

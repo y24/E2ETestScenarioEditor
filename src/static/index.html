@@ -48,7 +48,7 @@
                         </button>
                     </div>
                 </div>
-                <button id="btn-templates" class="icon-btn" title="テンプレート管理">
+                <button id="btn-templates" class="icon-btn" title="テンプレート一覧">
                     <ion-icon name="star-outline"></ion-icon>
                 </button>
                 <button id="btn-settings" class="icon-btn" title="設定">
@@ -177,7 +177,7 @@
     <div id="template-editor-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>テンプレート管理</h2>
+                <h2>テンプレート一覧</h2>
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
@@ -359,7 +359,7 @@
 
     <!-- Select Template Modal -->
     <div id="select-template-modal" class="modal hidden">
-        <div class="modal-content modal-lg">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2>テンプレートから追加</h2>
                 <button class="close-modal">&times;</button>
@@ -376,6 +376,32 @@
             </div>
             <div class="modal-footer">
                 <button id="btn-select-template-cancel" class="btn btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template JSON Editor Modal -->
+    <div id="template-json-editor-modal" class="modal hidden">
+        <div class="modal-content" style="height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h2>テンプレート編集</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <div class="form-group">
+                    <label>テンプレート名</label>
+                    <input type="text" id="template-json-name" class="form-input" placeholder="Template Name"
+                        spellcheck="false" autocomplete="off">
+                </div>
+                <div class="form-group" style="flex: 1; display: flex; flex-direction: column; margin-bottom: 0;">
+                    <label>JSON Data (Steps)</label>
+                    <textarea id="template-json-content" class="form-input"
+                        style="flex: 1; min-height: 200px; font-family: monospace; resize: none;"
+                        spellcheck="false"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-template-json-save" class="btn btn-primary">保存</button>
             </div>
         </div>
     </div>

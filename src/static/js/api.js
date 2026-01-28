@@ -119,6 +119,16 @@ export const API = {
         });
         if (!res.ok) throw new Error('Failed to toggle favorite');
         return res.json();
+    },
+
+    async updateTemplate(templateId, name, steps) {
+        const res = await fetch(`${API_BASE}/templates/${templateId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, steps })
+        });
+        if (!res.ok) throw new Error('Failed to update template');
+        return res.json();
     }
 };
 

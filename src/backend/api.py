@@ -217,3 +217,14 @@ async def toggle_template_favorite(template_id: str):
         raise HTTPException(status_code=404, detail="Template not found")
     return result
 
+class UpdateTemplateRequest(BaseModel):
+    name: str
+    steps: List[Dict[str, Any]]
+
+@router.put("/templates/{template_id}")
+async def update_template(template_id: str, req: UpdateTemplateRequest):
+    result = TemplatesService.update_template(template_id, req.name, req.steps)
+    if not result:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return result
+
