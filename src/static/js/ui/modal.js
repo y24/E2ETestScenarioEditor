@@ -25,7 +25,13 @@ export class BaseModal {
 
     close() {
         this.modal.classList.add('hidden');
-        this.backdrop.classList.add('hidden');
+
+        // Check if any other modal is still visible
+        const anyVisible = document.querySelectorAll('.modal:not(.hidden)').length > 0;
+        if (!anyVisible) {
+            this.backdrop.classList.add('hidden');
+        }
+
         window.removeEventListener('keydown', this._escListener);
     }
 
