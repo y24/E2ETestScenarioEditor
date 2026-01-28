@@ -692,10 +692,18 @@ export class SaveTemplateModal extends BaseModal {
 
     open(steps) {
         this.steps = steps || [];
-        this.inputName.value = '';
+
+        // Auto-fill name from the first step if available
+        if (this.steps.length > 0 && this.steps[0].name) {
+            this.inputName.value = this.steps[0].name;
+        } else {
+            this.inputName.value = '';
+        }
+
         this.countSpan.textContent = this.steps.length;
         super.open();
         this.inputName.focus();
+        this.inputName.select(); // Select the text for easy overwrite
     }
 
     async confirm() {
