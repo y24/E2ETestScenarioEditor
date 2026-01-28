@@ -173,5 +173,12 @@
         "text": "string",
         "path": "string",
         "filename": "string"
+    },
+    "validationExceptions": {
+        "verify": {
+            "target": [
+                "clipboard"
+            ]
+        }
     }
 }

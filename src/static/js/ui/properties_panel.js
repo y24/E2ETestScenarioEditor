@@ -20,6 +20,7 @@ export class PropertiesPanel {
     setActionParamsConfig(config) {
         this.actionParamsConfig = config.actions || {};
         this.paramTypes = config.paramTypes || {};
+        this.validationExceptions = config.validationExceptions || {};
     }
 
     setAppConfig(config) {
@@ -58,7 +59,18 @@ export class PropertiesPanel {
         if (!targetValue || targetValue.trim() === '') {
             return true; // Empty is considered valid (no error state)
         }
-        return this.availableTargets.includes(targetValue.trim());
+        const val = targetValue.trim();
+
+        // Check exceptions
+        if (this.currentStep && this.validationExceptions) {
+            const stepType = this.currentStep.type;
+            const exceptions = this.validationExceptions[stepType];
+            if (exceptions && exceptions.target && exceptions.target.includes(val)) {
+                return true;
+            }
+        }
+
+        return this.availableTargets.includes(val);
     }
 
     validateSharedPath(pathValue) {
@@ -76,12 +88,7 @@ export class PropertiesPanel {
         return this.availableSharedScenarios.some(p => p.toLowerCase() === normalized);
     }
 
-    validateTarget(targetValue) {
-        if (!targetValue || targetValue.trim() === '') {
-            return true; // Empty is considered valid (no error state)
-        }
-        return this.availableTargets.includes(targetValue.trim());
-    }
+
 
     render(step) {
         this.currentStep = step;
