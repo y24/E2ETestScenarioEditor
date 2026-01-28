@@ -1,3 +1,4 @@
+
 import { API } from '../api.js';
 
 export class BaseModal {
@@ -78,6 +79,30 @@ export class SettingsModal extends BaseModal {
 
         const btnAddDir = document.getElementById('btn-add-directory');
         if (btnAddDir) btnAddDir.onclick = () => this.addDirectory();
+
+        // Tabs
+        this.tabs = this.modal.querySelectorAll('.tab-btn');
+        this.tabContents = this.modal.querySelectorAll('.tab-content');
+        this.tabs.forEach(tab => {
+            tab.onclick = () => this.switchTab(tab.dataset.tab);
+        });
+
+        this.templatesContainer = document.getElementById('settings-template-list');
+    }
+
+    switchTab(tabId) {
+        this.tabs.forEach(t => t.classList.remove('active'));
+        this.tabContents.forEach(c => c.classList.remove('active'));
+
+        const activeTab = this.modal.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+        const activeContent = document.getElementById(tabId);
+
+        if (activeTab) activeTab.classList.add('active');
+        if (activeContent) activeContent.classList.add('active');
+
+        if (tabId === 'settings-templates') {
+            this.loadTemplates();
+        }
     }
 
     open(currentConfig = {}) {
@@ -92,7 +117,98 @@ export class SettingsModal extends BaseModal {
             this.sharedScenarioInput.value = this.sharedScenarioDir;
         }
         this.renderDirectories();
+        this.switchTab('settings-folders'); // Default tab
         super.open();
+    }
+
+    async loadTemplates() {
+        try {
+            const templates = await API.getTemplates();
+            this.renderTemplates(templates);
+        } catch (e) {
+            console.error('Failed to load templates:', e);
+            this.templatesContainer.innerHTML = '<div style="padding:10px; color:red;">Failed to load templates.</div>';
+        }
+    }
+
+    renderTemplates(templates) {
+        this.templatesContainer.innerHTML = '';
+        if (templates.length === 0) {
+            this.templatesContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">No templates saved.</div>';
+            return;
+        }
+
+        templates.forEach(t => {
+            const item = document.createElement('div');
+            item.className = 'template-item';
+
+            const info = document.createElement('div');
+            info.className = 'template-info';
+
+            const name = document.createElement('div');
+            name.className = 'template-name';
+            name.textContent = t.name;
+
+            const meta = document.createElement('div');
+            meta.className = 'template-meta';
+            const dateStr = new Date(t.createdAt * 1000).toLocaleString();
+            meta.textContent = `${t.steps.length} steps • ${dateStr}`;
+
+            info.appendChild(name);
+            info.appendChild(meta);
+
+            const actions = document.createElement('div');
+            actions.className = 'template-actions';
+
+            // Favorite
+            const favBtn = document.createElement('button');
+            favBtn.className = `icon-btn favorite-btn ${t.isFavorite ? 'active' : ''}`;
+            favBtn.innerHTML = t.isFavorite ? '<ion-icon name="star"></ion-icon>' : '<ion-icon name="star-outline"></ion-icon>';
+            favBtn.title = t.isFavorite ? 'Remove from favorites' : 'Add to favorites';
+            favBtn.onclick = async (e) => {
+                e.stopPropagation();
+                await this.toggleFavorite(t.id);
+            };
+
+            // Delete
+            const delBtn = document.createElement('button');
+            delBtn.className = 'icon-btn';
+            delBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+            delBtn.title = 'Delete template';
+            delBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (confirm(`Delete template "${t.name}"?`)) {
+                    await this.deleteTemplate(t.id);
+                }
+            };
+
+            actions.appendChild(favBtn);
+            actions.appendChild(delBtn);
+
+            item.appendChild(info);
+            item.appendChild(actions);
+            this.templatesContainer.appendChild(item);
+        });
+    }
+
+    async toggleFavorite(id) {
+        try {
+            await API.toggleTemplateFavorite(id);
+            this.loadTemplates(); // Reload to update list order
+        } catch (e) {
+            console.error(e);
+            alert('Failed to update favorite status');
+        }
+    }
+
+    async deleteTemplate(id) {
+        try {
+            await API.deleteTemplate(id);
+            this.loadTemplates();
+        } catch (e) {
+            console.error(e);
+            alert('Failed to delete template');
+        }
     }
 
     async openDirectoryPicker(pathInput, nameInput, isPageObjectFolder = false) {
@@ -551,5 +667,130 @@ export class GenericConfirmModal extends BaseModal {
         }
 
         super.open();
+    }
+}
+
+export class SaveTemplateModal extends BaseModal {
+    constructor() {
+        // Init SaveTemplateModal
+        super('save-template-modal');
+        this.inputName = document.getElementById('save-template-name');
+        this.countSpan = document.getElementById('save-template-count');
+        this.steps = [];
+
+        const btnClose = this.modal.querySelector('.close-modal');
+        if (btnClose) btnClose.onclick = () => this.cancel();
+
+        const btnSave = document.getElementById('btn-save-template-confirm');
+        if (btnSave) btnSave.onclick = () => this.confirm();
+
+        // Enter key support
+        this.inputName.onkeydown = (e) => {
+            if (e.key === 'Enter') this.confirm();
+        };
+    }
+
+    open(steps) {
+        this.steps = steps || [];
+        this.inputName.value = '';
+        this.countSpan.textContent = this.steps.length;
+        super.open();
+        this.inputName.focus();
+    }
+
+    async confirm() {
+        const name = this.inputName.value.trim();
+        if (!name) {
+            alert('テンプレート名を入力してください');
+            return;
+        }
+
+        try {
+            await API.createTemplate(name, this.steps);
+            this.close();
+        } catch (e) {
+            console.error(e);
+            alert('テンプレートの保存に失敗しました');
+        }
+    }
+}
+
+export class SelectTemplateModal extends BaseModal {
+    constructor(onSelectCallback) {
+        super('select-template-modal');
+        this.onSelectCallback = onSelectCallback;
+        this.list = document.getElementById('select-template-list');
+        this.emptyState = document.getElementById('template-empty-state');
+
+        const btnClose = this.modal.querySelector('.close-modal');
+        if (btnClose) btnClose.onclick = () => this.cancel();
+
+        const btnCancel = document.getElementById('btn-select-template-cancel');
+        if (btnCancel) btnCancel.onclick = () => this.cancel();
+    }
+
+    async open(onSelect) {
+        if (onSelect) this.onSelectCallback = onSelect;
+        super.open();
+        this.list.innerHTML = 'Loading...';
+        this.emptyState.style.display = 'none';
+
+        try {
+            const templates = await API.getTemplates();
+            this.renderTemplates(templates);
+        } catch (e) {
+            console.error(e);
+            this.list.innerHTML = 'Failed to load templates.';
+        }
+    }
+
+    renderTemplates(templates) {
+        this.list.innerHTML = '';
+        if (templates.length === 0) {
+            this.emptyState.style.display = 'flex';
+            return;
+        }
+
+        this.emptyState.style.display = 'none';
+
+        templates.forEach(t => {
+            const item = document.createElement('div');
+            item.className = 'template-item';
+            item.onclick = () => this.selectTemplate(t);
+
+            const info = document.createElement('div');
+            info.className = 'template-info';
+
+            const name = document.createElement('div');
+            name.className = 'template-name';
+            name.textContent = t.name;
+
+            if (t.isFavorite) {
+                const favIcon = document.createElement('ion-icon');
+                favIcon.name = 'star';
+                favIcon.style.color = '#f1c40f';
+                favIcon.style.fontSize = '1em';
+                name.prepend(document.createTextNode(' '));
+                name.prepend(favIcon);
+            }
+
+            const meta = document.createElement('div');
+            meta.className = 'template-meta';
+            const dateStr = new Date(t.createdAt * 1000).toLocaleString();
+            meta.textContent = `${t.steps.length} steps • ${dateStr}`;
+
+            info.appendChild(name);
+            info.appendChild(meta);
+
+            item.appendChild(info);
+            this.list.appendChild(item);
+        });
+    }
+
+    selectTemplate(template) {
+        if (this.onSelectCallback) {
+            this.onSelectCallback(template.steps);
+        }
+        this.close();
     }
 }

@@ -7,6 +7,7 @@ venv/
 .env
 .env.local
 config.json
+user_templates.json
 
 # IDES
 .vscode/

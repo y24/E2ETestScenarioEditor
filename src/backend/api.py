@@ -5,6 +5,7 @@ import os
 from .config import load_config, save_config, AppConfig
 from .file_service import FileService
 from .page_object_scanner import scan_page_objects
+from .templates_service import TemplatesService
 
 router = APIRouter(prefix="/api")
 
@@ -189,3 +190,30 @@ async def delete_scenario(path: str):
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- Templates API ---
+
+@router.get("/templates")
+async def get_templates():
+    return TemplatesService.get_templates()
+
+class CreateTemplateRequest(BaseModel):
+    name: str
+    steps: List[Dict[str, Any]]
+
+@router.post("/templates")
+async def create_template(req: CreateTemplateRequest):
+    return TemplatesService.save_template(req.name, req.steps)
+
+@router.delete("/templates/{template_id}")
+async def delete_template(template_id: str):
+    TemplatesService.delete_template(template_id)
+    return {"status": "success"}
+
+@router.post("/templates/{template_id}/favorite")
+async def toggle_template_favorite(template_id: str):
+    result = TemplatesService.toggle_favorite(template_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return result
+

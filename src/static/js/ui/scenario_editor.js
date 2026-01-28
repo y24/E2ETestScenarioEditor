@@ -2,7 +2,7 @@ import { GroupManager } from './group_manager.js';
 import { showToast } from './toast.js';
 
 export class ScenarioEditor {
-    constructor(containerId, onStepSelect, onDataChange, metaModal, itemRenameModal, genericConfirmModal) {
+    constructor(containerId, onStepSelect, onDataChange, metaModal, itemRenameModal, genericConfirmModal, saveTemplateModal, selectTemplateModal) {
         this.container = document.getElementById(containerId);
         this.sortables = [];
         this.groupManager = new GroupManager(this);
@@ -12,6 +12,8 @@ export class ScenarioEditor {
         this.metaModal = metaModal;
         this.itemRenameModal = itemRenameModal;
         this.genericConfirmModal = genericConfirmModal;
+        this.saveTemplateModal = saveTemplateModal;
+        this.selectTemplateModal = selectTemplateModal;
 
         if (this.itemRenameModal) {
             this.itemRenameModal.onConfirm = (sectionKey, itemId, newName) => {
@@ -175,6 +177,9 @@ export class ScenarioEditor {
                     <button class="btn-toolbar" id="btn-copy-selection">
                         <ion-icon name="copy-outline"></ion-icon> Copy
                     </button>
+                    <button class="btn-toolbar" id="btn-keep-template" title="Save as Template">
+                        <ion-icon name="star-outline"></ion-icon> Keep
+                    </button>
                     <button class="btn-toolbar btn-danger" id="btn-delete-selection">
                         <ion-icon name="trash-outline"></ion-icon> Delete
                     </button>
@@ -216,6 +221,10 @@ export class ScenarioEditor {
                             </button>
                             <button class="dropdown-item" data-action="paste" data-section="${key}" ${(!this.internalClipboard || this.internalClipboard.length === 0) ? 'disabled' : ''}>
                                 <ion-icon name="clipboard-outline"></ion-icon> ステップを貼り付け
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="add-from-template" data-section="${key}">
+                                <ion-icon name="star-outline"></ion-icon> テンプレートから追加
                             </button>
                         </div>
                     </div>
@@ -461,6 +470,9 @@ export class ScenarioEditor {
             };
         }
 
+        const btnKeep = this.container.querySelector('#btn-keep-template');
+        if (btnKeep) btnKeep.onclick = () => this.handleKeepTemplate();
+
         const btnClear = this.container.querySelector('#btn-clear-selection');
         if (btnClear) btnClear.onclick = () => {
             this.selectedSteps.clear();
@@ -589,6 +601,12 @@ export class ScenarioEditor {
             this.pasteSteps(section).catch(err => {
                 console.error('Failed to paste:', err);
             });
+        } else if (action === 'add-from-template') {
+            if (this.selectTemplateModal) {
+                this.selectTemplateModal.open((steps) => {
+                    this.insertStepsFromTemplate(section, steps);
+                });
+            }
         }
     }
 
@@ -1140,7 +1158,126 @@ export class ScenarioEditor {
         }
     }
 
-    // 現在選択中のステップの挿入位置を見つける
+    insertStepsFromTemplate(sectionKey, steps) {
+        if (!steps || steps.length === 0) return;
+
+        // Clone steps to avoid mutation issues and generate new IDs
+        const newSteps = JSON.parse(JSON.stringify(steps));
+
+        // Use paste logic to repurpose insertion code
+        this.internalClipboard = newSteps;
+        this.pasteSteps(sectionKey).then(() => {
+            // Clear internal clipboard to not affect subsequent pastes
+            this.internalClipboard = null;
+        });
+    }
+
+    handleKeepTemplate() {
+        if (this.selectedSteps.size === 0) return;
+
+        // Gather selected steps data
+        const stepsToKeep = [];
+        // Need to preserve order. Iterate over all steps/groups in current data and check if selected.
+
+        ['setup', 'steps', 'teardown'].forEach(section => {
+            const layout = this.currentData._editor.sections[section].layout;
+            const groups = this.currentData._editor.sections[section].groups;
+            const steps = this.currentData[section];
+
+            // Helper to check and add
+            const processId = (id) => {
+                if (id.startsWith('grp_')) {
+                    if (this.selectedSteps.has(id)) {
+                        // Entire group is selected. Add group (which includes items).
+                        const grp = groups[id];
+                        // We need to resolve step references to actual step objects for the template
+                        const grpSteps = grp.items.map(sid => steps.find(s => s._stepId === sid)).filter(s => !!s);
+                        // Construct a group item structure that includes step data directly?
+                        // Or just flatten key steps? 
+                        // The template service stores steps. If we have groups, how do we store them?
+                        // Currently ScenarioEditor renders steps. The backend template schema is just a list of "steps".
+                        // If we support groups in templates, we need to serialize the group structure.
+                        // For simplicity MVP: Flatten steps? Or keep group structure if backend supports it?
+                        // Backend is raw JSON. So we can store complex objects.
+                        // Let's store exactly what we would put on clipboard for copy/paste.
+
+                        // BUT, simplistic copy/paste might rely on internal clipboard state which might just be list of steps?
+                        // Let's check copySelection implementation... oh wait, I need to implement copy logic for reference.
+                        // Generally, we want to save the "Steps" as `Step` objects.
+                        // If a Group is selected, we should probably save its children?
+                        // If we want to support Groups in templates, we need to save the Group object too.
+                    }
+                }
+            };
+        });
+
+        // Let's reuse copySelection logic to get the JSON.
+        // But copySelection puts it on clipboard.
+        // We can extract that logic or just do it manually here.
+
+        const selectedData = [];
+
+        // We iterate through all sections in order to maintain order
+        ['setup', 'steps', 'teardown'].forEach(section => {
+            const meta = this.currentData._editor.sections[section];
+            const sectionSteps = this.currentData[section];
+
+            // We need to walk the layout to preserve order
+            meta.layout.forEach(itemId => {
+                if (itemId.startsWith('grp_')) {
+                    const grp = meta.groups[itemId];
+                    // If group is selected, we add the group object (with its children resolved? No, copy/paste usually handles raw steps + group meta?)
+                    // Current Paste logic expects an array of Step objects.
+                    // Groups are handled by `updateGroups`? No, groups are part of editor meta.
+                    // If we copy a group, we probably want to copy the group-definition AND the steps inside it.
+                    // But `pasteSteps` logic (lines 1114+) handles `s._stepId`.
+                    // It seems `pasteSteps` assumes `steps` are flat list of steps, OR it doesn't handle groups deeply?
+
+                    // Let's look at `pasteSteps` again.
+                    // It iterates over `steps`. Use `groupManager.generateStepId()`.
+                    // If we want to support groups in templates, we need a robust serialization.
+                    // For MVP: Let's just grab the individual steps selected, flattening groups.
+                    // This simplifies things immensely for now.
+
+                    if (this.selectedSteps.has(itemId)) {
+                        // Group selected: add all children
+                        grp.items.forEach(sid => {
+                            const s = sectionSteps.find(st => st._stepId === sid);
+                            if (s) selectedData.push(s);
+                        });
+                    } else {
+                        // Group not selected, check children
+                        grp.items.forEach(sid => {
+                            if (this.selectedSteps.has(sid)) {
+                                const s = sectionSteps.find(st => st._stepId === sid);
+                                if (s) selectedData.push(s);
+                            }
+                        });
+                    }
+                } else {
+                    // Top level step
+                    if (this.selectedSteps.has(itemId)) {
+                        const s = sectionSteps.find(st => st._stepId === itemId);
+                        if (s) selectedData.push(s);
+                    }
+                }
+            });
+        });
+
+        if (selectedData.length === 0) {
+            return;
+        }
+
+        // Clean up data (remove _stepId so new ones are generated on paste)
+        const cleanData = selectedData.map(s => {
+            const { _stepId, ...rest } = s;
+            return rest;
+        });
+
+        if (this.saveTemplateModal) {
+            this.saveTemplateModal.open(cleanData);
+        }
+    }
     findInsertionPoint(sectionKey, meta) {
         if (!this.activeItemId || !meta) return null;
 

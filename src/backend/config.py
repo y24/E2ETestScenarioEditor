@@ -4,8 +4,10 @@ from pydantic import BaseModel
 from typing import Optional
 
 CONFIG_FILE_NAME = "config.json"
+TEMPLATES_FILE_NAME = "user_templates.json"
 # プロジェクトルートに保存
 CONFIG_PATH = os.path.join(os.getcwd(), CONFIG_FILE_NAME)
+TEMPLATES_PATH = os.path.join(os.getcwd(), TEMPLATES_FILE_NAME)
 
 class ScenarioDirectory(BaseModel):
     name: str

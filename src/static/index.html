@@ -121,40 +121,55 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>Scenario Directories</label>
-                    <div id="directories-list" style="margin-bottom: 12px;">
-                        <!-- Directory items will be rendered here -->
-                    </div>
-                    <button id="btn-add-directory" class="btn btn-secondary">+ Add Directory</button>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="settings-folders">Folders</button>
+                    <button class="tab-btn" data-tab="settings-templates">Templates</button>
                 </div>
 
-                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-
-                <div class="form-group">
-                    <label>Shared Scenario Directory</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="shared-scenario-dir" class="form-input"
-                            placeholder="Path to shared scenarios folder" autocomplete="off">
-                        <button id="btn-pick-shared-scenario" class="btn btn-secondary" title="フォルダを選択">
-                            <ion-icon name="folder-open-outline"></ion-icon>
-                        </button>
+                <div id="settings-folders" class="tab-content active">
+                    <div class="form-group">
+                        <label>Scenario Directories</label>
+                        <div id="directories-list" style="margin-bottom: 12px;">
+                            <!-- Directory items will be rendered here -->
+                        </div>
+                        <button id="btn-add-directory" class="btn btn-secondary">+ Add Directory</button>
                     </div>
-                    <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
-                        共通シナリオとして使用するjsonファイルを抽出・表示します。</p>
+
+                    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+                    <div class="form-group">
+                        <label>Shared Scenario Directory</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="shared-scenario-dir" class="form-input"
+                                placeholder="Path to shared scenarios folder" autocomplete="off">
+                            <button id="btn-pick-shared-scenario" class="btn btn-secondary" title="フォルダを選択">
+                                <ion-icon name="folder-open-outline"></ion-icon>
+                            </button>
+                        </div>
+                        <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
+                            共通シナリオとして使用するjsonファイルを抽出・表示します。</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Page Object Folder</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="page-object-folder" class="form-input"
+                                placeholder="Path to page objects root" autocomplete="off">
+                            <button id="btn-pick-page-object-folder" class="btn btn-secondary" title="フォルダを選択">
+                                <ion-icon name="folder-open-outline"></ion-icon>
+                            </button>
+                        </div>
+                        <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
+                            指定したフォルダ内のPythonファイルをスキャンしてTarget候補として表示します。</p>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Page Object Folder</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="page-object-folder" class="form-input"
-                            placeholder="Path to page objects root" autocomplete="off">
-                        <button id="btn-pick-page-object-folder" class="btn btn-secondary" title="フォルダを選択">
-                            <ion-icon name="folder-open-outline"></ion-icon>
-                        </button>
+                <div id="settings-templates" class="tab-content">
+                    <div class="template-list-container">
+                        <div id="settings-template-list" class="template-list">
+                            <!-- Templates will be rendered here -->
+                        </div>
                     </div>
-                    <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
-                        指定したフォルダ内のPythonファイルをスキャンしてTarget候補として表示します。</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -300,6 +315,52 @@
             <div class="modal-footer">
                 <button id="btn-generic-confirm-yes" class="btn btn-danger">はい</button>
                 <button id="btn-generic-confirm-no" class="btn btn-secondary">いいえ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Template Modal -->
+    <div id="save-template-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>テンプレートとして保存</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>テンプレート名</label>
+                    <input type="text" id="save-template-name" class="form-input" placeholder="Template Name"
+                        spellcheck="false" autocomplete="off">
+                </div>
+                <p style="font-size: 0.9em; color: #666;">
+                    選択された <span id="save-template-count">0</span> 個のステップをテンプレートとして保存します。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-template-confirm" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select Template Modal -->
+    <div id="select-template-modal" class="modal hidden">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>テンプレートから追加</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="template-list-container">
+                    <div id="select-template-list" class="template-list">
+                        <!-- Templates will be rendered here -->
+                    </div>
+                </div>
+                <div class="empty-state" id="template-empty-state" style="display:none; padding: 20px;">
+                    <p>保存されたテンプレートはありません。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-select-template-cancel" class="btn btn-secondary">キャンセル</button>
             </div>
         </div>
     </div>

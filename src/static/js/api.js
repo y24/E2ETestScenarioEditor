@@ -86,6 +86,39 @@ export const API = {
             throw new Error(error.detail || 'Failed to delete scenario');
         }
         return res.json();
+    },
+
+    // Templates
+    async getTemplates() {
+        const res = await fetch(`${API_BASE}/templates`);
+        if (!res.ok) throw new Error('Failed to fetch templates');
+        return res.json();
+    },
+
+    async createTemplate(name, steps) {
+        const res = await fetch(`${API_BASE}/templates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, steps })
+        });
+        if (!res.ok) throw new Error('Failed to create template');
+        return res.json();
+    },
+
+    async deleteTemplate(templateId) {
+        const res = await fetch(`${API_BASE}/templates/${templateId}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Failed to delete template');
+        return res.json();
+    },
+
+    async toggleTemplateFavorite(templateId) {
+        const res = await fetch(`${API_BASE}/templates/${templateId}/favorite`, {
+            method: 'POST'
+        });
+        if (!res.ok) throw new Error('Failed to toggle favorite');
+        return res.json();
     }
 };
 
