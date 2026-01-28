@@ -48,6 +48,9 @@
                         </button>
                     </div>
                 </div>
+                <button id="btn-templates" class="icon-btn" title="テンプレート管理">
+                    <ion-icon name="star-outline"></ion-icon>
+                </button>
                 <button id="btn-settings" class="icon-btn" title="設定">
                     <ion-icon name="settings-outline"></ion-icon>
                 </button>
@@ -121,12 +124,12 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="tabs">
+                <!-- Tabs removed as only one item remains, but keeping structure if needed or simplified -->
+                <!-- <div class="tabs">
                     <button class="tab-btn active" data-tab="settings-folders">Folders</button>
-                    <button class="tab-btn" data-tab="settings-templates">Templates</button>
-                </div>
+                </div> -->
 
-                <div id="settings-folders" class="tab-content active">
+                <div id="settings-folders" class="tab-content active" style="display: block;">
                     <div class="form-group">
                         <label>Scenario Directories</label>
                         <div id="directories-list" style="margin-bottom: 12px;">
@@ -163,17 +166,29 @@
                             指定したフォルダ内のPythonファイルをスキャンしてTarget候補として表示します。</p>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-settings" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
 
-                <div id="settings-templates" class="tab-content">
-                    <div class="template-list-container">
-                        <div id="settings-template-list" class="template-list">
-                            <!-- Templates will be rendered here -->
-                        </div>
+    <!-- Template Editor Modal -->
+    <div id="template-editor-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>テンプレート管理</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="template-list-container">
+                    <div id="template-editor-list" class="template-list">
+                        <!-- Templates will be rendered here -->
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btn-save-settings" class="btn btn-primary">保存</button>
+                <button class="btn btn-secondary close-modal">閉じる</button>
             </div>
         </div>
     </div>

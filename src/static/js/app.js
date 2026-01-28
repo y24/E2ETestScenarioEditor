@@ -1,6 +1,6 @@
 import { API } from './api.js';
 import { FileBrowser } from './ui/file_browser.js';
-import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal, RenameModal, GenericConfirmModal, ItemRenameModal, SaveTemplateModal, SelectTemplateModal } from './ui/modal.js';
+import { SettingsModal, SaveAsModal, ConfirmModal, ScenarioMetaModal, RenameModal, GenericConfirmModal, ItemRenameModal, SaveTemplateModal, SelectTemplateModal, TemplateEditorModal } from './ui/modal.js';
 import { TargetSelectorModal } from './ui/target_selector_modal.js';
 import { SharedScenarioSelectorModal } from './ui/shared_scenario_selector_modal.js';
 import { TabManager } from './ui/tabs.js';
@@ -25,6 +25,7 @@ class App {
         this.genericConfirmModal = new GenericConfirmModal();
         this.saveTemplateModal = new SaveTemplateModal();
         this.selectTemplateModal = new SelectTemplateModal();
+        this.templateEditorModal = new TemplateEditorModal();
 
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
@@ -68,6 +69,8 @@ class App {
         document.getElementById('btn-duplicate-file').onclick = () => this.duplicateSelectedFile();
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
         document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
+
+        document.getElementById('btn-templates').onclick = () => this.templateEditorModal.open();
 
         // Save dropdown menu
         const saveDropdownBtn = document.getElementById('btn-save-dropdown');
