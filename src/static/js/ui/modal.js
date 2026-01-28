@@ -256,7 +256,9 @@ export class TemplateEditorModal extends BaseModal {
     constructor() {
         super('template-editor-modal');
         this.templatesContainer = document.getElementById('template-editor-list');
+        this.searchInput = document.getElementById('template-editor-search');
         this.jsonEditor = new TemplateJsonEditorModal(() => this.loadTemplates());
+        this.allTemplates = [];
 
         const btnClose = this.modal.querySelector('.close-modal');
         if (btnClose) btnClose.onclick = () => this.close();
@@ -264,17 +266,22 @@ export class TemplateEditorModal extends BaseModal {
         // Also close on generic close button in footer if exists
         const btnCloseFooter = this.modal.querySelector('.modal-footer .close-modal');
         if (btnCloseFooter) btnCloseFooter.onclick = () => this.close();
+
+        if (this.searchInput) {
+            this.searchInput.oninput = () => this.filterTemplates();
+        }
     }
 
     open() {
+        if (this.searchInput) this.searchInput.value = '';
         this.loadTemplates();
         super.open();
     }
 
     async loadTemplates() {
         try {
-            const templates = await API.getTemplates();
-            this.renderTemplates(templates);
+            this.allTemplates = await API.getTemplates();
+            this.filterTemplates();
         } catch (e) {
             console.error('Failed to load templates:', e);
             if (this.templatesContainer)
@@ -282,11 +289,21 @@ export class TemplateEditorModal extends BaseModal {
         }
     }
 
+    filterTemplates() {
+        const query = this.searchInput ? this.searchInput.value.toLowerCase().trim() : '';
+        const filtered = this.allTemplates.filter(t => t.name.toLowerCase().includes(query));
+        this.renderTemplates(filtered);
+    }
+
     renderTemplates(templates) {
         if (!this.templatesContainer) return;
         this.templatesContainer.innerHTML = '';
         if (templates.length === 0) {
-            this.templatesContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">No templates saved.</div>';
+            if (this.allTemplates.length === 0) {
+                this.templatesContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">No templates saved.</div>';
+            } else {
+                this.templatesContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">一致するテンプレートはありません</div>';
+            }
             return;
         }
 
