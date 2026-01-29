@@ -107,7 +107,8 @@
                 "mode",
                 "encoding",
                 "cell",
-                "sheet"
+                "sheet",
+                "ignore_whitespace"
             ],
             "paramValues": {
                 "type": [
