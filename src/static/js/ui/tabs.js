@@ -93,9 +93,13 @@ export class TabManager {
 
     renderTabBar() {
         this.tabBar.innerHTML = '';
-        this.tabs.forEach(tab => {
+        this.tabs.forEach((tab, index) => {
             const el = document.createElement('div');
             el.className = `tab-item ${tab.id === this.activeTabId ? 'active' : ''} ${tab.isPreview ? 'preview' : ''}`;
+            el.setAttribute('draggable', 'true');
+            el.dataset.id = tab.id;
+            el.dataset.index = index;
+
             el.innerHTML = `
                 <span class="tab-label">${tab.file.name}</span>
                 <span class="tab-close">&times;</span>
@@ -107,6 +111,39 @@ export class TabManager {
             el.onclick = () => this.activateTab(tab.id);
             el.querySelector('.tab-close').onclick = (e) => this.closeTab(tab.id, e);
 
+            // Drag and Drop handlers
+            el.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', tab.id);
+                // Set the drag image to be the element itself
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => el.classList.add('dragging'), 0);
+            };
+
+            el.ondragend = () => {
+                el.classList.remove('dragging');
+                const dragOvers = this.tabBar.querySelectorAll('.drag-over');
+                dragOvers.forEach(item => item.classList.remove('drag-over'));
+            };
+
+            el.ondragover = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                el.classList.add('drag-over');
+            };
+
+            el.ondragleave = () => {
+                el.classList.remove('drag-over');
+            };
+
+            el.ondrop = (e) => {
+                e.preventDefault();
+                el.classList.remove('drag-over');
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId !== tab.id) {
+                    this.moveTab(draggedId, tab.id);
+                }
+            };
+
             this.tabBar.appendChild(el);
 
             if (tab.id === this.activeTabId) {
@@ -115,6 +152,16 @@ export class TabManager {
                 });
             }
         });
+    }
+
+    moveTab(fromId, toId) {
+        const fromIndex = this.tabs.findIndex(t => t.id === fromId);
+        const toIndex = this.tabs.findIndex(t => t.id === toId);
+        if (fromIndex !== -1 && toIndex !== -1) {
+            const [movedTab] = this.tabs.splice(fromIndex, 1);
+            this.tabs.splice(toIndex, 0, movedTab);
+            this.renderTabBar();
+        }
     }
 
     getActiveTab() {

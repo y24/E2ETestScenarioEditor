@@ -302,31 +302,38 @@ class App {
             return;
         }
 
-        // Clone data to avoid modifying the current tab's data
-        const cleanData = JSON.parse(JSON.stringify(tab.data));
+        this.genericConfirmModal.open(
+            "メタ情報の削除",
+            "ステップのグループ化状態や、内部ID等のメタ情報を削除して保存しますか？",
+            async () => {
+                // Clone data to avoid modifying the current tab's data
+                const cleanData = JSON.parse(JSON.stringify(tab.data));
 
-        // Remove metadata from all sections
-        ['setup', 'steps', 'teardown'].forEach(section => {
-            if (cleanData[section] && Array.isArray(cleanData[section])) {
-                cleanData[section].forEach(step => {
-                    delete step._stepId;
+                // Remove metadata from all sections
+                ['setup', 'steps', 'teardown'].forEach(section => {
+                    if (cleanData[section] && Array.isArray(cleanData[section])) {
+                        cleanData[section].forEach(step => {
+                            delete step._stepId;
+                        });
+                    }
                 });
-            }
-        });
 
-        // Remove _editor metadata
-        delete cleanData._editor;
+                // Remove _editor metadata
+                delete cleanData._editor;
 
-        // Save the cleaned data
-        await this.performSave(tab.file.path, cleanData, tab.id);
+                // Save the cleaned data
+                await this.performSave(tab.file.path, cleanData, tab.id);
 
-        // Show toast notification
-        showToast("メタ情報を削除しました");
+                // Show toast notification
+                showToast("メタ情報を削除しました");
 
-        // Reload the file to refresh the display
-        setTimeout(async () => {
-            await this.reloadCurrentTab(true);
-        }, 500);
+                // Reload the file to refresh the display
+                setTimeout(async () => {
+                    await this.reloadCurrentTab(true);
+                }, 500);
+            },
+            { confirmText: "削除して保存", isDanger: true }
+        );
     }
 
     async duplicateSelectedFile() {

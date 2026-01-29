@@ -31,7 +31,19 @@
     margin-right: 2px;
     font-size: 0.85rem;
     user-select: none;
+    transition: background-color 0.2s, transform 0.2s;
 }
+
+.tab-item.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
+.tab-item.drag-over {
+    border-left: 2px solid var(--accent-color);
+    background-color: #3d566e;
+}
+
 
 .tab-item:hover {
     background-color: #3d566e;
