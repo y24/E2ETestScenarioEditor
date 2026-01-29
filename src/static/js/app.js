@@ -273,6 +273,7 @@ class App {
 
                 const tab = this.tabManager.openTab(fileObj, response.data, tabInfo.isPreview);
                 tab.lastModified = response.last_modified;
+                tab.hasOrgEditorMeta = !!response.data._editor;
 
             } catch (e) {
                 console.warn(`Failed to restore tab: ${tabInfo.path}`, e);
@@ -339,7 +340,8 @@ class App {
             parent: "New"
         };
 
-        this.tabManager.openTab(file, emptyData);
+        const tab = this.tabManager.openTab(file, emptyData);
+        tab.hasOrgEditorMeta = false;
 
         // Auto-show meta modal for new scenario
         this.metaModal.open(emptyData);
@@ -490,6 +492,7 @@ class App {
                 const response = await API.loadScenario(tab.file.path);
                 tab.data = response.data;
                 tab.lastModified = response.last_modified;
+                tab.hasOrgEditorMeta = !!response.data._editor;
 
                 this.tabManager.markDirty(tab.id, false);
                 this.onTabChange(tab);
@@ -608,7 +611,7 @@ class App {
         }
     }
 
-    async performSave(path, data, tabId, force = false) {
+    async performSave(path, data, tabId, force = false, metaConfirmed = false) {
         // Visual feedback
         const btn = document.getElementById('btn-save');
         const icon = btn.querySelector('ion-icon');
@@ -632,6 +635,24 @@ class App {
             }
         }
 
+        // Confirm before adding metadata if not present originally
+        if (hasGroups && tab && !tab.hasOrgEditorMeta && !metaConfirmed) {
+            // Reset icon
+            icon.setAttribute('name', originalName);
+            icon.style.color = '';
+
+            this.genericConfirmModal.open(
+                "メタ情報の追加",
+                "グループ化情報を保存するために、ファイルにメタ情報（_editor）を追加します。よろしいですか？\n追加された情報は、「メタ情報を削除して保存」を選択して再保存することで削除されます。",
+                () => {
+                    // Recursive call with confirmation
+                    this.performSave(path, data, tabId, force, true);
+                },
+                { confirmText: "保存して追加", cancelText: "キャンセル" }
+            );
+            return;
+        }
+
         if (!hasGroups) {
             dataToSave = JSON.parse(JSON.stringify(data));
             ['setup', 'steps', 'teardown'].forEach(section => {
@@ -652,6 +673,9 @@ class App {
             // Update lastModified from response
             if (tab && response.last_modified) {
                 tab.lastModified = response.last_modified;
+            }
+            if (tab) {
+                tab.hasOrgEditorMeta = !!dataToSave._editor;
             }
 
             // Refresh file list to reflect any name changes
@@ -679,7 +703,7 @@ class App {
                     "保存の競合",
                     "このファイルは他のプロセスによって変更されています。\n上書きしますか？",
                     async () => {
-                        await this.performSave(path, data, tabId, true);
+                        await this.performSave(path, data, tabId, true, metaConfirmed);
                     },
                     { confirmText: "上書き", cancelText: "キャンセル", isDanger: true }
                 );
@@ -712,6 +736,7 @@ class App {
             // Force update data and timestamp (in case tab was already open)
             tab.data = response.data;
             tab.lastModified = response.last_modified;
+            tab.hasOrgEditorMeta = !!response.data._editor;
 
             // If tab was already open, openTab triggers render with old data.
             // We need to re-render with new data.
