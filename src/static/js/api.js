@@ -27,6 +27,13 @@ export const API = {
         return res.json();
     },
 
+    async scanPageObject(targetName) {
+        const params = new URLSearchParams({ target: targetName });
+        const res = await fetch(`${API_BASE}/page-objects/scan?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to scan page object');
+        return res.json();
+    },
+
     async listFiles() {
         const res = await fetch(`${API_BASE}/files`);
         return res.json();

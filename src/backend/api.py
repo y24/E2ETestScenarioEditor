@@ -54,6 +54,33 @@ async def get_page_objects():
     except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/page-objects/scan")
+async def scan_target(target: str):
+    """
+    Scans specifically for the given target (and its file).
+    Returns the list of targets found in the corresponding file.
+    """
+    config = load_config()
+    if not config.page_object_folder:
+        return []
+    
+    try:
+        from .page_object_scanner import find_file_by_target, scan_file
+        from pathlib import Path
+        
+        file_path = find_file_by_target(target, config.page_object_folder)
+        
+        if file_path:
+             root_path = Path(config.page_object_folder)
+             return scan_file(file_path, root_path)
+             
+        # If file not found efficiently, maybe fallback or return empty
+        # For now, return empty creates no harm (client keeps current state)
+        return []
+        
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
+
 # --- File Browser API ---
 
 class FileInfo(BaseModel):

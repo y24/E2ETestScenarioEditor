@@ -88,6 +88,56 @@ export class PropertiesPanel {
         return this.availableSharedScenarios.some(p => p.toLowerCase() === normalized);
     }
 
+    async verifyAndRefreshTarget(targetValue) {
+        if (!targetValue || targetValue.trim() === '') return;
+        const val = targetValue.trim();
+
+        // If already valid, maybe we don't need to scan? 
+        // But user said "python file is edited and added method... becomes red", so valid list is stale.
+        // So we should scan regardless if we think it's invalid OR if we want to confirm.
+        // To save bandwidth, maybe only if invalid? 
+        // User said: "targetを入力画面から選択して値を設定したタイミングで...存在チェックを行う"
+        // (Perform existence check when target is selected/set)
+        // If it's already green, user assumes it's fine. If it's red but should be green, we scan.
+        // But if it's green but DELETED, we should also scan to show red?
+        // Let's scan always on explicit set/change to be safe and accurate.
+
+        try {
+            const newTargets = await API.scanPageObject(val);
+            if (newTargets) {
+                // Update the specific file's targets in our cache
+                // Since scanPageObject returns ALL targets in that file, we can merge.
+                // However, we don't know which old targets belonged to that file easily without tracking.
+                // But simply adding new ones is safe. Removing old ones... 
+                // If we don't remove old ones, deleted methods might stay valid in UI until full reload.
+                // This is acceptable for this localized "refresh" feature.
+
+                const newTargetNames = newTargets.map(t => t.target);
+                const currentSet = new Set(this.availableTargets);
+                newTargetNames.forEach(t => currentSet.add(t));
+                this.availableTargets = Array.from(currentSet);
+
+                this.refreshValidationState();
+            }
+        } catch (e) {
+            console.error('Target scan failed:', e);
+        }
+    }
+
+    refreshValidationState() {
+        const inputs = this.panel.querySelectorAll('.param-value');
+        inputs.forEach(input => {
+            const row = input.closest('.params-row');
+            if (row) {
+                const keyInput = row.querySelector('.param-key');
+                if (keyInput && keyInput.value.trim().toLowerCase() === 'target') {
+                    const isValid = this.validateTarget(input.value);
+                    input.style.backgroundColor = isValid ? '#ecf5ff' : '#ffe0e0';
+                }
+            }
+        });
+    }
+
 
 
     render(step) {
@@ -322,6 +372,7 @@ export class PropertiesPanel {
                         valInput.value = selectedValue;
                         checkSpecialKeys(); // Re-validate after selection
                         this.updateParamsFromGrid();
+                        this.verifyAndRefreshTarget(selectedValue);
                     });
                 }
             } else if (this.currentStep.type === 'run_scenario' && currentKey === 'path') {
@@ -449,6 +500,14 @@ export class PropertiesPanel {
             // Close all other menus first
             document.querySelectorAll('.param-key-dropdown.visible, .dropdown-menu.visible').forEach(m => m.classList.remove('visible'));
             toggleDropdown(!isVisible);
+        };
+
+        valInput.onchange = (e) => {
+            const currentKey = keyInput.value.trim().toLowerCase();
+            if (currentKey === 'target') {
+                this.verifyAndRefreshTarget(valInput.value);
+            }
+            this.updateRawJsonTextarea(); // Ensure sync happens on change as well if needed
         };
 
         valInput.oninput = () => this.updateParamsFromGrid();
