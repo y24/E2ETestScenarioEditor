@@ -428,20 +428,41 @@ class App {
             }
             const defaultName = baseName + '_copy';
 
-            // Calculate subdir and dirIndex for SaveAsModal
-            const parts = (selectedFile.relativePath || "").split(/[/\\]/);
-            parts.pop(); // Remove filename
-            const subdir = parts.join('/');
+            // Calculate subdir and dirIndex based on file path to ensure correct default folder
+            // instead of relying on selectedFile.dirIndex which might be missing
+            const normalize = p => p.replace(/\\/g, '/').toLowerCase();
+            const filePath = normalize(selectedFile.path);
+            const fileDir = filePath.substring(0, filePath.lastIndexOf('/'));
 
-            // Determine corect dirIndex for SaveAsModal
-            // FileBrowser uses index from API response list. 
-            // If index >= config.scenario_directories.length, it is likely the shared directory.
-            let dirIndex = selectedFile.dirIndex;
-            const configDirsCount = (this.config.scenario_directories || []).length;
+            let dirIndex = -1;
+            let subdir = "";
+            const configDirs = this.config.scenario_directories || [];
 
-            if (dirIndex >= configDirsCount) {
-                // Assuming it's the shared directory appended at the end
-                dirIndex = -1;
+            // Check configured directories
+            for (let i = 0; i < configDirs.length; i++) {
+                const rootPath = normalize(configDirs[i].path);
+                // Ensure directory boundary match: 
+                // Either exact match or followed by '/'
+                if (filePath.startsWith(rootPath) && (filePath.length === rootPath.length || filePath.charAt(rootPath.length) === '/')) {
+                    dirIndex = i;
+                    if (fileDir.length > rootPath.length) {
+                        subdir = fileDir.substring(rootPath.length);
+                        if (subdir.startsWith('/')) subdir = subdir.substring(1);
+                    }
+                    break;
+                }
+            }
+
+            // Check shared directory if not found in standard dirs
+            if (dirIndex === -1 && this.config.shared_scenario_dir) {
+                const sharedRoot = normalize(this.config.shared_scenario_dir);
+                if (filePath.startsWith(sharedRoot) && (filePath.length === sharedRoot.length || filePath.charAt(sharedRoot.length) === '/')) {
+                    // dirIndex stays -1
+                    if (fileDir.length > sharedRoot.length) {
+                        subdir = fileDir.substring(sharedRoot.length);
+                        if (subdir.startsWith('/')) subdir = subdir.substring(1);
+                    }
+                }
             }
 
             // Trigger Save As without opening a tab
