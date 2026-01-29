@@ -474,7 +474,18 @@ class App {
                 null, // onCancel
                 async (result) => {
                     const { dirIndex, subdir, filename } = result;
-                    const selectedDir = this.config.scenario_directories[dirIndex];
+
+                    let selectedDir;
+                    if (dirIndex === -1) {
+                        if (!this.config.shared_scenario_dir) {
+                            alert("Shared scenario directory is not configured.");
+                            return;
+                        }
+                        selectedDir = { path: this.config.shared_scenario_dir };
+                    } else {
+                        selectedDir = this.config.scenario_directories[dirIndex];
+                    }
+
                     let fullPath = selectedDir.path;
                     if (subdir) {
                         const separator = fullPath.includes('\\') ? '\\' : '/';
