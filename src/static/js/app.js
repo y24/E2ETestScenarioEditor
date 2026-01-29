@@ -618,8 +618,34 @@ class App {
         const tab = this.tabManager.tabs.find(t => t.id === tabId);
         const lastModified = tab ? tab.lastModified : null;
 
+        // Check if grouping is used. If not, remove metadata.
+        let dataToSave = data;
+        let hasGroups = false;
+        if (data._editor && data._editor.sections) {
+            for (const section of ['setup', 'steps', 'teardown']) {
+                if (data._editor.sections[section] &&
+                    data._editor.sections[section].groups &&
+                    Object.keys(data._editor.sections[section].groups).length > 0) {
+                    hasGroups = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasGroups) {
+            dataToSave = JSON.parse(JSON.stringify(data));
+            ['setup', 'steps', 'teardown'].forEach(section => {
+                if (dataToSave[section] && Array.isArray(dataToSave[section])) {
+                    dataToSave[section].forEach(step => {
+                        delete step._stepId;
+                    });
+                }
+            });
+            delete dataToSave._editor;
+        }
+
         try {
-            const response = await API.saveScenario(path, data, lastModified, force);
+            const response = await API.saveScenario(path, dataToSave, lastModified, force);
 
             this.tabManager.markDirty(tabId, false);
 
