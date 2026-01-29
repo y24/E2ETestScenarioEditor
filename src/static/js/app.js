@@ -56,7 +56,8 @@ class App {
             'tab-bar',
             'editor-container',
             this.onTabChange.bind(this),
-            this.onTabCloseRequest.bind(this)
+            this.onTabCloseRequest.bind(this),
+            this.saveTabsState.bind(this) // onTabReorder
         );
 
         document.getElementById('btn-refresh-files').onclick = () => {
@@ -176,6 +177,9 @@ class App {
                 this.propertiesPanel.loadAvailableTargets();
             }
 
+            // Restore opened tabs
+            await this.restoreTabs();
+
             this.updateActionButtons();
 
             // Window Focus / Tab Switch Events for File Sync
@@ -218,6 +222,70 @@ class App {
         } catch (e) {
             // File might have been deleted or network error
             console.warn("Check status failed:", e);
+        }
+    }
+
+    async saveTabsState() {
+        if (!this.config.ui_settings) {
+            this.config.ui_settings = {};
+        }
+
+        const tabsToSave = this.tabManager.tabs
+            .filter(t => t.file && t.file.path)
+            .map(t => ({
+                path: t.file.path,
+                isPreview: t.isPreview
+            }));
+
+        const activeTab = this.tabManager.getActiveTab();
+        const activeTabPath = activeTab ? activeTab.file.path : null;
+
+        this.config.ui_settings.opened_tabs = tabsToSave;
+        this.config.ui_settings.active_tab_path = activeTabPath;
+
+        // Save silently
+        try {
+            await API.saveConfig(this.config);
+        } catch (e) {
+            console.error("Failed to save tabs state", e);
+        }
+    }
+
+    async restoreTabs() {
+        if (!this.config.ui_settings || !this.config.ui_settings.opened_tabs) return;
+
+        const tabs = this.config.ui_settings.opened_tabs;
+        const activePath = this.config.ui_settings.active_tab_path;
+
+        for (const tabInfo of tabs) {
+            try {
+                // Check if file exists and load it
+                const response = await API.loadScenario(tabInfo.path);
+
+                // Construct basic file object
+                // We try to find the full file info from fileBrowser if loaded, 
+                // but if not, we create a minimal one.
+                let fileObj = {
+                    path: tabInfo.path,
+                    name: tabInfo.path.split(/[/\\]/).pop(),
+                    parent: ""
+                };
+
+                const tab = this.tabManager.openTab(fileObj, response.data, tabInfo.isPreview);
+                tab.lastModified = response.last_modified;
+
+            } catch (e) {
+                console.warn(`Failed to restore tab: ${tabInfo.path}`, e);
+                // Ignore errors as requested
+            }
+        }
+
+        if (activePath) {
+            // Find tab with this path
+            const tabToActivate = this.tabManager.tabs.find(t => t.file.path === activePath);
+            if (tabToActivate) {
+                this.tabManager.activateTab(tabToActivate.id);
+            }
         }
     }
 
@@ -695,6 +763,7 @@ class App {
             this.fileBrowser.selectFileByPath(null);
         }
         this.updateActionButtons();
+        this.saveTabsState();
     }
 
     updateActionButtons() {

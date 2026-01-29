@@ -1,11 +1,12 @@
 export class TabManager {
-    constructor(tabBarId, editorContainerId, onTabChange, onTabCloseRequest) {
+    constructor(tabBarId, editorContainerId, onTabChange, onTabCloseRequest, onTabReorder) {
         this.tabBar = document.getElementById(tabBarId);
         this.editorContainer = document.getElementById(editorContainerId);
         this.tabs = []; // { id: str, file: Obj, data: Obj, isDirty: bool }
         this.activeTabId = null;
         this.onTabChange = onTabChange;
         this.onTabCloseRequest = onTabCloseRequest;
+        this.onTabReorder = onTabReorder;
     }
 
     openTab(file, data, isPreview = false) {
@@ -161,6 +162,7 @@ export class TabManager {
             const [movedTab] = this.tabs.splice(fromIndex, 1);
             this.tabs.splice(toIndex, 0, movedTab);
             this.renderTabBar();
+            if (this.onTabReorder) this.onTabReorder();
         }
     }
 
