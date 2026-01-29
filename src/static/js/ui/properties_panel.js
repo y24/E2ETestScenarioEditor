@@ -295,13 +295,14 @@ export class PropertiesPanel {
         const row = document.createElement('div');
         row.className = 'params-row';
 
-        const valueStr = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : value;
         const typeConfig = this.actionParamsConfig[this.currentStep.type] || {};
         const paramNames = typeConfig.paramNames || [];
 
+        const inputHTML = `<input type="text" class="form-input param-value" placeholder="Value" autocomplete="off" ${key === 'target' ? 'readonly' : ''}>`;
+
         row.innerHTML = `
             <div class="param-key-container">
-                <input type="text" class="form-input param-key" value="${key}" placeholder="Key" autocomplete="off">
+                <input type="text" class="form-input param-key" placeholder="Key" autocomplete="off">
                 ${paramNames.length > 0 ? `
                     <div class="param-key-arrow" title="選択肢を表示">
                         <ion-icon name="chevron-down-outline"></ion-icon>
@@ -310,7 +311,7 @@ export class PropertiesPanel {
                 ` : ''}
             </div>
             <div class="param-value-container">
-                <input type="text" class="form-input param-value" value="${valueStr}" placeholder="Value" autocomplete="off" ${key === 'target' ? 'readonly' : ''}>
+                ${inputHTML}
                 <div class="combo-arrow" title="選択肢を表示">
                     <ion-icon name="chevron-down-outline"></ion-icon>
                 </div>
@@ -328,6 +329,14 @@ export class PropertiesPanel {
         const arrow = row.querySelector('.combo-arrow');
         const menu = row.querySelector('.dropdown-menu');
         const delBtn = row.querySelector('.btn-remove-param');
+
+        // Set values programmatically to avoid HTML injection issues
+        keyInput.value = key;
+        if (typeof value === 'object' && value !== null) {
+            valInput.value = JSON.stringify(value);
+        } else {
+            valInput.value = value;
+        }
 
         // Helper to setup special key behavior (target, shared path)
         const checkSpecialKeys = () => {

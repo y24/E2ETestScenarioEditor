@@ -628,3 +628,22 @@
     background-color: #eee;
     margin: 4px 0;
 }
+
+/* Multiline Params */
+.param-value-multiline {
+    resize: vertical;
+    min-height: 38px;
+    line-height: 1.4;
+    font-family: inherit;
+    white-space: pre;
+    overflow-y: auto;
+}
+
+.params-row.has-multiline {
+    align-items: flex-start;
+}
+
+.params-row.has-multiline .param-key-container,
+.params-row.has-multiline .btn-remove-param {
+    margin-top: 4px;
+}
