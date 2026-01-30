@@ -534,6 +534,39 @@ export class ScenarioEditor {
                     this.deleteSelection();
                 }
             }
+
+            // Handle Ctrl+G (Group)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+                if (this.selectedSteps.size > 0) {
+                    e.preventDefault();
+                    this.groupSelected();
+                }
+            }
+
+            // Handle Ctrl+H (Toggle Disable)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+                if (this.selectedSteps.size > 0) {
+                    e.preventDefault();
+                    const allIgnored = this.isSelectionAllIgnored();
+                    this.toggleIgnoreSelection(!allIgnored);
+                }
+            }
+
+            // Handle Escape (Clear Selection)
+            if (e.key === 'Escape') {
+                if (this.selectedSteps.size > 0) {
+                    e.preventDefault();
+                    this.selectedSteps.clear();
+                    this.activeItemId = null;
+                    this.selectedStep = null;
+                    if (this.currentTab && this.currentTab.uiState) {
+                        this.currentTab.uiState.activeItemId = null;
+                        this.currentTab.uiState.selectedStep = null;
+                    }
+                    this.rerender();
+                    if (this.onStepSelect) this.onStepSelect(null);
+                }
+            }
         });
     }
 
