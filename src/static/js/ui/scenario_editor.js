@@ -376,11 +376,18 @@ export class ScenarioEditor {
         this.container.querySelectorAll('.section-menu-btn').forEach(btn => {
             btn.onclick = (e) => {
                 e.stopPropagation();
+                const menu = btn.nextElementSibling;
+                const isVisible = menu.classList.contains('visible');
+
                 // Close others
                 this.container.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('visible'));
+                this.container.querySelectorAll('.section-header').forEach(h => h.classList.remove('menu-open'));
+
                 // Toggle current
-                const menu = btn.nextElementSibling;
-                menu.classList.toggle('visible');
+                if (!isVisible) {
+                    menu.classList.add('visible');
+                    btn.closest('.section-header').classList.add('menu-open');
+                }
             };
         });
 
@@ -389,13 +396,19 @@ export class ScenarioEditor {
             btn.onclick = (e) => {
                 e.stopPropagation();
                 // Close menu
-                btn.closest('.dropdown-menu').classList.remove('visible');
+                const menu = btn.closest('.dropdown-menu');
+                if (menu) {
+                    menu.classList.remove('visible');
+                    const header = menu.closest('.section-header');
+                    if (header) header.classList.remove('menu-open');
+                }
                 this.handleSectionAction(e);
             });
 
         // Close dropdowns on outside click
         document.addEventListener('click', () => {
             this.container.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('visible'));
+            this.container.querySelectorAll('.section-header').forEach(h => h.classList.remove('menu-open'));
         });
 
         // Step Actions

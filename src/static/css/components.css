@@ -171,6 +171,11 @@
     /* Restore margin bottom */
 }
 
+.steps-container .section-header.menu-open {
+    z-index: 50;
+    /* Ensure it stays above other sticky headers and meta */
+}
+
 .section-header:hover {
     color: var(--accent-color);
 }
