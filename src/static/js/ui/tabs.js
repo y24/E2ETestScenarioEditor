@@ -41,6 +41,7 @@ export class TabManager {
             file: file,
             data: data,
             isDirty: false,
+            hasExternalChanges: false,
             isPreview: isPreview
         };
 
@@ -110,6 +111,7 @@ export class TabManager {
             el.dataset.index = index;
 
             el.innerHTML = `
+                ${tab.hasExternalChanges ? '<span class="tab-change-warning" title="外部で変更されています"><ion-icon name="warning"></ion-icon></span>' : ''}
                 <span class="tab-label">${tab.file.name}</span>
                 <span class="tab-close">&times;</span>
             `;
@@ -189,6 +191,14 @@ export class TabManager {
             if (isDirty) {
                 tab.isPreview = false;
             }
+            this.renderTabBar();
+        }
+    }
+
+    setExternalChanges(tabId, hasChanges) {
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (tab) {
+            tab.hasExternalChanges = hasChanges;
             this.renderTabBar();
         }
     }

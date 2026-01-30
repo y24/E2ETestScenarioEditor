@@ -661,3 +661,31 @@
 .params-row.has-multiline .btn-remove-param {
     margin-top: 4px;
 }
+
+/* Tab Change Warning */
+.tab-change-warning {
+    color: #f39c12;
+    /* Warning color matching toast */
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    animation: pulse-icon 2s infinite ease-in-out;
+}
+
+@keyframes pulse-icon {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

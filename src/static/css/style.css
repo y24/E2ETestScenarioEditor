@@ -937,3 +937,14 @@ body {
     color: var(--text-primary);
     border-color: #ccc;
 }
+
+/* Toast Variations */
+.toast-notification.warning {
+    background-color: #f39c12;
+    color: #fff;
+}
+
+.toast-notification.error {
+    background-color: #e74c3c;
+    color: #fff;
+}

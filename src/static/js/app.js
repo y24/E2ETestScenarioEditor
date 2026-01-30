@@ -217,6 +217,7 @@ class App {
                 } else {
                     // Alert user but don't force reload to avoid data loss
                     showToast("警告: このファイルは外部で変更されています", "warning");
+                    this.tabManager.setExternalChanges(tab.id, true);
                 }
             }
         } catch (e) {
@@ -526,6 +527,7 @@ class App {
                 tab.hasOrgEditorMeta = !!response.data._editor;
 
                 this.tabManager.markDirty(tab.id, false);
+                this.tabManager.setExternalChanges(tab.id, false);
                 this.onTabChange(tab);
 
                 if (!silent) {
@@ -700,6 +702,7 @@ class App {
             const response = await API.saveScenario(path, dataToSave, lastModified, force);
 
             this.tabManager.markDirty(tabId, false);
+            this.tabManager.setExternalChanges(tabId, false);
 
             // Update lastModified from response
             if (tab && response.last_modified) {
