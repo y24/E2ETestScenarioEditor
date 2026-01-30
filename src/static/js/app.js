@@ -598,7 +598,7 @@ class App {
             return;
         }
 
-        let fullPath = basePath;
+        let fullPath = selectedDir.path;
         if (subdir) {
             const separator = fullPath.includes('\\') ? '\\' : '/';
             fullPath += separator + subdir;

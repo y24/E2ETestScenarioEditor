@@ -33,6 +33,9 @@ export class BaseModal {
         }
 
         window.removeEventListener('keydown', this._escListener);
+        if (this._enterListener) {
+            window.removeEventListener('keydown', this._enterListener);
+        }
     }
 
     cancel() {
@@ -403,7 +406,7 @@ export class SaveAsModal extends BaseModal {
         if (btnSave) btnSave.onclick = () => this.confirm();
     }
 
-    open(defaultFilename = '', closeAfterSave = false, defaultSubdir = '', defaultDirIndex = -1, onCancel = null, onSuccess = null) {
+    open(defaultFilename = '', closeAfterSave = false, defaultSubdir = '', defaultDirIndex = 0, onCancel = null, onSuccess = null) {
         this.onCancelCallback = onCancel;
         this.onSuccessCallback = onSuccess;
         this.closeAfterSave = closeAfterSave;
@@ -530,6 +533,17 @@ export class ConfirmModal extends BaseModal {
         if (title) this.modal.querySelector('h2').textContent = title;
         if (message) this.modal.querySelector('.modal-body p').textContent = message;
         if (callbacks) this.callbacks = callbacks;
+
+        // Allow Enter key to confirm (Yes)
+        this._enterListener = (e) => {
+            if (e.key === 'Enter' && !this.modal.classList.contains('hidden')) {
+                e.preventDefault();
+                this.close();
+                if (this.callbacks.onYes) this.callbacks.onYes();
+            }
+        };
+        window.addEventListener('keydown', this._enterListener);
+
         super.open();
     }
 }
@@ -699,6 +713,16 @@ export class GenericConfirmModal extends BaseModal {
             this.btnYes.classList.add('btn-primary');
             this.btnYes.classList.remove('btn-danger');
         }
+
+        // Allow Enter key to confirm
+        this._enterListener = (e) => {
+            if (e.key === 'Enter' && !this.modal.classList.contains('hidden')) {
+                e.preventDefault();
+                if (this.onYes) this.onYes();
+                this.close();
+            }
+        };
+        window.addEventListener('keydown', this._enterListener);
 
         super.open();
     }
