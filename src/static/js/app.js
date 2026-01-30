@@ -227,10 +227,6 @@ class App {
     }
 
     async saveTabsState() {
-        if (!this.config.ui_settings) {
-            this.config.ui_settings = {};
-        }
-
         const tabsToSave = this.tabManager.tabs
             .filter(t => t.file && t.file.path && !t.isPreview)
             .map(t => ({
@@ -240,12 +236,17 @@ class App {
         const activeTab = this.tabManager.getActiveTab();
         const activeTabPath = activeTab ? activeTab.file.path : null;
 
-        this.config.ui_settings.opened_tabs = tabsToSave;
-        this.config.ui_settings.active_tab_path = activeTabPath;
+        const updateData = {
+            ui_settings: {
+                opened_tabs: tabsToSave,
+                active_tab_path: activeTabPath
+            }
+        };
 
         // Save silently
         try {
-            await API.saveConfig(this.config);
+            const updated = await API.saveConfig(updateData);
+            this.config = updated;
         } catch (e) {
             console.error("Failed to save tabs state", e);
         }
@@ -299,25 +300,23 @@ class App {
         btn.title = isCompact ? "詳細表示に切り替え" : "コンパクト表示に切り替え";
 
         // Save to config
-        if (!this.config.ui_settings) {
-            this.config.ui_settings = {};
-        }
-        this.config.ui_settings.explorerCompactMode = isCompact;
+        const updateData = {
+            ui_settings: { explorerCompactMode: isCompact }
+        };
 
         // Save silently (don't reload file browser)
-        API.saveConfig(this.config).then(updated => {
+        API.saveConfig(updateData).then(updated => {
             this.config = updated;
         }).catch(e => console.error("Failed to save view config", e));
     }
 
     onExplorerCollapseChanged(dirs) {
-        if (!this.config.ui_settings) {
-            this.config.ui_settings = {};
-        }
-        this.config.ui_settings.collapsedDirs = dirs;
+        const updateData = {
+            ui_settings: { collapsedDirs: dirs }
+        };
 
         // Save silently
-        API.saveConfig(this.config).then(updated => {
+        API.saveConfig(updateData).then(updated => {
             this.config = updated;
         }).catch(e => console.error("Failed to save collapse config", e));
     }
@@ -757,6 +756,7 @@ class App {
 
     async onConfigSaved(newConfig) {
         this.config = await API.saveConfig(newConfig);
+        this.propertiesPanel.setAppConfig(this.config);
         this.fileBrowser.load();
         this.propertiesPanel.loadAvailableSharedScenarios();
         this.propertiesPanel.loadAvailableTargets();

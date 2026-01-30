@@ -152,25 +152,26 @@ export class Resizer {
      * Save current pane width to config
      */
     async saveWidth() {
-        if (!this.targetPane || !this.config) return;
+        if (!this.targetPane) return;
 
         const width = this.targetPane.offsetWidth;
 
-        // Initialize ui_settings if it doesn't exist
-        if (!this.config.ui_settings) {
-            this.config.ui_settings = {};
-        }
+        // Create partial update object
+        const updateData = {
+            ui_settings: {}
+        };
 
         // Save the appropriate width
         if (this.targetPane.classList.contains('pane-left')) {
-            this.config.ui_settings.paneLeftWidth = width;
+            updateData.ui_settings.paneLeftWidth = width;
         } else if (this.targetPane.classList.contains('pane-right')) {
-            this.config.ui_settings.paneRightWidth = width;
+            updateData.ui_settings.paneRightWidth = width;
         }
 
         // Save to backend
         try {
-            await apiClient.updateConfig(this.config);
+            // response is the full updated config
+            this.config = await apiClient.updateConfig(updateData);
         } catch (error) {
             console.error('Failed to save pane width:', error);
         }

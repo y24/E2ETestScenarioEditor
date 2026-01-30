@@ -806,7 +806,13 @@ export class PropertiesPanel {
                 // Save to config
                 if (!this.appConfig.ui_settings) this.appConfig.ui_settings = {};
                 this.appConfig.ui_settings.rawDataCollapsed = isCollapsed;
-                if (this.onConfigUpdate) this.onConfigUpdate(this.appConfig);
+
+                const updateData = {
+                    ui_settings: {
+                        rawDataCollapsed: isCollapsed
+                    }
+                };
+                if (this.onConfigUpdate) this.onConfigUpdate(updateData);
 
                 if (!isCollapsed) {
                     setTimeout(() => this.updateLineNumbers(), 0);

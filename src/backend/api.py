@@ -16,9 +16,24 @@ async def get_config():
     return load_config()
 
 @router.post("/config", response_model=AppConfig)
-async def update_config(config: AppConfig):
-    save_config(config)
-    return config
+async def update_config(config_data: Dict[str, Any] = Body(...)):
+    current_config = load_config()
+    current_config_dict = current_config.model_dump()
+    
+    # Deep merge logic for ui_settings
+    if "ui_settings" in config_data and isinstance(config_data["ui_settings"], dict):
+         # Update existing ui_settings with new values
+         current_ui_settings = current_config_dict.get("ui_settings") or {}
+         current_ui_settings.update(config_data["ui_settings"])
+         config_data["ui_settings"] = current_ui_settings
+    
+    # Update other fields that are present in the request
+    for key, value in config_data.items():
+        current_config_dict[key] = value
+    
+    new_config = AppConfig(**current_config_dict)
+    save_config(new_config)
+    return new_config
 
 # --- Utility API ---
 
