@@ -89,6 +89,7 @@ export class TabManager {
             this.activateTab(this.tabs[Math.max(0, index - 1)].id);
         } else {
             this.renderTabBar();
+            if (this.onTabReorder) this.onTabReorder();
         }
     }
 

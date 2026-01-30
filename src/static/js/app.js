@@ -231,10 +231,9 @@ class App {
         }
 
         const tabsToSave = this.tabManager.tabs
-            .filter(t => t.file && t.file.path)
+            .filter(t => t.file && t.file.path && !t.isPreview)
             .map(t => ({
-                path: t.file.path,
-                isPreview: t.isPreview
+                path: t.file.path
             }));
 
         const activeTab = this.tabManager.getActiveTab();
@@ -271,7 +270,7 @@ class App {
                     parent: ""
                 };
 
-                const tab = this.tabManager.openTab(fileObj, response.data, tabInfo.isPreview);
+                const tab = this.tabManager.openTab(fileObj, response.data, false);
                 tab.lastModified = response.last_modified;
                 tab.hasOrgEditorMeta = !!response.data._editor;
 
