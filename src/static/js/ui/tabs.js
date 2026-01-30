@@ -52,6 +52,13 @@ export class TabManager {
 
     activateTab(tabId) {
         this.activeTabId = tabId;
+
+        // Preview tab handling: close if switching to another existing tab
+        const previewTab = this.tabs.find(t => t.isPreview);
+        if (previewTab && previewTab.id !== tabId) {
+            this.forceCloseTab(previewTab.id);
+        }
+
         this.renderTabBar();
 
         const tab = this.tabs.find(t => t.id === tabId);
