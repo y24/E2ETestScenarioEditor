@@ -760,17 +760,39 @@ class App {
     }
 
     async onFileSelected(file, isPreview = false) {
+        // Normalize path for comparison
+        const normalize = (path) => path ? path.replace(/\\/g, '/') : path;
+        const normalizedPath = normalize(file.path);
+
+        // Check if tab is already open
+        const existingTab = this.tabManager.tabs.find(t => t.file && normalize(t.file.path) === normalizedPath);
+
+        if (existingTab) {
+            // If it's a preview and we now want it permanent
+            if (existingTab.isPreview && !isPreview) {
+                existingTab.isPreview = false;
+            }
+            this.tabManager.activateTab(existingTab.id);
+            return;
+        }
+
         try {
             const response = await API.loadScenario(file.path);
             const tab = this.tabManager.openTab(file, response.data, isPreview);
 
             // Force update data and timestamp (in case tab was already open)
+            // Note: The check above handles the "already open" case now, so this logic 
+            // mainly applies to the new tab or if openTab behavior changes.
+            // But openTab also checks for existing, so technically this is a bit redundant 
+            // if we handle it here, but safe to keep for consistency if openTab does something else.
+            // Actually, now that we return early if existing, openTab will only be called for NEW tabs.
+
             tab.data = response.data;
             tab.lastModified = response.last_modified;
             tab.hasOrgEditorMeta = !!response.data._editor;
 
-            // If tab was already open, openTab triggers render with old data.
-            // We need to re-render with new data.
+            // We don't need to force markDirty(false) here because openTab initializes as clean
+            // and we rely on that. But keeping it explicitly doesn't hurt for new tabs.
             this.tabManager.markDirty(tab.id, false);
             this.onTabChange(tab);
 
