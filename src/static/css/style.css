@@ -85,6 +85,7 @@ body {
 .pane-center {
     flex: 1;
     background-color: #fafafa;
+    min-width: 150px;
 }
 
 .pane-right {

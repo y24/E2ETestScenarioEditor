@@ -109,6 +109,7 @@
     display: flex;
     gap: 16px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .meta-input {
@@ -125,6 +126,7 @@
 
 #meta-name {
     flex: 1;
+    min-width: 0;
 }
 
 .meta-input:focus {
