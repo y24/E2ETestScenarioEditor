@@ -139,7 +139,7 @@ export class ScenarioEditor {
                     <div class="meta-field">
                         ${idHtml}
                     </div>
-                    <div class="meta-field">
+                    <div class="meta-field meta-field-name">
                         ${nameHtml}
                     </div>
                     <button id="btn-edit-meta" class="icon-btn-small meta-edit-btn" title="基本情報を編集">

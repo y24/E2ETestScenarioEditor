@@ -754,13 +754,18 @@ body {
     display: flex;
     align-items: center;
     gap: 24px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .meta-field {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+}
+
+.meta-field-name {
+    flex: 1;
 }
 
 .meta-field label {
@@ -792,6 +797,10 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
 
 .scenario-meta .placeholder {
