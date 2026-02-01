@@ -108,7 +108,8 @@ export class Resizer {
             leftPane.classList.add('minimized');
         } else {
             leftPane.classList.remove('minimized');
-            leftPane.style.width = `${this.preMinimizeWidth || 300}px`;
+            const restoreWidth = this.preMinimizeWidth || 300;
+            leftPane.style.width = `${restoreWidth}px`;
         }
 
         if (shouldSave) {
@@ -143,7 +144,11 @@ export class Resizer {
         this.startX = e.clientX;
 
         if (side === 'left') {
-            this.targetPane = document.querySelector('.pane-left');
+            const leftPane = document.querySelector('.pane-left');
+            if (leftPane && !leftPane.classList.contains('minimized')) {
+                this.preMinimizeWidth = leftPane.offsetWidth;
+            }
+            this.targetPane = leftPane;
             this.currentResizer = document.getElementById('resizer-left');
             this.side = 'left';
             if (this.targetPane.classList.contains('minimized')) {
@@ -216,6 +221,12 @@ export class Resizer {
         // Save the new width to config
         if (this.targetPane) {
             if (this.side === 'left' && this.targetPane.offsetWidth < 100) {
+                // Force reset to preMinimizeWidth BEFORE minimizing 
+                // so that the narrow width isn't the last state
+                if (this.preMinimizeWidth < 100) {
+                    this.preMinimizeWidth = 300;
+                }
+                this.targetPane.style.width = `${this.preMinimizeWidth}px`;
                 await this.toggleMinimizeExplorer(true);
             } else {
                 await this.saveWidth();
