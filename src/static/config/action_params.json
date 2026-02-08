@@ -33,7 +33,8 @@
                 "value",
                 "regex",
                 "save_as",
-                "method"
+                "method",
+                "timeout"
             ],
             "paramValues": {
                 "operation": [
