@@ -963,7 +963,29 @@ export class ScenarioEditor {
         }
 
         this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
+
+        // 新しいステップを選択状態にする
+        this.selectedSteps.clear();
+        this.selectedSteps.add(newStep._stepId);
+        this.activeItemId = newStep._stepId;
+        this.lastCheckedStepId = newStep._stepId;
+        this.selectedStep = newStep;
+
+        if (this.currentTab && this.currentTab.uiState) {
+            this.currentTab.uiState.activeItemId = this.activeItemId;
+            this.currentTab.uiState.selectedStep = this.selectedStep;
+        }
+
         this.rerender();
+
+        // 新しいステップまでスクロール
+        const newEl = this.container.querySelector(`[data-id="${newStep._stepId}"]`);
+        if (newEl) {
+            newEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        if (this.onStepSelect) this.onStepSelect(newStep);
+
         this.onDataChange();
     }
 
@@ -1175,8 +1197,11 @@ export class ScenarioEditor {
             let insertIndex = insertionResult ? insertionResult.index + 1 : null;
             let targetGroup = insertionResult && insertionResult.isGroup ? insertionResult.target : null;
 
+            const newStepIds = [];
+
             steps.forEach((s, i) => {
                 s._stepId = this.groupManager.generateStepId();
+                newStepIds.push(s._stepId);
                 this.currentData[sectionKey].push(s);
 
                 if (meta) {
@@ -1195,7 +1220,35 @@ export class ScenarioEditor {
             });
 
             this.groupManager.sortSectionDataByLayout(sectionKey, this.currentData);
+
+            // 貼り付けたステップを選択状態にする
+            if (newStepIds.length > 0) {
+                this.selectedSteps.clear();
+                newStepIds.forEach(id => this.selectedSteps.add(id));
+
+                const lastId = newStepIds[newStepIds.length - 1];
+                this.activeItemId = lastId;
+                this.lastCheckedStepId = lastId;
+                this.selectedStep = this.currentData[sectionKey].find(s => s._stepId === lastId);
+
+                // タブ状態の更新
+                if (this.currentTab && this.currentTab.uiState) {
+                    this.currentTab.uiState.activeItemId = this.activeItemId;
+                    this.currentTab.uiState.selectedStep = this.selectedStep;
+                }
+            }
+
             this.rerender();
+
+            // 最後に選択したステップまでスクロール
+            if (this.activeItemId) {
+                const el = this.container.querySelector(`[data-id="${this.activeItemId}"]`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                if (this.onStepSelect) this.onStepSelect(this.selectedStep);
+            }
+
             this.onDataChange();
             showToast('貼り付けました');
         } catch (err) {
