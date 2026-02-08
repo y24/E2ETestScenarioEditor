@@ -332,6 +332,7 @@
 
 .props-container {
     padding: 16px;
+    padding-bottom: 70px;
     height: 100%;
     display: flex;
     flex-direction: column;
