@@ -177,7 +177,7 @@ export class ScenarioEditor {
                     <button class="btn-toolbar" id="btn-copy-selection" title="Copy (Ctrl+C)">
                         <ion-icon name="copy-outline"></ion-icon> Copy
                     </button>
-                    <button class="btn-toolbar" id="btn-keep-template" title="Save as Template">
+                    <button class="btn-toolbar" id="btn-keep-template" title="Save as Template (Ctrl+K)">
                         <ion-icon name="star-outline"></ion-icon> Keep
                     </button>
                     <button class="btn-toolbar btn-danger" id="btn-delete-selection" title="Delete (Del)">
@@ -562,6 +562,14 @@ export class ScenarioEditor {
                     e.preventDefault();
                     const allIgnored = this.isSelectionAllIgnored();
                     this.toggleIgnoreSelection(!allIgnored);
+                }
+            }
+
+            // Handle Ctrl+K (Keep/Save as Template)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                if (this.selectedSteps.size > 0) {
+                    e.preventDefault();
+                    this.handleKeepTemplate();
                 }
             }
 
