@@ -168,22 +168,22 @@ export class ScenarioEditor {
             html += `
                 <div class="selection-toolbar">
                     <span class="selection-count">${this.selectedSteps.size} selected</span>
-                    <button class="btn-toolbar" id="btn-group-action">
+                    <button class="btn-toolbar" id="btn-group-action" title="${groupBtnLabel} (Ctrl+G)">
                         <ion-icon name="${groupBtnIcon}"></ion-icon> ${groupBtnLabel}
                     </button>
-                    <button class="btn-toolbar" id="btn-toggle-disable">
+                    <button class="btn-toolbar" id="btn-toggle-disable" title="${disableBtnLabel} (Ctrl+H)">
                         <ion-icon name="${disableBtnIcon}"></ion-icon> ${disableBtnLabel}
                     </button>
-                    <button class="btn-toolbar" id="btn-copy-selection">
+                    <button class="btn-toolbar" id="btn-copy-selection" title="Copy (Ctrl+C)">
                         <ion-icon name="copy-outline"></ion-icon> Copy
                     </button>
                     <button class="btn-toolbar" id="btn-keep-template" title="Save as Template">
                         <ion-icon name="star-outline"></ion-icon> Keep
                     </button>
-                    <button class="btn-toolbar btn-danger" id="btn-delete-selection">
+                    <button class="btn-toolbar btn-danger" id="btn-delete-selection" title="Delete (Del)">
                         <ion-icon name="trash-outline"></ion-icon> Delete
                     </button>
-                    <button class="btn-toolbar" id="btn-clear-selection" style="margin-left: auto;">Cancel</button>
+                    <button class="btn-toolbar" id="btn-clear-selection" style="margin-left: auto;" title="Cancel (Esc)">Cancel</button>
                 </div>
             `;
         }
