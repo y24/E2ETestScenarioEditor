@@ -1530,6 +1530,15 @@ export class ScenarioEditor {
 
             if (this.selectedStep.ignore) this.selectedEl.classList.add('ignored');
             else this.selectedEl.classList.remove('ignored');
+
+            // Update Validation State
+            if (this.validator) {
+                if (this.validator(this.selectedStep)) {
+                    this.selectedEl.classList.remove('invalid-step');
+                } else {
+                    this.selectedEl.classList.add('invalid-step');
+                }
+            }
         }
     }
 
