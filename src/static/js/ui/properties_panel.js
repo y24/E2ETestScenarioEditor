@@ -55,15 +55,16 @@ export class PropertiesPanel {
         }
     }
 
-    validateTarget(targetValue) {
+    validateTarget(targetValue, step) {
         if (!targetValue || targetValue.trim() === '') {
             return true; // Empty is considered valid (no error state)
         }
         const val = targetValue.trim();
+        const currentStep = step || this.currentStep;
 
         // Check exceptions
-        if (this.currentStep && this.validationExceptions) {
-            const stepType = this.currentStep.type;
+        if (currentStep && this.validationExceptions) {
+            const stepType = currentStep.type;
             const exceptions = this.validationExceptions[stepType];
             if (exceptions && exceptions.target && exceptions.target.includes(val)) {
                 return true;
@@ -86,6 +87,24 @@ export class PropertiesPanel {
         }
         const normalized = pathValue.trim().replace(/\\/g, '/').toLowerCase();
         return this.availableSharedScenarios.some(p => p.toLowerCase() === normalized);
+    }
+
+    validateStep(step) {
+        if (!step) return true;
+
+        // 1. Check target
+        // Some steps might not have target but depend on type. 
+        // We only validate if 'target' param is present in the step's params
+        if (step.params && step.params.target !== undefined) {
+            if (!this.validateTarget(step.params.target, step)) return false;
+        }
+
+        // 2. Check run_scenario path
+        if (step.type === 'run_scenario' && step.params && step.params.path) {
+            if (!this.validateSharedPath(step.params.path)) return false;
+        }
+
+        return true;
     }
 
     async verifyAndRefreshTarget(targetValue) {

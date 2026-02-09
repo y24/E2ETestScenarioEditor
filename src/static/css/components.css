@@ -258,6 +258,22 @@
     text-decoration: line-through;
 }
 
+.step-item.invalid-step {
+    background-color: #ffe0e0;
+    border-color: #ffb3b3;
+}
+
+.step-item.selected.invalid-step {
+    background-color: #ffd0d0;
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 1px #e74c3c;
+}
+
+.step-item.selected-primary.invalid-step {
+    border-color: #c0392b;
+    box-shadow: 0 0 0 1px #c0392b;
+}
+
 .step-grip {
     color: #bdc3c7;
     cursor: grab;

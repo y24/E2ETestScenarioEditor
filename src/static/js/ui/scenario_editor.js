@@ -2,7 +2,7 @@ import { GroupManager } from './group_manager.js';
 import { showToast } from './toast.js';
 
 export class ScenarioEditor {
-    constructor(containerId, onStepSelect, onDataChange, metaModal, itemRenameModal, genericConfirmModal, saveTemplateModal, selectTemplateModal) {
+    constructor(containerId, onStepSelect, onDataChange, metaModal, itemRenameModal, genericConfirmModal, saveTemplateModal, selectTemplateModal, validator) {
         this.container = document.getElementById(containerId);
         this.sortables = [];
         this.groupManager = new GroupManager(this);
@@ -14,6 +14,7 @@ export class ScenarioEditor {
         this.genericConfirmModal = genericConfirmModal;
         this.saveTemplateModal = saveTemplateModal;
         this.selectTemplateModal = selectTemplateModal;
+        this.validator = validator;
 
         if (this.itemRenameModal) {
             this.itemRenameModal.onConfirm = (sectionKey, itemId, newName) => {
@@ -283,8 +284,13 @@ export class ScenarioEditor {
         const checked = this.selectedSteps.has(step._stepId) ? 'checked' : '';
         const activeClass = step._stepId === this.activeItemId ? 'selected-primary' : '';
 
+        let validationClass = '';
+        if (this.validator) {
+            validationClass = this.validator(step) ? '' : 'invalid-step';
+        }
+
         return `
-            <div class="step-item ${ignoredClass} ${isSelected} ${activeClass}" data-id="${step._stepId}" data-type="step" data-section="${sectionKey}">
+            <div class="step-item ${ignoredClass} ${isSelected} ${activeClass} ${validationClass}" data-id="${step._stepId}" data-type="step" data-section="${sectionKey}">
                 <div class="step-grip"><ion-icon name="reorder-two-outline"></ion-icon></div>
                 <input type="checkbox" class="step-checkbox" ${checked}>
                 <div class="step-icon_type" title="${step.type}">${typeIcon}</div>

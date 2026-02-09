@@ -41,7 +41,8 @@ class App {
             this.itemRenameModal,
             this.genericConfirmModal,
             this.saveTemplateModal,
-            this.selectTemplateModal
+            this.selectTemplateModal,
+            (step) => this.propertiesPanel ? this.propertiesPanel.validateStep(step) : true
         );
 
         this.propertiesPanel = new PropertiesPanel(
@@ -60,10 +61,18 @@ class App {
             this.saveTabsState.bind(this) // onTabReorder
         );
 
-        document.getElementById('btn-refresh-files').onclick = () => {
-            this.fileBrowser.load();
-            this.propertiesPanel.loadAvailableSharedScenarios();
-            this.propertiesPanel.loadAvailableTargets();
+        document.getElementById('btn-refresh-files').onclick = async () => {
+            const btn = document.getElementById('btn-refresh-files');
+            const icon = btn.querySelector('ion-icon');
+            icon.classList.add('rotating'); // Add rotation effect if CSS supports it
+
+            await this.fileBrowser.load();
+            await this.propertiesPanel.loadAvailableSharedScenarios();
+            await this.propertiesPanel.loadAvailableTargets();
+
+            if (this.editor) this.editor.rerender();
+
+            icon.classList.remove('rotating');
         };
         document.getElementById('btn-toggle-view').onclick = () => this.toggleFileView();
         document.getElementById('btn-new-file').onclick = () => this.createNewScenario();
@@ -172,9 +181,11 @@ class App {
             if (!this.config.scenario_directories || this.config.scenario_directories.length === 0) {
                 this.settingsModal.open(this.config);
             } else {
-                this.fileBrowser.load();
-                this.propertiesPanel.loadAvailableSharedScenarios();
-                this.propertiesPanel.loadAvailableTargets();
+                await Promise.all([
+                    this.fileBrowser.load(),
+                    this.propertiesPanel.loadAvailableSharedScenarios(),
+                    this.propertiesPanel.loadAvailableTargets()
+                ]);
             }
 
             // Restore opened tabs
