@@ -147,6 +147,26 @@ export class ScenarioEditor {
                         <ion-icon name="create-outline"></ion-icon> 編集
                     </button>
                 </div>
+                <div class="scenario-action-area">
+                    <div class="execution-actions" aria-label="現在のシナリオを実行">
+                    <button id="btn-run-all" class="execution-action-btn" title="Run all">
+                        <ion-icon name="play-outline"></ion-icon>
+                        <span>全実行</span>
+                    </button>
+                    <button id="btn-run-until" class="execution-action-btn" title="Run until selected">
+                        <ion-icon name="play-skip-forward-outline"></ion-icon>
+                        <span>ここまで</span>
+                    </button>
+                    <button id="btn-run-selected" class="execution-action-btn" title="Run selected step">
+                        <ion-icon name="radio-button-on-outline"></ion-icon>
+                        <span>選択のみ</span>
+                    </button>
+                    <button id="btn-stop-execution" class="execution-action-btn execution-action-stop" title="Stop execution" disabled>
+                        <ion-icon name="stop-outline"></ion-icon>
+                        <span>停止</span>
+                    </button>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -315,6 +335,33 @@ export class ScenarioEditor {
 
     setActionParamsConfig(config) {
         this.actionParamsConfig = config.actions || {};
+    }
+
+    getSelectedStepRange() {
+        if (!this.currentData || this.selectedSteps.size === 0) return null;
+
+        const selected = [];
+        for (const section of ['setup', 'steps', 'teardown']) {
+            const steps = this.currentData[section] || [];
+            steps.forEach((step, index) => {
+                if (this.selectedSteps.has(step._stepId)) {
+                    selected.push({ section, index, step, step_id: step._stepId });
+                }
+            });
+        }
+
+        if (selected.length === 0) return null;
+        const sections = new Set(selected.map(item => item.section));
+        if (sections.size !== 1) return null;
+
+        selected.sort((a, b) => a.index - b.index);
+        return {
+            section: selected[0].section,
+            step_start: selected[0].index,
+            step_end: selected[selected.length - 1].index,
+            step_id: selected[0].step_id,
+            count: selected.length
+        };
     }
 
     getStepDescription(step) {

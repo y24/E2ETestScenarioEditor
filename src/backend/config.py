@@ -1,6 +1,6 @@
 import os
 import json
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 CONFIG_FILE_NAME = "config.json"
@@ -13,11 +13,19 @@ class ScenarioDirectory(BaseModel):
     name: str
     path: str
 
+class ExecutionSettings(BaseModel):
+    python_executable: str = ""
+    default_env: str = "DEFAULT"
+    auto_save_before_run: bool = True
+    max_log_lines: int = 2000
+
 class AppConfig(BaseModel):
-    scenario_directories: list[ScenarioDirectory] = []
+    scenario_directories: list[ScenarioDirectory] = Field(default_factory=list)
     shared_scenario_dir: Optional[str] = None
     page_object_folder: Optional[str] = None
-    ui_settings: Optional[dict] = {}
+    framework_path: Optional[str] = None
+    execution_settings: ExecutionSettings = Field(default_factory=ExecutionSettings)
+    ui_settings: Optional[dict] = Field(default_factory=dict)
 
 def load_config() -> AppConfig:
     if os.path.exists(CONFIG_PATH):

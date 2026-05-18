@@ -1038,3 +1038,109 @@ body {
 .rotating {
     animation: rotate 1s linear infinite;
 }
+
+/* Execution Panel */
+.execution-panel {
+    position: fixed;
+    left: 300px;
+    right: 350px;
+    bottom: 0;
+    height: 260px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 70;
+    display: flex;
+    flex-direction: column;
+}
+
+.execution-panel.collapsed {
+    height: 36px;
+}
+
+.execution-panel-header {
+    height: 36px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+}
+
+.execution-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.execution-status {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e9ecef;
+    color: #495057;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.execution-status.running,
+.execution-status.starting,
+.execution-status.cancelling {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.execution-status.succeeded {
+    background: #d4edda;
+    color: #155724;
+}
+
+.execution-status.failed,
+.execution-status.failed_to_start {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.execution-status.cancelled {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.execution-panel-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.execution-panel.collapsed .execution-panel-body {
+    display: none;
+}
+
+.execution-summary {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.execution-summary .hidden {
+    display: none;
+}
+
+.execution-log {
+    flex: 1;
+    margin: 0;
+    padding: 12px;
+    overflow: auto;
+    background: #101820;
+    color: #d8dee9;
+    font: 12px/1.5 Consolas, Monaco, "Courier New", monospace;
+    white-space: pre-wrap;
+}

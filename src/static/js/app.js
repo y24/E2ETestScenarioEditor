@@ -6,6 +6,7 @@ import { SharedScenarioSelectorModal } from './ui/shared_scenario_selector_modal
 import { TabManager } from './ui/tabs.js';
 import { ScenarioEditor } from './ui/scenario_editor.js';
 import { PropertiesPanel } from './ui/properties_panel.js';
+import { ExecutionPanel } from './ui/execution_panel.js';
 import { resizer } from './ui/resizer.js';
 import { showToast } from './ui/toast.js';
 
@@ -26,6 +27,9 @@ class App {
         this.saveTemplateModal = new SaveTemplateModal();
         this.selectTemplateModal = new SelectTemplateModal();
         this.templateEditorModal = new TemplateEditorModal();
+        this.executionPanel = new ExecutionPanel();
+        this.currentExecutionRunId = null;
+        this.executionPollTimer = null;
 
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
@@ -79,6 +83,20 @@ class App {
         document.getElementById('btn-duplicate-file').onclick = () => this.duplicateSelectedFile();
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
         document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('#btn-run-all, #btn-run-until, #btn-run-selected, #btn-stop-execution');
+            if (!button || button.disabled) return;
+
+            if (button.id === 'btn-run-all') {
+                this.startExecution('full');
+            } else if (button.id === 'btn-run-until') {
+                this.startExecution('until');
+            } else if (button.id === 'btn-run-selected') {
+                this.startExecution('single');
+            } else if (button.id === 'btn-stop-execution') {
+                this.cancelExecution();
+            }
+        });
 
         document.getElementById('btn-templates').onclick = () => this.templateEditorModal.open();
 
@@ -736,6 +754,7 @@ class App {
                 icon.setAttribute('name', originalName);
                 icon.style.color = '';
             }, 1000);
+            return response;
 
         } catch (e) {
             if (e.status === 409) {
@@ -765,12 +784,116 @@ class App {
         }
     }
 
+    async ensureRunnableTabSaved(tab) {
+        if (!tab.file.path) {
+            showToast("新規ファイルは保存してから実行してください", "error");
+            return false;
+        }
+        const settings = this.config.execution_settings || {};
+        if (tab.isDirty && settings.auto_save_before_run !== false) {
+            await this.performSave(tab.file.path, tab.data, tab.id);
+        } else if (tab.isDirty) {
+            showToast("未保存の変更があります", "error");
+            return false;
+        }
+        return true;
+    }
+
+    async startExecution(mode) {
+        const tab = this.tabManager.getActiveTab();
+        if (!tab) return;
+        if (!this.config.framework_path) {
+            showToast("Framework Path を設定してください", "error");
+            this.settingsModal.open(this.config);
+            return;
+        }
+
+        const range = this.editor.getSelectedStepRange();
+        if ((mode === 'until' || mode === 'single') && !range) {
+            showToast("実行するステップを選択してください", "error");
+            return;
+        }
+
+        try {
+            const saved = await this.ensureRunnableTabSaved(tab);
+            if (!saved) return;
+
+            let stepStart = null;
+            let stepEnd = null;
+            let section = 'steps';
+            if (mode === 'until') {
+                section = range.section;
+                stepStart = 0;
+                stepEnd = range.step_end;
+            } else if (mode === 'single') {
+                section = range.section;
+                stepStart = range.step_start;
+                stepEnd = range.step_end;
+            }
+
+            const state = await API.startExecution({
+                scenario_path: tab.file.path,
+                scenario_id: tab.data.id || null,
+                mode,
+                section,
+                step_start: stepStart,
+                step_end: stepEnd,
+                env: this.config.execution_settings?.default_env || 'DEFAULT',
+                include_setup: true,
+                include_teardown: mode === 'full'
+            });
+
+            this.currentExecutionRunId = state.run_id;
+            this.executionPanel.renderState(state);
+            this.updateActionButtons();
+            this.pollExecution();
+        } catch (e) {
+            showToast(e.message, "error");
+        }
+    }
+
+    async pollExecution() {
+        if (!this.currentExecutionRunId) return;
+        const runId = this.currentExecutionRunId;
+        try {
+            const [state, logs] = await Promise.all([
+                API.getExecution(runId),
+                API.getExecutionLogs(runId)
+            ]);
+            this.executionPanel.renderState(state);
+            this.executionPanel.renderLogs(logs.lines);
+
+            if (['running', 'starting', 'cancelling'].includes(state.status)) {
+                this.executionPollTimer = setTimeout(() => this.pollExecution(), 1000);
+            } else {
+                this.currentExecutionRunId = null;
+                this.executionPollTimer = null;
+                this.updateActionButtons();
+            }
+        } catch (e) {
+            showToast(e.message, "error");
+            this.currentExecutionRunId = null;
+            this.updateActionButtons();
+        }
+    }
+
+    async cancelExecution() {
+        if (!this.currentExecutionRunId) return;
+        try {
+            const state = await API.cancelExecution(this.currentExecutionRunId);
+            this.executionPanel.renderState(state);
+        } catch (e) {
+            showToast(e.message, "error");
+        }
+    }
+
     async onConfigSaved(newConfig) {
         this.config = await API.saveConfig(newConfig);
         this.propertiesPanel.setAppConfig(this.config);
         this.fileBrowser.load();
         this.propertiesPanel.loadAvailableSharedScenarios();
         this.propertiesPanel.loadAvailableTargets();
+        this.updateActionButtons();
     }
 
     async onFileSelected(file, isPreview = false) {
@@ -889,19 +1012,33 @@ class App {
         const btnSave = document.getElementById('btn-save');
         const btnSaveDropdown = document.getElementById('btn-save-dropdown');
         const btnReload = document.getElementById('btn-reload');
+        const btnRunAll = document.getElementById('btn-run-all');
+        const btnRunUntil = document.getElementById('btn-run-until');
+        const btnRunSelected = document.getElementById('btn-run-selected');
+        const btnStop = document.getElementById('btn-stop-execution');
+        const hasFramework = !!(this.config && this.config.framework_path);
+        const isRunning = !!this.currentExecutionRunId;
+        const range = this.editor ? this.editor.getSelectedStepRange() : null;
 
         if (!tab) {
             // No tab open: disable all buttons
             btnSave.disabled = true;
             btnSaveDropdown.disabled = true;
             btnReload.disabled = true;
+            if (btnRunAll) btnRunAll.disabled = true;
+            if (btnRunUntil) btnRunUntil.disabled = true;
+            if (btnRunSelected) btnRunSelected.disabled = true;
         } else {
             // Tab is open: always enable save buttons (for meta cleanup even when not dirty)
             btnSave.disabled = false;
             btnSaveDropdown.disabled = false;
             // Reload is only enabled if the file has a path (saved on disk)
             btnReload.disabled = !tab.file.path;
+            if (btnRunAll) btnRunAll.disabled = isRunning || !hasFramework || !tab.file.path;
+            if (btnRunUntil) btnRunUntil.disabled = isRunning || !hasFramework || !tab.file.path || !range;
+            if (btnRunSelected) btnRunSelected.disabled = isRunning || !hasFramework || !tab.file.path || !range;
         }
+        if (btnStop) btnStop.disabled = !isRunning;
     }
 
     onTabCloseRequest(tab) {
@@ -934,6 +1071,7 @@ class App {
 
     onStepSelected(step) {
         this.propertiesPanel.render(step);
+        this.updateActionButtons();
     }
 
     onMetaSaved(updatedData) {

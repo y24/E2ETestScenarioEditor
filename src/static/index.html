@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scenario Editor</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/components.css?v=20260518">
     <link rel="stylesheet" href="/static/css/components_group.css">
     <!-- SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -159,6 +159,19 @@
                         </div>
                         <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
                             共通シナリオとして使用するjsonファイルを抽出・表示します。</p>
+                    </div>
+
+                <div class="form-group">
+                        <label>Framework Path</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="framework-path" class="form-input"
+                                placeholder="Path to E2EFramework root" autocomplete="off">
+                            <button id="btn-pick-framework-path" class="btn btn-secondary" title="フォルダを選択">
+                                <ion-icon name="folder-open-outline"></ion-icon>
+                            </button>
+                        </div>
+                        <p style="font-size: 0.8em; color: #666; margin-top: 4px;">
+                            pytest を実行する E2EFramework のルートフォルダを指定します。</p>
                     </div>
 
                     <div class="form-group">
@@ -419,6 +432,27 @@
             <div class="modal-footer">
                 <button id="btn-template-json-save" class="btn btn-primary">保存</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Execution Panel -->
+    <div id="execution-panel" class="execution-panel collapsed">
+        <div class="execution-panel-header">
+            <div class="execution-title">
+                <ion-icon name="terminal-outline"></ion-icon>
+                <span>Execution</span>
+                <span id="execution-status" class="execution-status idle">idle</span>
+            </div>
+            <button id="btn-toggle-execution-panel" class="icon-btn-small" title="実行ログを表示">
+                <ion-icon name="chevron-up-outline"></ion-icon>
+            </button>
+        </div>
+        <div class="execution-panel-body">
+            <div class="execution-summary">
+                <span id="execution-target">No run</span>
+                <a id="execution-report-link" href="#" target="_blank" rel="noopener" class="hidden">Report</a>
+            </div>
+            <pre id="execution-log" class="execution-log"></pre>
         </div>
     </div>
 

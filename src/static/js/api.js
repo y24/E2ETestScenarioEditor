@@ -136,6 +136,43 @@ export const API = {
         });
         if (!res.ok) throw new Error('Failed to update template');
         return res.json();
+    },
+
+    async validateFramework() {
+        const res = await fetch(`${API_BASE}/executions/framework/validate`);
+        if (!res.ok) throw new Error('Failed to validate framework');
+        return res.json();
+    },
+
+    async startExecution(payload) {
+        const res = await fetch(`${API_BASE}/executions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.detail || 'Failed to start execution');
+        }
+        return res.json();
+    },
+
+    async getExecution(runId) {
+        const res = await fetch(`${API_BASE}/executions/${runId}`);
+        if (!res.ok) throw new Error('Failed to fetch execution status');
+        return res.json();
+    },
+
+    async getExecutionLogs(runId) {
+        const res = await fetch(`${API_BASE}/executions/${runId}/logs`);
+        if (!res.ok) throw new Error('Failed to fetch execution logs');
+        return res.json();
+    },
+
+    async cancelExecution(runId) {
+        const res = await fetch(`${API_BASE}/executions/${runId}/cancel`, { method: 'POST' });
+        if (!res.ok) throw new Error('Failed to cancel execution');
+        return res.json();
     }
 };
 

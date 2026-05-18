@@ -53,9 +53,14 @@ export class SettingsModal extends BaseModal {
         this.directoriesContainer = document.getElementById('directories-list');
         this.pageObjectFolderInput = document.getElementById('page-object-folder');
         this.btnPickPageObjectFolder = document.getElementById('btn-pick-page-object-folder');
+        this.frameworkPathInput = document.getElementById('framework-path');
+        this.btnPickFrameworkPath = document.getElementById('btn-pick-framework-path');
 
         if (this.btnPickPageObjectFolder) {
             this.btnPickPageObjectFolder.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
+        }
+        if (this.btnPickFrameworkPath) {
+            this.btnPickFrameworkPath.onclick = () => this.openDirectoryPicker(this.frameworkPathInput, null, true);
         }
 
         this.sharedScenarioInput = document.getElementById('shared-scenario-dir');
@@ -74,6 +79,11 @@ export class SettingsModal extends BaseModal {
             this.pageObjectFolderInput.readOnly = true;
             this.pageObjectFolderInput.classList.add('clickable-input');
             this.pageObjectFolderInput.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
+        }
+        if (this.frameworkPathInput) {
+            this.frameworkPathInput.readOnly = true;
+            this.frameworkPathInput.classList.add('clickable-input');
+            this.frameworkPathInput.onclick = () => this.openDirectoryPicker(this.frameworkPathInput, null, true);
         }
 
         // Settings Events
@@ -103,12 +113,16 @@ export class SettingsModal extends BaseModal {
         this.directories = currentConfig.scenario_directories || [];
         this.pageObjectFolder = currentConfig.page_object_folder || '';
         this.sharedScenarioDir = currentConfig.shared_scenario_dir || '';
+        this.frameworkPath = currentConfig.framework_path || '';
 
         if (this.pageObjectFolderInput) {
             this.pageObjectFolderInput.value = this.pageObjectFolder;
         }
         if (this.sharedScenarioInput) {
             this.sharedScenarioInput.value = this.sharedScenarioDir;
+        }
+        if (this.frameworkPathInput) {
+            this.frameworkPathInput.value = this.frameworkPath;
         }
         this.renderDirectories();
         // this.switchTab('settings-folders'); // Default tab - removed
@@ -248,6 +262,7 @@ export class SettingsModal extends BaseModal {
             ...currentConfig,
             scenario_directories: newDirectories,
             page_object_folder: this.pageObjectFolderInput ? this.pageObjectFolderInput.value.trim() : null,
+            framework_path: this.frameworkPathInput ? this.frameworkPathInput.value.trim() : null,
             shared_scenario_dir: this.sharedScenarioInput ? this.sharedScenarioInput.value.trim() : null
         };
         await this.saveCallback(newConfig);

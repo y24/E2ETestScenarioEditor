@@ -6,6 +6,7 @@ from .config import load_config, save_config, AppConfig
 from .file_service import FileService
 from .page_object_scanner import scan_page_objects
 from .templates_service import TemplatesService
+from .execution_service import ExecutionRequest, execution_service
 
 router = APIRouter(prefix="/api")
 
@@ -95,6 +96,42 @@ async def scan_target(target: str):
         
     except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
+
+# --- Execution API ---
+
+@router.get("/executions/framework/validate")
+async def validate_framework():
+    return execution_service.validate_framework()
+
+@router.post("/executions")
+async def start_execution(req: ExecutionRequest):
+    try:
+        return execution_service.start(req)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/executions/{run_id}")
+async def get_execution(run_id: str):
+    try:
+        return execution_service.get(run_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Execution not found")
+
+@router.get("/executions/{run_id}/logs")
+async def get_execution_logs(run_id: str):
+    try:
+        return execution_service.get_logs(run_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Execution not found")
+
+@router.post("/executions/{run_id}/cancel")
+async def cancel_execution(run_id: str):
+    try:
+        return execution_service.cancel(run_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Execution not found")
 
 # --- File Browser API ---
 
