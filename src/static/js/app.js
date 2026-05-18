@@ -907,32 +907,41 @@ class App {
 
         const sessionId = this.currentDebugSessionId;
 
-        let payload = { mode, section: 'steps', step_start: null, step_end: null, rerun_executed: false };
+        let payloads = [];
         if (mode === 'all') {
-            const steps = Array.isArray(tab.data.steps) ? tab.data.steps : [];
-            if (steps.length === 0) {
-                showToast("実行する steps がありません", "error");
+            payloads = this.buildDebugPayloadsFromSetup(tab.data, { section: 'steps', step_end: null });
+            if (payloads.length === 0) {
+                showToast("実行する setup / steps がありません", "error");
                 return;
             }
-            payload = { mode: 'range', section: 'steps', step_start: 0, step_end: steps.length - 1, rerun_executed: false };
         } else if (mode === 'until') {
-            payload.section = range.section;
-            payload.step_start = 0;
-            payload.step_end = range.step_end;
-            payload.rerun_executed = true;
+            payloads = this.buildDebugPayloadsFromSetup(tab.data, range);
+            if (payloads.length === 0) {
+                showToast("実行するステップがありません", "error");
+                return;
+            }
         } else if (mode === 'single') {
+            const payload = { mode, section: range.section, step_start: null, step_end: null, rerun_executed: false };
             payload.mode = range.count > 1 ? 'range' : 'single';
-            payload.section = range.section;
             payload.step_start = range.step_start;
             payload.step_end = range.step_end;
+            payloads = [payload];
         }
 
         try {
             this.debugRequestActive = true;
             this.updateActionButtons();
             this.scheduleDebugPoll(0);
-            const state = await API.runDebugSession(sessionId, payload);
-            this.renderDebugState(state);
+            let state = null;
+            for (const payload of payloads) {
+                state = await API.runDebugSession(sessionId, payload);
+                this.renderDebugState(state);
+                state = await this.waitForDebugRunSettled(sessionId, state);
+                this.renderDebugState(state);
+                if (state && !['idle', 'succeeded', 'completed'].includes(state.status)) {
+                    break;
+                }
+            }
             this.updateActionButtons();
             this.scheduleDebugPoll(0);
         } catch (e) {
@@ -941,6 +950,44 @@ class App {
             this.debugRequestActive = false;
             this.updateActionButtons();
         }
+    }
+
+    async waitForDebugRunSettled(sessionId, initialState) {
+        let state = initialState;
+        const deadline = Date.now() + 10 * 60 * 1000;
+        while (state && ['running', 'starting', 'cancelling'].includes(state.status) && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            state = await API.getDebugSession(sessionId);
+        }
+        return state;
+    }
+
+    buildDebugPayloadsFromSetup(data, target) {
+        const sectionOrder = ['setup', 'steps', 'teardown'];
+        const targetSectionIndex = sectionOrder.indexOf(target.section || 'steps');
+        if (targetSectionIndex < 0) return [];
+
+        const payloads = [];
+        for (let i = 0; i <= targetSectionIndex; i++) {
+            const section = sectionOrder[i];
+            const steps = Array.isArray(data[section]) ? data[section] : [];
+            if (steps.length === 0) continue;
+
+            const isTargetSection = section === target.section;
+            const stepEnd = isTargetSection && target.step_end !== null && target.step_end !== undefined
+                ? target.step_end
+                : steps.length - 1;
+            if (stepEnd < 0) continue;
+
+            payloads.push({
+                mode: 'range',
+                section,
+                step_start: 0,
+                step_end: Math.min(stepEnd, steps.length - 1),
+                rerun_executed: true
+            });
+        }
+        return payloads;
     }
 
     async pollDebugSession() {
