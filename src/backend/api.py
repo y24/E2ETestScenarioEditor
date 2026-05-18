@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Body
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 from typing import List, Dict, Any, Optional
 import os
 import subprocess
@@ -178,7 +179,7 @@ async def get_debug_session_logs(session_id: str, offset: int = 0):
 @router.post("/debug-sessions/{session_id}/run")
 async def run_debug_session(session_id: str, req: DebugSessionRunRequest):
     try:
-        return debug_session_service.run(session_id, req)
+        return await run_in_threadpool(debug_session_service.run, session_id, req)
     except KeyError:
         raise HTTPException(status_code=404, detail="Debug session not found")
     except ValueError as e:

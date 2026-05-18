@@ -40,6 +40,7 @@ export class ScenarioEditor {
         this.selectedStep = null;       // Currently selected step data object
         this.activeItemId = null;       // ID of the active item for properties
         this.lastCheckedStepId = null;  // For shift-click range selection
+        this.executingStepId = null;    // Step currently running in a debug session
 
         // Internal clipboard for paste operations (avoids browser permission dialogs)
         this.internalClipboard = null;
@@ -311,6 +312,7 @@ export class ScenarioEditor {
         const isSelected = this.selectedSteps.has(step._stepId) ? 'selected' : '';
         const checked = this.selectedSteps.has(step._stepId) ? 'checked' : '';
         const activeClass = step._stepId === this.activeItemId ? 'selected-primary' : '';
+        const executingClass = step._stepId === this.executingStepId ? 'executing-step' : '';
 
         let validationClass = '';
         if (this.validator) {
@@ -318,7 +320,7 @@ export class ScenarioEditor {
         }
 
         return `
-            <div class="step-item ${ignoredClass} ${isSelected} ${activeClass} ${validationClass}" data-id="${step._stepId}" data-type="step" data-section="${sectionKey}">
+            <div class="step-item ${ignoredClass} ${isSelected} ${activeClass} ${executingClass} ${validationClass}" data-id="${step._stepId}" data-type="step" data-section="${sectionKey}">
                 <div class="step-grip"><ion-icon name="reorder-two-outline"></ion-icon></div>
                 <input type="checkbox" class="step-checkbox" ${checked}>
                 <div class="step-icon_type" title="${step.type}">${typeIcon}</div>
@@ -333,6 +335,31 @@ export class ScenarioEditor {
                 </div>
             </div>
         `;
+    }
+
+    setExecutingStep(sectionKey, stepIndex) {
+        let stepId = null;
+        if (this.currentData && sectionKey && Number.isInteger(stepIndex)) {
+            const step = (this.currentData[sectionKey] || [])[stepIndex];
+            stepId = step ? step._stepId : null;
+        }
+
+        if (this.executingStepId === stepId) return;
+        this.executingStepId = stepId;
+        this.applyExecutingStepClass();
+    }
+
+    applyExecutingStepClass() {
+        if (!this.container) return;
+        this.container.querySelectorAll('.step-item.executing-step').forEach(el => {
+            el.classList.remove('executing-step');
+        });
+        if (!this.executingStepId) return;
+
+        const target = this.container.querySelector(`.step-item[data-id="${CSS.escape(this.executingStepId)}"]`);
+        if (target) {
+            target.classList.add('executing-step');
+        }
     }
 
     static ICON_MAPPING = null;

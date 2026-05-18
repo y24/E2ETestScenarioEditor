@@ -34,6 +34,7 @@ class App {
         this.debugLogs = [];
         this.debugRequestActive = false;
         this.currentDebugStatus = null;
+        this.currentDebugState = null;
 
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
@@ -918,10 +919,11 @@ class App {
         try {
             this.debugRequestActive = true;
             this.updateActionButtons();
+            this.scheduleDebugPoll(0);
             const state = await API.runDebugSession(sessionId, payload);
             this.renderDebugState(state);
             this.updateActionButtons();
-            this.pollDebugSession();
+            this.scheduleDebugPoll(0);
         } catch (e) {
             showToast(e.message, "error");
         } finally {
@@ -932,6 +934,10 @@ class App {
 
     async pollDebugSession() {
         if (!this.currentDebugSessionId) return;
+        if (this.debugPollTimer) {
+            clearTimeout(this.debugPollTimer);
+            this.debugPollTimer = null;
+        }
         const sessionId = this.currentDebugSessionId;
         try {
             const [state, logs] = await Promise.all([
@@ -943,8 +949,8 @@ class App {
             this.debugLogs.push(...(logs.logs || []));
             this.executionPanel.renderLogs(this.debugLogs);
 
-            if (['running', 'starting', 'cancelling'].includes(state.status)) {
-                this.debugPollTimer = setTimeout(() => this.pollDebugSession(), 1000);
+            if (['running', 'starting', 'cancelling'].includes(state.status) || this.debugRequestActive) {
+                this.scheduleDebugPoll(500);
             } else {
                 this.debugPollTimer = null;
                 this.updateActionButtons();
@@ -953,9 +959,16 @@ class App {
             showToast(e.message, "error");
             this.currentDebugSessionId = null;
             this.currentDebugStatus = null;
+            this.currentDebugState = null;
             this.debugPollTimer = null;
+            this.applyDebugStepHighlight(null);
             this.updateActionButtons();
         }
+    }
+
+    scheduleDebugPoll(delay = 1000) {
+        if (!this.currentDebugSessionId || this.debugPollTimer) return;
+        this.debugPollTimer = setTimeout(() => this.pollDebugSession(), delay);
     }
 
     async cancelDebugSession() {
@@ -976,8 +989,10 @@ class App {
             this.renderDebugState(state);
             this.currentDebugSessionId = null;
             this.currentDebugStatus = null;
+            this.currentDebugState = null;
             this.debugLogOffset = 0;
             this.debugLogs = [];
+            this.applyDebugStepHighlight(null);
             this.updateActionButtons();
         } catch (e) {
             showToast(e.message, "error");
@@ -991,8 +1006,10 @@ class App {
             this.renderDebugState(state);
             this.currentDebugSessionId = null;
             this.currentDebugStatus = null;
+            this.currentDebugState = null;
             this.debugLogOffset = 0;
             this.debugLogs = [];
+            this.applyDebugStepHighlight(null);
             this.updateActionButtons();
         } catch (e) {
             showToast(e.message, "error");
@@ -1101,6 +1118,7 @@ class App {
 
     onTabChange(tab) {
         this.editor.render(tab);
+        this.applyDebugStepHighlight(this.currentDebugState);
         if (tab) {
             // Restore properties panel if a step was selected in this tab
             this.propertiesPanel.render(this.editor.selectedStep);
@@ -1164,7 +1182,35 @@ class App {
 
     renderDebugState(state) {
         this.currentDebugStatus = state?.status || null;
+        this.currentDebugState = state || null;
+        this.applyDebugStepHighlight(state);
         this.executionPanel.renderState(state);
+    }
+
+    applyDebugStepHighlight(state) {
+        if (!this.editor) return;
+        const highlight = this.getDebugStepHighlight(state);
+        this.editor.setExecutingStep(highlight?.section || null, highlight?.index ?? null);
+    }
+
+    getDebugStepHighlight(state) {
+        if (!state || state.status !== 'running') return null;
+        if (state.current_index === null || state.current_index === undefined) return null;
+
+        const tab = this.tabManager ? this.tabManager.getActiveTab() : null;
+        if (!tab || !tab.file || !tab.file.path) return null;
+
+        const normalize = (path) => path ? String(path).replace(/\\/g, '/').toLowerCase() : '';
+        if (state.scenario_path && normalize(state.scenario_path) !== normalize(tab.file.path)) {
+            return null;
+        }
+
+        const index = Number(state.current_index);
+        if (!Number.isInteger(index) || index < 0) return null;
+        return {
+            section: state.current_section || 'steps',
+            index
+        };
     }
 
     renderDebugToggleButton(button, hasSession) {

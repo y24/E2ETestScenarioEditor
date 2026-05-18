@@ -358,6 +358,24 @@
     box-shadow: 0 0 0 1px var(--accent-color);
 }
 
+.step-item.executing-step {
+    background-color: #fff8d6;
+    border-color: #f2d56b;
+    box-shadow: inset 4px 0 0 #f4c542;
+}
+
+.step-item.executing-step:hover {
+    border-color: #e8c64f;
+    box-shadow: inset 4px 0 0 #f4c542, 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.step-item.executing-step.selected,
+.step-item.executing-step.selected-primary {
+    background-color: #fff3bf;
+    border-color: #e7bd25;
+    box-shadow: inset 4px 0 0 #f4c542, 0 0 0 1px #e7bd25;
+}
+
 .step-item.ignored {
     opacity: 0.6;
     background-color: #f5f5f5;
@@ -381,6 +399,24 @@
 .step-item.selected-primary.invalid-step {
     border-color: #c0392b;
     box-shadow: 0 0 0 1px #c0392b;
+}
+
+.step-item.executing-step.ignored,
+.step-item.executing-step.invalid-step,
+.step-item.executing-step.selected.invalid-step,
+.step-item.executing-step.selected-primary.invalid-step {
+    background-color: #fff8d6;
+    border-color: #f2d56b;
+    box-shadow: inset 4px 0 0 #f4c542;
+}
+
+.step-item.executing-step.selected,
+.step-item.executing-step.selected-primary,
+.step-item.executing-step.selected.invalid-step,
+.step-item.executing-step.selected-primary.invalid-step {
+    background-color: #fff3bf;
+    border-color: #e7bd25;
+    box-shadow: inset 4px 0 0 #f4c542, 0 0 0 1px #e7bd25;
 }
 
 .step-grip {
