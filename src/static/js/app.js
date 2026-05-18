@@ -908,7 +908,9 @@ class App {
             payload = { mode: 'range', section: 'steps', step_start: 0, step_end: steps.length - 1, rerun_executed: false };
         } else if (mode === 'until') {
             payload.section = range.section;
+            payload.step_start = 0;
             payload.step_end = range.step_end;
+            payload.rerun_executed = true;
         } else if (mode === 'single') {
             payload.mode = range.count > 1 ? 'range' : 'single';
             payload.section = range.section;
