@@ -147,6 +147,60 @@
     color: var(--text-primary);
 }
 
+.execution-action-session {
+    background-color: #eef7ff;
+    border-color: #cfe7ff;
+    color: #286a9e;
+}
+
+.execution-action-run {
+    background-color: #eefaf1;
+    border-color: #cbeed3;
+    color: #2d7a3e;
+}
+
+.execution-action-range {
+    background-color: #fff7e6;
+    border-color: #f5dfb7;
+    color: #9a6319;
+}
+
+.execution-action-selected {
+    background-color: #f4f0ff;
+    border-color: #ddd3ff;
+    color: #6547a8;
+}
+
+.execution-action-stop {
+    background-color: #fff4f2;
+    border-color: #f1d0cc;
+    color: #a3463d;
+}
+
+.execution-action-session:hover:not(:disabled) {
+    background-color: #dff0ff;
+    border-color: #9fcff5;
+    color: #155a8d;
+}
+
+.execution-action-run:hover:not(:disabled) {
+    background-color: #e1f6e7;
+    border-color: #9fdcad;
+    color: #216732;
+}
+
+.execution-action-range:hover:not(:disabled) {
+    background-color: #ffefcf;
+    border-color: #ebc574;
+    color: #7c4e11;
+}
+
+.execution-action-selected:hover:not(:disabled) {
+    background-color: #ece5ff;
+    border-color: #c6b5ff;
+    color: #553696;
+}
+
 .execution-action-btn:disabled {
     opacity: 0.35;
     cursor: not-allowed;

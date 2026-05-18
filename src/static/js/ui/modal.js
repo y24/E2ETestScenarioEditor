@@ -55,12 +55,16 @@ export class SettingsModal extends BaseModal {
         this.btnPickPageObjectFolder = document.getElementById('btn-pick-page-object-folder');
         this.frameworkPathInput = document.getElementById('framework-path');
         this.btnPickFrameworkPath = document.getElementById('btn-pick-framework-path');
+        this.btnApplyFrameworkDefaults = document.getElementById('btn-apply-framework-defaults');
 
         if (this.btnPickPageObjectFolder) {
             this.btnPickPageObjectFolder.onclick = () => this.openDirectoryPicker(this.pageObjectFolderInput, null, true);
         }
         if (this.btnPickFrameworkPath) {
             this.btnPickFrameworkPath.onclick = () => this.openDirectoryPicker(this.frameworkPathInput, null, true);
+        }
+        if (this.btnApplyFrameworkDefaults) {
+            this.btnApplyFrameworkDefaults.onclick = () => this.applyFrameworkDefaults();
         }
 
         this.sharedScenarioInput = document.getElementById('shared-scenario-dir');
@@ -246,6 +250,39 @@ export class SettingsModal extends BaseModal {
     removeDirectory(index) {
         this._updateDirectoriesFromUI();
         this.directories.splice(index, 1);
+        this.renderDirectories();
+    }
+
+    applyFrameworkDefaults() {
+        const frameworkPath = this.frameworkPathInput ? this.frameworkPathInput.value.trim() : '';
+        if (!frameworkPath) {
+            alert('Framework Path を設定してください。');
+            return;
+        }
+
+        const joinPath = (...parts) => {
+            const separator = frameworkPath.includes('\\') ? '\\' : '/';
+            return parts
+                .map((part, index) => {
+                    if (index === 0) return part.replace(/[\\/]+$/, '');
+                    return part.replace(/^[\\/]+|[\\/]+$/g, '');
+                })
+                .filter(Boolean)
+                .join(separator);
+        };
+
+        this.directories = [{
+            name: 'scenarios',
+            path: joinPath(frameworkPath, 'scenarios')
+        }];
+
+        if (this.sharedScenarioInput) {
+            this.sharedScenarioInput.value = joinPath(frameworkPath, 'scenarios_shared');
+        }
+        if (this.pageObjectFolderInput) {
+            this.pageObjectFolderInput.value = joinPath(frameworkPath, 'src', 'pages');
+        }
+
         this.renderDirectories();
     }
 

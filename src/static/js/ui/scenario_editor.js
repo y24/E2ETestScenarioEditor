@@ -149,19 +149,19 @@ export class ScenarioEditor {
                 </div>
                 <div class="scenario-action-area">
                     <div class="execution-actions" aria-label="現在のシナリオを実行">
-                    <button id="btn-debug-start" class="execution-action-btn" title="デバッグ開始">
-                        <ion-icon name="bug-outline"></ion-icon>
+                    <button id="btn-debug-start" class="execution-action-btn execution-action-session" title="デバッグ開始">
+                        <ion-icon name="link-outline"></ion-icon>
                         <span>開始</span>
                     </button>
-                    <button id="btn-run-all" class="execution-action-btn" title="Run all in debug session">
+                    <button id="btn-run-all" class="execution-action-btn execution-action-run" title="Run all in debug session">
                         <ion-icon name="play-outline"></ion-icon>
                         <span>全実行</span>
                     </button>
-                    <button id="btn-run-until" class="execution-action-btn" title="Run until selected in debug session">
+                    <button id="btn-run-until" class="execution-action-btn execution-action-range" title="Run until selected in debug session">
                         <ion-icon name="play-skip-forward-outline"></ion-icon>
                         <span>ここまで</span>
                     </button>
-                    <button id="btn-run-selected" class="execution-action-btn" title="Run selected step in debug session">
+                    <button id="btn-run-selected" class="execution-action-btn execution-action-selected" title="Run selected step in debug session">
                         <ion-icon name="radio-button-on-outline"></ion-icon>
                         <span>選択のみ</span>
                     </button>

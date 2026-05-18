@@ -33,6 +33,7 @@ class App {
         this.debugLogOffset = 0;
         this.debugLogs = [];
         this.debugRequestActive = false;
+        this.currentDebugStatus = null;
 
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
@@ -832,7 +833,7 @@ class App {
             this.currentDebugSessionId = state.session_id;
             this.debugLogOffset = 0;
             this.debugLogs = [];
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
             this.updateActionButtons();
             this.pollDebugSession();
             return state.session_id;
@@ -861,7 +862,7 @@ class App {
             this.currentDebugSessionId = state.session_id;
             this.debugLogOffset = 0;
             this.debugLogs = [];
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
 
             try {
                 const logs = await API.getDebugSessionLogs(state.session_id, this.debugLogOffset);
@@ -918,7 +919,7 @@ class App {
             this.debugRequestActive = true;
             this.updateActionButtons();
             const state = await API.runDebugSession(sessionId, payload);
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
             this.updateActionButtons();
             this.pollDebugSession();
         } catch (e) {
@@ -937,7 +938,7 @@ class App {
                 API.getDebugSession(sessionId),
                 API.getDebugSessionLogs(sessionId, this.debugLogOffset)
             ]);
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
             this.debugLogOffset = logs.next_offset ?? this.debugLogOffset;
             this.debugLogs.push(...(logs.logs || []));
             this.executionPanel.renderLogs(this.debugLogs);
@@ -951,6 +952,7 @@ class App {
         } catch (e) {
             showToast(e.message, "error");
             this.currentDebugSessionId = null;
+            this.currentDebugStatus = null;
             this.debugPollTimer = null;
             this.updateActionButtons();
         }
@@ -960,7 +962,8 @@ class App {
         if (!this.currentDebugSessionId) return;
         try {
             const state = await API.cancelDebugSession(this.currentDebugSessionId);
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
+            this.updateActionButtons();
         } catch (e) {
             showToast(e.message, "error");
         }
@@ -970,8 +973,9 @@ class App {
         if (!this.currentDebugSessionId) return;
         try {
             const state = await API.closeDebugSession(this.currentDebugSessionId, {});
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
             this.currentDebugSessionId = null;
+            this.currentDebugStatus = null;
             this.debugLogOffset = 0;
             this.debugLogs = [];
             this.updateActionButtons();
@@ -984,8 +988,9 @@ class App {
         if (!this.currentDebugSessionId) return;
         try {
             const state = await API.forceKillDebugSession(this.currentDebugSessionId);
-            this.executionPanel.renderState(state);
+            this.renderDebugState(state);
             this.currentDebugSessionId = null;
+            this.currentDebugStatus = null;
             this.debugLogOffset = 0;
             this.debugLogs = [];
             this.updateActionButtons();
@@ -1128,6 +1133,7 @@ class App {
         const hasFramework = !!(this.config && this.config.framework_path);
         const hasSession = !!this.currentDebugSessionId;
         const isRunning = !!this.debugPollTimer || this.debugRequestActive;
+        const isDebugExecutionRunning = hasSession && this.currentDebugStatus === 'running';
         const range = this.editor ? this.editor.getSelectedStepRange() : null;
 
         if (!tab) {
@@ -1152,8 +1158,13 @@ class App {
             if (btnRunUntil) btnRunUntil.disabled = !hasSession || isRunning || !hasFramework || !tab.file.path || !range;
             if (btnRunSelected) btnRunSelected.disabled = !hasSession || isRunning || !hasFramework || !tab.file.path || !range;
         }
-        if (btnStop) btnStop.disabled = !hasSession;
+        if (btnStop) btnStop.disabled = !isDebugExecutionRunning;
         if (btnForceKill) btnForceKill.disabled = !hasSession;
+    }
+
+    renderDebugState(state) {
+        this.currentDebugStatus = state?.status || null;
+        this.executionPanel.renderState(state);
     }
 
     renderDebugToggleButton(button, hasSession) {
@@ -1161,7 +1172,7 @@ class App {
         const icon = button.querySelector('ion-icon');
         const label = button.querySelector('span');
         button.title = hasSession ? 'デバッグ終了' : 'デバッグ開始';
-        if (icon) icon.name = hasSession ? 'close-circle-outline' : 'bug-outline';
+        if (icon) icon.name = hasSession ? 'close-circle-outline' : 'link-outline';
         if (label) label.textContent = hasSession ? '終了' : '開始';
     }
 

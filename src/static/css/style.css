@@ -634,6 +634,28 @@ body {
     margin-bottom: 16px;
 }
 
+.settings-derived-action {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.settings-derived-action .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-framework-defaults {
+    background-color: #2f7d6d;
+    color: white;
+}
+
+.btn-framework-defaults:hover {
+    background-color: #25695b;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 8px;
