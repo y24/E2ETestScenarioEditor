@@ -2,6 +2,9 @@ from fastapi import APIRouter, HTTPException, Body
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import os
+import subprocess
+import sys
+from pathlib import Path
 from .config import load_config, save_config, AppConfig
 from .file_service import FileService
 from .page_object_scanner import scan_page_objects
@@ -61,6 +64,36 @@ async def pick_directory():
             directory = directory.replace('\\', '/')
             return {"path": directory}
         return {"path": None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class OpenPathRequest(BaseModel):
+    path: str
+
+
+@router.post("/utils/open-path")
+async def open_path(req: OpenPathRequest):
+    try:
+        raw_path = (req.path or "").strip()
+        if not raw_path:
+            raise HTTPException(status_code=400, detail="Path is required")
+
+        path = Path(raw_path).expanduser().resolve()
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="Path not found")
+
+        target = path if path.is_dir() else path.parent
+        if os.name == "nt":
+            subprocess.Popen(["explorer", str(target)])
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", str(target)])
+        else:
+            subprocess.Popen(["xdg-open", str(target)])
+
+        return {"status": "success", "path": str(target)}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

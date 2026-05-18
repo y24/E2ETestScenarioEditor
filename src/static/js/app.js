@@ -890,8 +890,11 @@ class App {
             return;
         }
 
-        const sessionId = this.currentDebugSessionId || await this.startDebugSession();
-        if (!sessionId) return;
+        const sessionId = this.currentDebugSessionId;
+        if (!sessionId) {
+            showToast("デバッグ開始を押してから実行してください", "error");
+            return;
+        }
 
         let payload = { mode, section: 'steps', step_start: null, step_end: null, rerun_executed: false };
         if (mode === 'all') {
@@ -1145,9 +1148,9 @@ class App {
             btnReload.disabled = !tab.file.path;
             this.renderDebugToggleButton(btnDebugStart, hasSession);
             if (btnDebugStart) btnDebugStart.disabled = hasSession ? isRunning : (isRunning || !hasFramework || !tab.file.path);
-            if (btnRunAll) btnRunAll.disabled = isRunning || !hasFramework || !tab.file.path;
-            if (btnRunUntil) btnRunUntil.disabled = isRunning || !hasFramework || !tab.file.path || !range;
-            if (btnRunSelected) btnRunSelected.disabled = isRunning || !hasFramework || !tab.file.path || !range;
+            if (btnRunAll) btnRunAll.disabled = !hasSession || isRunning || !hasFramework || !tab.file.path;
+            if (btnRunUntil) btnRunUntil.disabled = !hasSession || isRunning || !hasFramework || !tab.file.path || !range;
+            if (btnRunSelected) btnRunSelected.disabled = !hasSession || isRunning || !hasFramework || !tab.file.path || !range;
         }
         if (btnStop) btnStop.disabled = !hasSession;
         if (btnForceKill) btnForceKill.disabled = !hasSession;

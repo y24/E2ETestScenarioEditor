@@ -21,6 +21,19 @@ export const API = {
         return res.json();
     },
 
+    async openPath(path) {
+        const res = await fetch(`${API_BASE}/utils/open-path`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path })
+        });
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.detail || 'Failed to open path');
+        }
+        return res.json();
+    },
+
     async getPageObjects() {
         const res = await fetch(`${API_BASE}/page-objects`);
         if (!res.ok) throw new Error('Failed to fetch page objects');

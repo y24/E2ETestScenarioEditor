@@ -1,3 +1,6 @@
+import { API } from '../api.js';
+import { showToast } from './toast.js';
+
 export class ExecutionPanel {
     constructor() {
         this.panel = document.getElementById('execution-panel');
@@ -7,9 +10,13 @@ export class ExecutionPanel {
         this.reportLink = document.getElementById('execution-report-link');
         this.toggleBtn = document.getElementById('btn-toggle-execution-panel');
         this.header = this.panel?.querySelector('.execution-panel-header');
+        this.artifactsPath = null;
 
         if (this.header) {
             this.header.onclick = () => this.toggle();
+        }
+        if (this.reportLink) {
+            this.reportLink.onclick = (event) => this.openArtifacts(event);
         }
     }
 
@@ -34,9 +41,10 @@ export class ExecutionPanel {
             : '';
         this.targetEl.textContent = `${state.session_id || 'debug'}: ${state.scenario_id || state.scenario_path || ''}${current}${resources}`;
 
-        const reportDir = state.report_dir;
-        if (reportDir) {
-            this.reportLink.href = `file:///${reportDir.replace(/\\/g, '/')}`;
+        const artifactsPath = this.resolveArtifactsPath(state);
+        this.artifactsPath = artifactsPath;
+        if (artifactsPath) {
+            this.reportLink.href = '#';
             this.reportLink.textContent = 'Artifacts';
             this.reportLink.classList.remove('hidden');
         } else {
@@ -49,5 +57,28 @@ export class ExecutionPanel {
             .map(line => line.formatted || `[${line.stream || line.level || 'log'}] ${line.text || line.message || ''}`)
             .join('\n');
         this.logEl.scrollTop = this.logEl.scrollHeight;
+    }
+
+    resolveArtifactsPath(state) {
+        if (!state) return null;
+        if (state.report_dir) return state.report_dir;
+
+        const artifacts = state.artifacts || {};
+        const artifactPath = artifacts.report || artifacts.log || artifacts.meta;
+        if (!artifactPath) return null;
+
+        return artifactPath.replace(/[\\/][^\\/]*$/, '');
+    }
+
+    async openArtifacts(event) {
+        event?.preventDefault();
+        event?.stopPropagation();
+        if (!this.artifactsPath) return;
+
+        try {
+            await API.openPath(this.artifactsPath);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
     }
 }
