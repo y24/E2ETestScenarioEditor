@@ -25,14 +25,18 @@ export class ExecutionPanel {
         this.toggle(true);
         this.statusEl.textContent = state.status;
         this.statusEl.className = `execution-status ${state.status}`;
-        const range = state.step_start === null || state.step_start === undefined
+        const current = state.current_index === null || state.current_index === undefined
             ? ''
-            : ` steps ${state.step_start}-${state.step_end}`;
-        this.targetEl.textContent = `${state.mode}: ${state.scenario_id || state.scenario_path}${range}`;
+            : ` ${state.current_section || 'steps'}[${state.current_index}]`;
+        const resources = state.resources
+            ? ` app:${state.resources.app_active ? 'on' : 'off'} browser:${state.resources.browser_active ? 'on' : 'off'}`
+            : '';
+        this.targetEl.textContent = `${state.session_id || 'debug'}: ${state.scenario_id || state.scenario_path || ''}${current}${resources}`;
 
-        const report = state.artifacts?.report;
-        if (report) {
-            this.reportLink.href = `file:///${report.replace(/\\/g, '/')}`;
+        const reportDir = state.report_dir;
+        if (reportDir) {
+            this.reportLink.href = `file:///${reportDir.replace(/\\/g, '/')}`;
+            this.reportLink.textContent = 'Artifacts';
             this.reportLink.classList.remove('hidden');
         } else {
             this.reportLink.classList.add('hidden');
@@ -41,7 +45,7 @@ export class ExecutionPanel {
 
     renderLogs(lines) {
         this.logEl.textContent = (lines || [])
-            .map(line => `[${line.stream}] ${line.text}`)
+            .map(line => line.formatted || `[${line.stream || line.level || 'log'}] ${line.text || line.message || ''}`)
             .join('\n');
         this.logEl.scrollTop = this.logEl.scrollHeight;
     }

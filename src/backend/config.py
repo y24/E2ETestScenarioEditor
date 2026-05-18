@@ -18,6 +18,10 @@ class ExecutionSettings(BaseModel):
     default_env: str = "DEFAULT"
     auto_save_before_run: bool = True
     max_log_lines: int = 2000
+    debug_server_host: str = "127.0.0.1"
+    debug_server_port: int = 0
+    debug_auto_close_resources: bool = True
+    debug_run_teardown_on_close: bool = True
 
 class AppConfig(BaseModel):
     scenario_directories: list[ScenarioDirectory] = Field(default_factory=list)

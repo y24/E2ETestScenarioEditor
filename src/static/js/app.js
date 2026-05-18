@@ -28,8 +28,11 @@ class App {
         this.selectTemplateModal = new SelectTemplateModal();
         this.templateEditorModal = new TemplateEditorModal();
         this.executionPanel = new ExecutionPanel();
-        this.currentExecutionRunId = null;
-        this.executionPollTimer = null;
+        this.currentDebugSessionId = null;
+        this.debugPollTimer = null;
+        this.debugLogOffset = 0;
+        this.debugLogs = [];
+        this.debugRequestActive = false;
 
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
@@ -84,17 +87,23 @@ class App {
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
         document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
         document.addEventListener('click', (e) => {
-            const button = e.target.closest('#btn-run-all, #btn-run-until, #btn-run-selected, #btn-stop-execution');
+            const button = e.target.closest('#btn-debug-start, #btn-run-all, #btn-run-until, #btn-run-selected, #btn-stop-execution, #btn-debug-end, #btn-debug-force-kill');
             if (!button || button.disabled) return;
 
-            if (button.id === 'btn-run-all') {
-                this.startExecution('full');
+            if (button.id === 'btn-debug-start') {
+                this.startDebugSession();
+            } else if (button.id === 'btn-run-all') {
+                this.runDebug('all');
             } else if (button.id === 'btn-run-until') {
-                this.startExecution('until');
+                this.runDebug('until');
             } else if (button.id === 'btn-run-selected') {
-                this.startExecution('single');
+                this.runDebug('single');
             } else if (button.id === 'btn-stop-execution') {
-                this.cancelExecution();
+                this.cancelDebugSession();
+            } else if (button.id === 'btn-debug-end') {
+                this.closeDebugSession();
+            } else if (button.id === 'btn-debug-force-kill') {
+                this.forceKillDebugSession();
             }
         });
 
@@ -208,6 +217,7 @@ class App {
 
             // Restore opened tabs
             await this.restoreTabs();
+            await this.restoreDebugSession();
 
             this.updateActionButtons();
 
@@ -799,7 +809,7 @@ class App {
         return true;
     }
 
-    async startExecution(mode) {
+    async startDebugSession() {
         const tab = this.tabManager.getActiveTab();
         if (!tab) return;
         if (!this.config.framework_path) {
@@ -807,81 +817,170 @@ class App {
             this.settingsModal.open(this.config);
             return;
         }
+        if (this.currentDebugSessionId) return this.currentDebugSessionId;
 
+        try {
+            this.debugRequestActive = true;
+            this.updateActionButtons();
+            const saved = await this.ensureRunnableTabSaved(tab);
+            if (!saved) return null;
+
+            const state = await API.createDebugSession({
+                scenario_path: tab.file.path,
+                scenario_id: tab.data.id || null,
+                env: this.config.execution_settings?.default_env || 'DEFAULT'
+            });
+
+            this.currentDebugSessionId = state.session_id;
+            this.debugLogOffset = 0;
+            this.debugLogs = [];
+            this.executionPanel.renderState(state);
+            this.updateActionButtons();
+            this.pollDebugSession();
+            return state.session_id;
+        } catch (e) {
+            showToast(e.message, "error");
+            return null;
+        } finally {
+            this.debugRequestActive = false;
+            this.updateActionButtons();
+        }
+    }
+
+    async restoreDebugSession() {
+        try {
+            const active = await API.getActiveDebugSession();
+            const state = active && active.active ? active.session : null;
+            if (!state || !state.session_id) return;
+
+            this.currentDebugSessionId = state.session_id;
+            this.debugLogOffset = 0;
+            this.debugLogs = [];
+            this.executionPanel.renderState(state);
+
+            try {
+                const logs = await API.getDebugSessionLogs(state.session_id, this.debugLogOffset);
+                this.debugLogOffset = logs.next_offset ?? this.debugLogOffset;
+                this.debugLogs.push(...(logs.logs || []));
+                this.executionPanel.renderLogs(this.debugLogs);
+            } catch (e) {
+                console.warn("Failed to restore debug logs:", e);
+            }
+
+            if (['running', 'starting', 'cancelling'].includes(state.status)) {
+                this.pollDebugSession();
+            }
+            showToast("既存のデバッグセッションを復元しました");
+        } catch (e) {
+            console.warn("Failed to restore active debug session:", e);
+        }
+    }
+
+    async runDebug(mode) {
+        const tab = this.tabManager.getActiveTab();
+        if (!tab) return;
         const range = this.editor.getSelectedStepRange();
         if ((mode === 'until' || mode === 'single') && !range) {
             showToast("実行するステップを選択してください", "error");
             return;
         }
 
-        try {
-            const saved = await this.ensureRunnableTabSaved(tab);
-            if (!saved) return;
+        const sessionId = this.currentDebugSessionId || await this.startDebugSession();
+        if (!sessionId) return;
 
-            let stepStart = null;
-            let stepEnd = null;
-            let section = 'steps';
-            if (mode === 'until') {
-                section = range.section;
-                stepStart = 0;
-                stepEnd = range.step_end;
-            } else if (mode === 'single') {
-                section = range.section;
-                stepStart = range.step_start;
-                stepEnd = range.step_end;
+        let payload = { mode, section: 'steps', step_start: null, step_end: null, rerun_executed: false };
+        if (mode === 'all') {
+            const steps = Array.isArray(tab.data.steps) ? tab.data.steps : [];
+            if (steps.length === 0) {
+                showToast("実行する steps がありません", "error");
+                return;
             }
+            payload = { mode: 'range', section: 'steps', step_start: 0, step_end: steps.length - 1, rerun_executed: false };
+        } else if (mode === 'until') {
+            payload.section = range.section;
+            payload.step_end = range.step_end;
+        } else if (mode === 'single') {
+            payload.mode = range.count > 1 ? 'range' : 'single';
+            payload.section = range.section;
+            payload.step_start = range.step_start;
+            payload.step_end = range.step_end;
+        }
 
-            const state = await API.startExecution({
-                scenario_path: tab.file.path,
-                scenario_id: tab.data.id || null,
-                mode,
-                section,
-                step_start: stepStart,
-                step_end: stepEnd,
-                env: this.config.execution_settings?.default_env || 'DEFAULT',
-                include_setup: true,
-                include_teardown: mode === 'full'
-            });
-
-            this.currentExecutionRunId = state.run_id;
+        try {
+            this.debugRequestActive = true;
+            this.updateActionButtons();
+            const state = await API.runDebugSession(sessionId, payload);
             this.executionPanel.renderState(state);
             this.updateActionButtons();
-            this.pollExecution();
+            this.pollDebugSession();
         } catch (e) {
             showToast(e.message, "error");
+        } finally {
+            this.debugRequestActive = false;
+            this.updateActionButtons();
         }
     }
 
-    async pollExecution() {
-        if (!this.currentExecutionRunId) return;
-        const runId = this.currentExecutionRunId;
+    async pollDebugSession() {
+        if (!this.currentDebugSessionId) return;
+        const sessionId = this.currentDebugSessionId;
         try {
             const [state, logs] = await Promise.all([
-                API.getExecution(runId),
-                API.getExecutionLogs(runId)
+                API.getDebugSession(sessionId),
+                API.getDebugSessionLogs(sessionId, this.debugLogOffset)
             ]);
             this.executionPanel.renderState(state);
-            this.executionPanel.renderLogs(logs.lines);
+            this.debugLogOffset = logs.next_offset ?? this.debugLogOffset;
+            this.debugLogs.push(...(logs.logs || []));
+            this.executionPanel.renderLogs(this.debugLogs);
 
             if (['running', 'starting', 'cancelling'].includes(state.status)) {
-                this.executionPollTimer = setTimeout(() => this.pollExecution(), 1000);
+                this.debugPollTimer = setTimeout(() => this.pollDebugSession(), 1000);
             } else {
-                this.currentExecutionRunId = null;
-                this.executionPollTimer = null;
+                this.debugPollTimer = null;
                 this.updateActionButtons();
             }
         } catch (e) {
             showToast(e.message, "error");
-            this.currentExecutionRunId = null;
+            this.currentDebugSessionId = null;
+            this.debugPollTimer = null;
             this.updateActionButtons();
         }
     }
 
-    async cancelExecution() {
-        if (!this.currentExecutionRunId) return;
+    async cancelDebugSession() {
+        if (!this.currentDebugSessionId) return;
         try {
-            const state = await API.cancelExecution(this.currentExecutionRunId);
+            const state = await API.cancelDebugSession(this.currentDebugSessionId);
             this.executionPanel.renderState(state);
+        } catch (e) {
+            showToast(e.message, "error");
+        }
+    }
+
+    async closeDebugSession() {
+        if (!this.currentDebugSessionId) return;
+        try {
+            const state = await API.closeDebugSession(this.currentDebugSessionId, {});
+            this.executionPanel.renderState(state);
+            this.currentDebugSessionId = null;
+            this.debugLogOffset = 0;
+            this.debugLogs = [];
+            this.updateActionButtons();
+        } catch (e) {
+            showToast(e.message, "error");
+        }
+    }
+
+    async forceKillDebugSession() {
+        if (!this.currentDebugSessionId) return;
+        try {
+            const state = await API.forceKillDebugSession(this.currentDebugSessionId);
+            this.executionPanel.renderState(state);
+            this.currentDebugSessionId = null;
+            this.debugLogOffset = 0;
+            this.debugLogs = [];
+            this.updateActionButtons();
         } catch (e) {
             showToast(e.message, "error");
         }
@@ -1012,12 +1111,16 @@ class App {
         const btnSave = document.getElementById('btn-save');
         const btnSaveDropdown = document.getElementById('btn-save-dropdown');
         const btnReload = document.getElementById('btn-reload');
+        const btnDebugStart = document.getElementById('btn-debug-start');
         const btnRunAll = document.getElementById('btn-run-all');
         const btnRunUntil = document.getElementById('btn-run-until');
         const btnRunSelected = document.getElementById('btn-run-selected');
         const btnStop = document.getElementById('btn-stop-execution');
+        const btnDebugEnd = document.getElementById('btn-debug-end');
+        const btnForceKill = document.getElementById('btn-debug-force-kill');
         const hasFramework = !!(this.config && this.config.framework_path);
-        const isRunning = !!this.currentExecutionRunId;
+        const hasSession = !!this.currentDebugSessionId;
+        const isRunning = !!this.debugPollTimer || this.debugRequestActive;
         const range = this.editor ? this.editor.getSelectedStepRange() : null;
 
         if (!tab) {
@@ -1025,6 +1128,7 @@ class App {
             btnSave.disabled = true;
             btnSaveDropdown.disabled = true;
             btnReload.disabled = true;
+            if (btnDebugStart) btnDebugStart.disabled = true;
             if (btnRunAll) btnRunAll.disabled = true;
             if (btnRunUntil) btnRunUntil.disabled = true;
             if (btnRunSelected) btnRunSelected.disabled = true;
@@ -1034,11 +1138,14 @@ class App {
             btnSaveDropdown.disabled = false;
             // Reload is only enabled if the file has a path (saved on disk)
             btnReload.disabled = !tab.file.path;
+            if (btnDebugStart) btnDebugStart.disabled = isRunning || hasSession || !hasFramework || !tab.file.path;
             if (btnRunAll) btnRunAll.disabled = isRunning || !hasFramework || !tab.file.path;
             if (btnRunUntil) btnRunUntil.disabled = isRunning || !hasFramework || !tab.file.path || !range;
             if (btnRunSelected) btnRunSelected.disabled = isRunning || !hasFramework || !tab.file.path || !range;
         }
-        if (btnStop) btnStop.disabled = !isRunning;
+        if (btnStop) btnStop.disabled = !hasSession;
+        if (btnDebugEnd) btnDebugEnd.disabled = isRunning || !hasSession;
+        if (btnForceKill) btnForceKill.disabled = !hasSession;
     }
 
     onTabCloseRequest(tab) {

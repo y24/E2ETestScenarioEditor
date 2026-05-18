@@ -149,21 +149,33 @@ export class ScenarioEditor {
                 </div>
                 <div class="scenario-action-area">
                     <div class="execution-actions" aria-label="現在のシナリオを実行">
-                    <button id="btn-run-all" class="execution-action-btn" title="Run all">
+                    <button id="btn-debug-start" class="execution-action-btn" title="デバッグ開始">
+                        <ion-icon name="bug-outline"></ion-icon>
+                        <span>開始</span>
+                    </button>
+                    <button id="btn-run-all" class="execution-action-btn" title="Run all in debug session">
                         <ion-icon name="play-outline"></ion-icon>
                         <span>全実行</span>
                     </button>
-                    <button id="btn-run-until" class="execution-action-btn" title="Run until selected">
+                    <button id="btn-run-until" class="execution-action-btn" title="Run until selected in debug session">
                         <ion-icon name="play-skip-forward-outline"></ion-icon>
                         <span>ここまで</span>
                     </button>
-                    <button id="btn-run-selected" class="execution-action-btn" title="Run selected step">
+                    <button id="btn-run-selected" class="execution-action-btn" title="Run selected step in debug session">
                         <ion-icon name="radio-button-on-outline"></ion-icon>
                         <span>選択のみ</span>
                     </button>
                     <button id="btn-stop-execution" class="execution-action-btn execution-action-stop" title="Stop execution" disabled>
                         <ion-icon name="stop-outline"></ion-icon>
                         <span>停止</span>
+                    </button>
+                    <button id="btn-debug-end" class="execution-action-btn" title="デバッグ終了" disabled>
+                        <ion-icon name="close-circle-outline"></ion-icon>
+                        <span>終了</span>
+                    </button>
+                    <button id="btn-debug-force-kill" class="execution-action-btn execution-action-stop" title="強制終了" disabled>
+                        <ion-icon name="warning-outline"></ion-icon>
+                        <span>強制終了</span>
                     </button>
                     </div>
                 </div>

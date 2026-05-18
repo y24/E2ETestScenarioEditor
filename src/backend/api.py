@@ -6,7 +6,12 @@ from .config import load_config, save_config, AppConfig
 from .file_service import FileService
 from .page_object_scanner import scan_page_objects
 from .templates_service import TemplatesService
-from .execution_service import ExecutionRequest, execution_service
+from .debug_session_service import (
+    DebugSessionCloseRequest,
+    DebugSessionCreateRequest,
+    DebugSessionRunRequest,
+    debug_session_service,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -97,41 +102,92 @@ async def scan_target(target: str):
     except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
 
-# --- Execution API ---
+# --- Debug Session API ---
 
-@router.get("/executions/framework/validate")
-async def validate_framework():
-    return execution_service.validate_framework()
+@router.get("/debug-sessions/framework/validate")
+async def validate_debug_framework():
+    return debug_session_service.validate_framework()
 
-@router.post("/executions")
-async def start_execution(req: ExecutionRequest):
+@router.post("/debug-sessions")
+async def create_debug_session(req: DebugSessionCreateRequest):
     try:
-        return execution_service.start(req)
+        return debug_session_service.create_session(req)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/executions/{run_id}")
-async def get_execution(run_id: str):
+@router.get("/debug-sessions/active")
+async def get_active_debug_session():
     try:
-        return execution_service.get(run_id)
-    except KeyError:
-        raise HTTPException(status_code=404, detail="Execution not found")
+        return debug_session_service.get_active_session()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/executions/{run_id}/logs")
-async def get_execution_logs(run_id: str):
+@router.get("/debug-sessions/{session_id}")
+async def get_debug_session(session_id: str):
     try:
-        return execution_service.get_logs(run_id)
+        return debug_session_service.get_session(session_id)
     except KeyError:
-        raise HTTPException(status_code=404, detail="Execution not found")
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/executions/{run_id}/cancel")
-async def cancel_execution(run_id: str):
+@router.get("/debug-sessions/{session_id}/logs")
+async def get_debug_session_logs(session_id: str, offset: int = 0):
     try:
-        return execution_service.cancel(run_id)
+        return debug_session_service.get_logs(session_id, offset=offset)
     except KeyError:
-        raise HTTPException(status_code=404, detail="Execution not found")
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/debug-sessions/{session_id}/run")
+async def run_debug_session(session_id: str, req: DebugSessionRunRequest):
+    try:
+        return debug_session_service.run(session_id, req)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/debug-sessions/{session_id}/next")
+async def next_debug_session(session_id: str):
+    try:
+        return debug_session_service.next(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/debug-sessions/{session_id}/cancel")
+async def cancel_debug_session(session_id: str):
+    try:
+        return debug_session_service.cancel(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/debug-sessions/{session_id}")
+async def close_debug_session(session_id: str, req: DebugSessionCloseRequest = Body(default={})):
+    try:
+        return debug_session_service.close(session_id, req)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/debug-sessions/{session_id}/force-kill")
+async def force_kill_debug_session(session_id: str):
+    try:
+        return debug_session_service.force_kill(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Debug session not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- File Browser API ---
 

@@ -139,39 +139,78 @@ export const API = {
     },
 
     async validateFramework() {
-        const res = await fetch(`${API_BASE}/executions/framework/validate`);
+        const res = await fetch(`${API_BASE}/debug-sessions/framework/validate`);
         if (!res.ok) throw new Error('Failed to validate framework');
         return res.json();
     },
 
-    async startExecution(payload) {
-        const res = await fetch(`${API_BASE}/executions`, {
+    async createDebugSession(payload) {
+        const res = await fetch(`${API_BASE}/debug-sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if (!res.ok) {
             const error = await res.json().catch(() => ({}));
-            throw new Error(error.detail || 'Failed to start execution');
+            throw new Error(error.detail || 'Failed to create debug session');
         }
         return res.json();
     },
 
-    async getExecution(runId) {
-        const res = await fetch(`${API_BASE}/executions/${runId}`);
-        if (!res.ok) throw new Error('Failed to fetch execution status');
+    async getActiveDebugSession() {
+        const res = await fetch(`${API_BASE}/debug-sessions/active`);
+        if (!res.ok) throw new Error('Failed to fetch active debug session');
         return res.json();
     },
 
-    async getExecutionLogs(runId) {
-        const res = await fetch(`${API_BASE}/executions/${runId}/logs`);
-        if (!res.ok) throw new Error('Failed to fetch execution logs');
+    async getDebugSession(sessionId) {
+        const res = await fetch(`${API_BASE}/debug-sessions/${sessionId}`);
+        if (!res.ok) throw new Error('Failed to fetch debug session status');
         return res.json();
     },
 
-    async cancelExecution(runId) {
-        const res = await fetch(`${API_BASE}/executions/${runId}/cancel`, { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to cancel execution');
+    async getDebugSessionLogs(sessionId, offset = 0) {
+        const params = new URLSearchParams({ offset: String(offset) });
+        const res = await fetch(`${API_BASE}/debug-sessions/${sessionId}/logs?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to fetch debug logs');
+        return res.json();
+    },
+
+    async runDebugSession(sessionId, payload) {
+        const res = await fetch(`${API_BASE}/debug-sessions/${sessionId}/run`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.detail || 'Failed to run debug session');
+        }
+        return res.json();
+    },
+
+    async cancelDebugSession(sessionId) {
+        const res = await fetch(`${API_BASE}/debug-sessions/${sessionId}/cancel`, { method: 'POST' });
+        if (!res.ok) throw new Error('Failed to cancel debug session');
+        return res.json();
+    },
+
+    async closeDebugSession(sessionId, payload = {}) {
+        const res = await fetch(`${API_BASE}/debug-sessions/${sessionId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.detail || 'Failed to close debug session');
+        }
+        return res.json();
+    },
+
+    async forceKillDebugSession(sessionId) {
+        const res = await fetch(`${API_BASE}/debug-sessions/${sessionId}/force-kill`, { method: 'POST' });
+        if (!res.ok) throw new Error('Failed to force kill debug session');
         return res.json();
     }
 };
