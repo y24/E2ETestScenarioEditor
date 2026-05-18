@@ -169,10 +169,6 @@ export class ScenarioEditor {
                         <ion-icon name="stop-outline"></ion-icon>
                         <span>停止</span>
                     </button>
-                    <button id="btn-debug-end" class="execution-action-btn" title="デバッグ終了" disabled>
-                        <ion-icon name="close-circle-outline"></ion-icon>
-                        <span>終了</span>
-                    </button>
                     <button id="btn-debug-force-kill" class="execution-action-btn execution-action-stop" title="強制終了" disabled>
                         <ion-icon name="warning-outline"></ion-icon>
                         <span>強制終了</span>

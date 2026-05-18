@@ -87,11 +87,11 @@ class App {
         document.getElementById('btn-save').onclick = () => this.saveCurrentTab();
         document.getElementById('btn-reload').onclick = () => this.reloadCurrentTab();
         document.addEventListener('click', (e) => {
-            const button = e.target.closest('#btn-debug-start, #btn-run-all, #btn-run-until, #btn-run-selected, #btn-stop-execution, #btn-debug-end, #btn-debug-force-kill');
+            const button = e.target.closest('#btn-debug-start, #btn-run-all, #btn-run-until, #btn-run-selected, #btn-stop-execution, #btn-debug-force-kill');
             if (!button || button.disabled) return;
 
             if (button.id === 'btn-debug-start') {
-                this.startDebugSession();
+                this.toggleDebugSession();
             } else if (button.id === 'btn-run-all') {
                 this.runDebug('all');
             } else if (button.id === 'btn-run-until') {
@@ -100,8 +100,6 @@ class App {
                 this.runDebug('single');
             } else if (button.id === 'btn-stop-execution') {
                 this.cancelDebugSession();
-            } else if (button.id === 'btn-debug-end') {
-                this.closeDebugSession();
             } else if (button.id === 'btn-debug-force-kill') {
                 this.forceKillDebugSession();
             }
@@ -847,6 +845,13 @@ class App {
         }
     }
 
+    async toggleDebugSession() {
+        if (this.currentDebugSessionId) {
+            return this.closeDebugSession();
+        }
+        return this.startDebugSession();
+    }
+
     async restoreDebugSession() {
         try {
             const active = await API.getActiveDebugSession();
@@ -1116,7 +1121,6 @@ class App {
         const btnRunUntil = document.getElementById('btn-run-until');
         const btnRunSelected = document.getElementById('btn-run-selected');
         const btnStop = document.getElementById('btn-stop-execution');
-        const btnDebugEnd = document.getElementById('btn-debug-end');
         const btnForceKill = document.getElementById('btn-debug-force-kill');
         const hasFramework = !!(this.config && this.config.framework_path);
         const hasSession = !!this.currentDebugSessionId;
@@ -1128,7 +1132,8 @@ class App {
             btnSave.disabled = true;
             btnSaveDropdown.disabled = true;
             btnReload.disabled = true;
-            if (btnDebugStart) btnDebugStart.disabled = true;
+            this.renderDebugToggleButton(btnDebugStart, hasSession);
+            if (btnDebugStart) btnDebugStart.disabled = hasSession ? isRunning : true;
             if (btnRunAll) btnRunAll.disabled = true;
             if (btnRunUntil) btnRunUntil.disabled = true;
             if (btnRunSelected) btnRunSelected.disabled = true;
@@ -1138,14 +1143,23 @@ class App {
             btnSaveDropdown.disabled = false;
             // Reload is only enabled if the file has a path (saved on disk)
             btnReload.disabled = !tab.file.path;
-            if (btnDebugStart) btnDebugStart.disabled = isRunning || hasSession || !hasFramework || !tab.file.path;
+            this.renderDebugToggleButton(btnDebugStart, hasSession);
+            if (btnDebugStart) btnDebugStart.disabled = hasSession ? isRunning : (isRunning || !hasFramework || !tab.file.path);
             if (btnRunAll) btnRunAll.disabled = isRunning || !hasFramework || !tab.file.path;
             if (btnRunUntil) btnRunUntil.disabled = isRunning || !hasFramework || !tab.file.path || !range;
             if (btnRunSelected) btnRunSelected.disabled = isRunning || !hasFramework || !tab.file.path || !range;
         }
         if (btnStop) btnStop.disabled = !hasSession;
-        if (btnDebugEnd) btnDebugEnd.disabled = isRunning || !hasSession;
         if (btnForceKill) btnForceKill.disabled = !hasSession;
+    }
+
+    renderDebugToggleButton(button, hasSession) {
+        if (!button) return;
+        const icon = button.querySelector('ion-icon');
+        const label = button.querySelector('span');
+        button.title = hasSession ? 'デバッグ終了' : 'デバッグ開始';
+        if (icon) icon.name = hasSession ? 'close-circle-outline' : 'bug-outline';
+        if (label) label.textContent = hasSession ? '終了' : '開始';
     }
 
     onTabCloseRequest(tab) {
