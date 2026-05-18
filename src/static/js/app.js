@@ -35,6 +35,7 @@ class App {
         this.debugRequestActive = false;
         this.currentDebugStatus = null;
         this.currentDebugState = null;
+        this.debugSessionStale = false;
 
         // Explorer Event Handlers
         this.fileBrowser.onRename = (file) => this.renameModal.open(file.path, file.name);
@@ -832,6 +833,7 @@ class App {
             });
 
             this.currentDebugSessionId = state.session_id;
+            this.debugSessionStale = false;
             this.debugLogOffset = 0;
             this.debugLogs = [];
             this.renderDebugState(state);
@@ -861,6 +863,7 @@ class App {
             if (!state || !state.session_id) return;
 
             this.currentDebugSessionId = state.session_id;
+            this.debugSessionStale = false;
             this.debugLogOffset = 0;
             this.debugLogs = [];
             this.renderDebugState(state);
@@ -892,11 +895,17 @@ class App {
             return;
         }
 
-        const sessionId = this.currentDebugSessionId;
-        if (!sessionId) {
+        if (!this.currentDebugSessionId) {
             showToast("デバッグ開始を押してから実行してください", "error");
             return;
         }
+
+        if (this.debugSessionStale) {
+            const restartedSessionId = await this.restartDebugSessionForCurrentTab(tab);
+            if (!restartedSessionId) return;
+        }
+
+        const sessionId = this.currentDebugSessionId;
 
         let payload = { mode, section: 'steps', step_start: null, step_end: null, rerun_executed: false };
         if (mode === 'all') {
@@ -992,6 +1001,7 @@ class App {
             this.currentDebugSessionId = null;
             this.currentDebugStatus = null;
             this.currentDebugState = null;
+            this.debugSessionStale = false;
             this.debugLogOffset = 0;
             this.debugLogs = [];
             this.applyDebugStepHighlight(null);
@@ -1009,12 +1019,50 @@ class App {
             this.currentDebugSessionId = null;
             this.currentDebugStatus = null;
             this.currentDebugState = null;
+            this.debugSessionStale = false;
             this.debugLogOffset = 0;
             this.debugLogs = [];
             this.applyDebugStepHighlight(null);
             this.updateActionButtons();
         } catch (e) {
             showToast(e.message, "error");
+        }
+    }
+
+    async restartDebugSessionForCurrentTab(tab) {
+        if (!this.currentDebugSessionId) return null;
+        try {
+            this.debugRequestActive = true;
+            this.updateActionButtons();
+            await API.closeDebugSession(this.currentDebugSessionId, { run_teardown: false, close_resources: false });
+            this.currentDebugSessionId = null;
+            this.currentDebugStatus = null;
+            this.currentDebugState = null;
+            this.debugSessionStale = false;
+            this.debugLogOffset = 0;
+            this.debugLogs = [];
+            this.applyDebugStepHighlight(null);
+
+            const saved = await this.ensureRunnableTabSaved(tab);
+            if (!saved) return null;
+
+            const state = await API.createDebugSession({
+                scenario_path: tab.file.path,
+                scenario_id: tab.data.id || null,
+                env: this.config.execution_settings?.default_env || 'DEFAULT'
+            });
+            this.currentDebugSessionId = state.session_id;
+            this.renderDebugState(state);
+            this.updateActionButtons();
+            this.pollDebugSession();
+            showToast("変更を反映するためデバッグセッションを再作成しました");
+            return state.session_id;
+        } catch (e) {
+            showToast(e.message, "error");
+            return null;
+        } finally {
+            this.debugRequestActive = false;
+            this.updateActionButtons();
         }
     }
 
@@ -1274,6 +1322,9 @@ class App {
         const tab = this.tabManager.getActiveTab();
         if (tab) {
             this.tabManager.markDirty(tab.id);
+            if (this.currentDebugSessionId) {
+                this.debugSessionStale = true;
+            }
             this.updateActionButtons();
         }
     }

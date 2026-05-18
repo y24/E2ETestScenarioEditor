@@ -147,7 +147,8 @@ class DebugSessionService:
         with self._lock:
             self._session_id = None
             self._section_lengths = {}
-        self._shutdown_server()
+        if payload["close_resources"]:
+            self._shutdown_server()
         return state
 
     def force_kill(self, session_id: str) -> Dict[str, Any]:
