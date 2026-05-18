@@ -75,7 +75,7 @@
 /* Multi-select actions toolbar */
 .selection-toolbar {
     position: fixed;
-    bottom: 24px;
+    bottom: 56px;
     left: 50%;
     transform: translateX(-50%);
     background-color: #2c3e50;
