@@ -1067,6 +1067,7 @@ body {
     align-items: center;
     justify-content: space-between;
     background: #f8f9fa;
+    cursor: pointer;
 }
 
 .execution-title {

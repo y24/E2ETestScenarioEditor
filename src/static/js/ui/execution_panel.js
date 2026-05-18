@@ -6,9 +6,10 @@ export class ExecutionPanel {
         this.logEl = document.getElementById('execution-log');
         this.reportLink = document.getElementById('execution-report-link');
         this.toggleBtn = document.getElementById('btn-toggle-execution-panel');
+        this.header = this.panel?.querySelector('.execution-panel-header');
 
-        if (this.toggleBtn) {
-            this.toggleBtn.onclick = () => this.toggle();
+        if (this.header) {
+            this.header.onclick = () => this.toggle();
         }
     }
 
